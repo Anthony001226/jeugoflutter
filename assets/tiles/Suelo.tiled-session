@@ -1,0 +1,57 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "dungeon.tmx",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "file.lastUsedOpenFilter": "All Files (*)",
+    "fileStates": {
+        "": {
+            "scaleInDock": 1
+        },
+        ":/automap-tiles.tsx": {
+            "scaleInDock": 1
+        },
+        "dungeon.tmx": {
+            "expandedGroupLayers": [
+                10
+            ],
+            "scale": 0.33,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 1009.0909090909092,
+                "y": 753.030303030303
+            }
+        },
+        "dungeon_tileset.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        }
+    },
+    "last.externalTilesetPath": "C:/Users/marco/OneDrive/Desktop/renegade_dungeon_game/assets/tiles",
+    "map.height": 15,
+    "map.lastUsedFormat": "tmx",
+    "map.orientation": "2",
+    "map.renderOrder": "1",
+    "map.tileHeight": 30,
+    "map.tileWidth": 60,
+    "map.width": 15,
+    "openFiles": [
+        "dungeon.tmx"
+    ],
+    "project": "Suelo.tiled-project",
+    "property.type": "string",
+    "recentFiles": [
+        "dungeon.tmx",
+        "dungeon_tileset.tsx"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 32
+    }
+}

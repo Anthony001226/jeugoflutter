@@ -1,0 +1,37 @@
+name: renegade_dungeon
+description: "A new Flutter project."
+publish_to: 'none' 
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.3 <4.0.0' # O la versión de tu SDK de Dart
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  # Dependencias del juego
+  flame: ^1.17.0
+  flame_tiled: ^1.18.0
+  tiled: ^0.10.2
+  flame_audio: ^2.11.0
+  video_player: ^2.8.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  # Asegúrate de declarar tus assets aquí
+  assets:
+    - assets/tiles/
+    - assets/images/
+    - assets/images/emotes/
+    - assets/images/backgrounds/
+    - assets/images/characters/
+    - assets/images/enemies/
+    - assets/images/ui/
+    - assets/videos/
+    - assets/audio/

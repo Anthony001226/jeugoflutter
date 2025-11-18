@@ -1,0 +1,73 @@
+{ "frames": {
+   "Soldier #Idle 0.aseprite": {
+    "frame": { "x": 0, "y": 0, "w": 100, "h": 100 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 100, "h": 100 },
+    "sourceSize": { "w": 100, "h": 100 },
+    "duration": 100
+   },
+   "Soldier #Idle 1.aseprite": {
+    "frame": { "x": 100, "y": 0, "w": 100, "h": 100 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 100, "h": 100 },
+    "sourceSize": { "w": 100, "h": 100 },
+    "duration": 100
+   },
+   "Soldier #Idle 2.aseprite": {
+    "frame": { "x": 200, "y": 0, "w": 100, "h": 100 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 100, "h": 100 },
+    "sourceSize": { "w": 100, "h": 100 },
+    "duration": 100
+   },
+   "Soldier #Idle 3.aseprite": {
+    "frame": { "x": 300, "y": 0, "w": 100, "h": 100 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 100, "h": 100 },
+    "sourceSize": { "w": 100, "h": 100 },
+    "duration": 100
+   },
+   "Soldier #Idle 4.aseprite": {
+    "frame": { "x": 400, "y": 0, "w": 100, "h": 100 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 100, "h": 100 },
+    "sourceSize": { "w": 100, "h": 100 },
+    "duration": 100
+   },
+   "Soldier #Idle 5.aseprite": {
+    "frame": { "x": 500, "y": 0, "w": 100, "h": 100 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 100, "h": 100 },
+    "sourceSize": { "w": 100, "h": 100 },
+    "duration": 100
+   }
+ },
+ "meta": {
+  "app": "https://github.com/LibreSprite/LibreSprite/",
+  "version": "1.1-dev",
+  "image": "characters/player_idle.png",
+  "format": "RGBA8888",
+  "size": { "w": 600, "h": 100 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "Idle", "from": 0, "to": 5, "direction": "forward" },
+   { "name": "Walk", "from": 6, "to": 13, "direction": "forward" },
+   { "name": "Attack01", "from": 14, "to": 19, "direction": "forward" },
+   { "name": "Attack02", "from": 20, "to": 25, "direction": "forward" },
+   { "name": "Attack03", "from": 26, "to": 34, "direction": "forward" },
+   { "name": "Hurt", "from": 35, "to": 38, "direction": "forward" },
+   { "name": "Death", "from": 39, "to": 42, "direction": "forward" }
+  ],
+  "layers": [
+   { "name": "shadow", "opacity": 255, "blendMode": "normal" },
+   { "name": "main", "opacity": 255, "blendMode": "normal" },
+   { "name": "effect", "opacity": 255, "blendMode": "normal" }
+  ]
+ }
+}
