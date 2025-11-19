@@ -19,10 +19,11 @@ class GoblinComponent extends SpriteAnimationComponent {
       xpValue: 45,
       lootTable: {
         // 10% de probabilidad de soltar una poción. ¡Un drop raro!
-        ItemDatabase.potion: 0.05, 
+        ItemDatabase.potion: 0.10,
+        ItemDatabase.goblinScimitar: 0.05,
       },
     );
-    
+
     // Creamos una "animación" de un solo frame
     final sprite = await Sprite.load('enemies/goblin.png');
     animation = SpriteAnimation.fromFrameData(
