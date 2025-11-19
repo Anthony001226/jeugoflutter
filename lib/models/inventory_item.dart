@@ -19,7 +19,28 @@ class InventoryItem {
   });
   static void doNothing(RenegadeDungeonGame game) {}
 }
-  
+
+enum EquipmentSlot {
+  weapon,
+  armor,
+  // En el futuro, podríamos añadir: relic, ring, etc.
+}
+
+class EquipmentItem extends InventoryItem {
+  final EquipmentSlot slot;
+  final int attackBonus;
+  final int defenseBonus;
+
+  const EquipmentItem({
+    required super.id,
+    required super.name,
+    required super.description,
+    required this.slot,
+    this.attackBonus = 0,
+    this.defenseBonus = 0,
+  }) : super(isUsable: false); // Un objeto de equipo no es "usable" como una poción.
+}
+
 void _doNothing(RenegadeDungeonGame game) {
   // No hace nada
 }
@@ -55,5 +76,21 @@ class ItemDatabase {
     name: 'Residuo de Slime',
     description: 'Una sustancia pegajosa. No se puede usar directamente.',
     // Este objeto no tiene efecto, por lo que usará el valor por defecto (_doNothing).
+  );
+
+  static final EquipmentItem rustySword = const EquipmentItem(
+    id: 'sword_rusty',
+    name: 'Espada Oxidada',
+    description: 'Un trozo de metal apenas afilado. Es mejor que nada.',
+    slot: EquipmentSlot.weapon,
+    attackBonus: 2,
+  );
+
+  static final EquipmentItem leatherTunic = const EquipmentItem(
+    id: 'tunic_leather',
+    name: 'Túnica de Cuero',
+    description: 'Ofrece una protección modesta contra los golpes.',
+    slot: EquipmentSlot.armor,
+    defenseBonus: 1,
   );
 }

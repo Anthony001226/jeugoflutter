@@ -29,6 +29,9 @@ class Player extends SpriteComponent
       initialAttack: 12,
       initialDefense: 5,
     );
+    stats.player = this;
+    addItem(ItemDatabase.rustySword);
+    addItem(ItemDatabase.leatherTunic);
     sprite = await game.loadSprite('characters/player.png');
     position = game.gridToScreenPosition(gridPosition);
     final hitboxSize = Vector2(24, 12);
@@ -184,4 +187,26 @@ class Player extends SpriteComponent
     inventory.notifyListeners();
   }
   
+  void equipItem(InventorySlot slot) {
+    // 1. Nos aseguramos de que el objeto que intentamos equipar sea realmente un EquipmentItem.
+    if (slot.item is! EquipmentItem) {
+      print('Error: Intentando equipar un objeto no equipable.');
+      return;
+    }
+
+    final equipmentItem = slot.item as EquipmentItem;
+    
+    // 2. Le pasamos el objeto a PlayerStats para que él maneje la lógica de estadísticas.
+    stats.equipItem(equipmentItem);
+    
+    // 3. ¡Importante! Consumimos UNA unidad del objeto de nuestro inventario.
+    slot.quantity--;
+    if (slot.quantity <= 0) {
+      inventory.value.remove(slot);
+    }
+    
+    // 4. Notificamos a la UI que el inventario ha cambiado.
+    inventory.notifyListeners();
+  }
+
 }

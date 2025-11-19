@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 import 'package:renegade_dungeon/ui/status_tab_view.dart';
 import 'package:renegade_dungeon/ui/inventory_tab_view.dart';
+import 'package:renegade_dungeon/ui/equipment_tab_view.dart';
 
 class PauseMenuUI extends StatelessWidget {
   final RenegadeDungeonGame game;
@@ -39,7 +40,7 @@ class PauseMenuUI extends StatelessWidget {
                     // Este no es 'const' porque depende de 'game'
                     StatusTabView(game: game),
                     InventoryTabView(game: game),
-                    const Center(child: Text('Aquí mostraremos el equipamiento del jugador.', style: TextStyle(color: Colors.white))),
+                    EquipmentTabView(game: game),
                     const Center(child: Text('Aquí, en el futuro, podríamos mostrar un mapa.', style: TextStyle(color: Colors.white))),
                   ],
                 ),

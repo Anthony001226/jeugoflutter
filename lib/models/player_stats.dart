@@ -1,17 +1,33 @@
 // lib/models/player_stats.dart
 
 import 'package:flutter/foundation.dart';
+import 'package:renegade_dungeon/models/inventory_item.dart';
+import 'package:renegade_dungeon/components/player.dart';
 import 'dart:math';
 
 class PlayerStats {
-  // Stats Base
+  late final Player player;
+  // Stats Base (¡ahora los renombramos para que quede claro!)
+  final ValueNotifier<int> baseAttack;
+  final ValueNotifier<int> baseDefense;
+  
+  // ... (level, maxHp, maxMp no cambian)
   final ValueNotifier<int> level;
   final ValueNotifier<int> maxHp;
   final ValueNotifier<int> maxMp;
-  final ValueNotifier<int> attack;
-  final ValueNotifier<int> defense;
 
-  // Stats que cambian constantemente
+  // --- ¡NUEVO! El equipo que el jugador lleva puesto. ---
+  final equippedItems = ValueNotifier<Map<EquipmentSlot, EquipmentItem>>({});
+
+  // Stats Totales (¡estos ahora son getters calculados!)
+  ValueNotifier<int> get attack => ValueNotifier(
+    baseAttack.value + (equippedItems.value[EquipmentSlot.weapon]?.attackBonus ?? 0)
+  );
+  ValueNotifier<int> get defense => ValueNotifier(
+    baseDefense.value + (equippedItems.value[EquipmentSlot.armor]?.defenseBonus ?? 0)
+  );
+
+  // ... (currentHp, currentMp, etc. no cambian)
   late final ValueNotifier<int> currentHp;
   late final ValueNotifier<int> currentMp;
   late final ValueNotifier<int> currentXp;
@@ -26,8 +42,9 @@ class PlayerStats {
   })  : level = ValueNotifier(initialLevel),
         maxHp = ValueNotifier(initialMaxHp),
         maxMp = ValueNotifier(initialMaxMp),
-        attack = ValueNotifier(initialAttack),
-        defense = ValueNotifier(initialDefense) {
+        // Guardamos los valores iniciales en las stats base.
+        baseAttack = ValueNotifier(initialAttack),
+        baseDefense = ValueNotifier(initialDefense) {
     currentHp = ValueNotifier(maxHp.value);
     currentMp = ValueNotifier(maxMp.value);
     currentXp = ValueNotifier(0);
@@ -73,5 +90,21 @@ class PlayerStats {
 
   void restoreHealth(int amount) {
     currentHp.value = (currentHp.value + amount).clamp(0, maxHp.value);
+  }
+
+  void equipItem(EquipmentItem newItem) {
+    final currentItem = equippedItems.value[newItem.slot];
+    
+    // Si había un objeto equipado antes, lo devolvemos al inventario del jugador.
+    if (currentItem != null) {
+      player.addItem(currentItem);
+      print('Devuelto al inventario: ${currentItem.name}');
+    }
+
+    final newMap = Map<EquipmentSlot, EquipmentItem>.from(equippedItems.value);
+    newMap[newItem.slot] = newItem;
+    equippedItems.value = newMap;
+    
+    print('Equipado: ${newItem.name}. Nuevo Ataque: ${attack.value}, Nueva Defensa: ${defense.value}');
   }
 }
