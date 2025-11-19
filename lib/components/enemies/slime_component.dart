@@ -2,6 +2,7 @@
 
 import 'package:flame/components.dart';
 import 'package:renegade_dungeon/models/enemy_stats.dart';
+import 'package:renegade_dungeon/models/inventory_item.dart';
 
 class SlimeComponent extends SpriteAnimationComponent with HasGameReference {
   late final EnemyStats stats;
@@ -17,6 +18,10 @@ class SlimeComponent extends SpriteAnimationComponent with HasGameReference {
       attack: 6,
       defense: 4,
       xpValue: 35,
+      lootTable: {
+        // 75% de probabilidad de soltar un Residuo de Slime.
+        ItemDatabase.slimeResidue: 0.75, 
+      },
     );
 
     await _loadAnimations();

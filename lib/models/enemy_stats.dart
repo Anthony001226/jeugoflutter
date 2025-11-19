@@ -1,12 +1,16 @@
 // lib/models/enemy_stats.dart
 
 import 'package:flutter/foundation.dart';
+import 'package:renegade_dungeon/models/inventory_item.dart'; // Importa los modelos de objetos
 
 class EnemyStats {
   final int maxHp;
   final int attack;
   final int defense;
-  final int xpValue; // NUEVO: Cantidad de XP que otorga
+  final int xpValue;
+
+  // Un mapa que asocia un objeto con su probabilidad de drop (de 0.0 a 1.0).
+  final Map<InventoryItem, double> lootTable;
 
   late final ValueNotifier<int> currentHp;
 
@@ -14,7 +18,9 @@ class EnemyStats {
     required this.maxHp,
     required this.attack,
     required this.defense,
-    required this.xpValue, // NUEVO
+    required this.xpValue,
+    // Por defecto, un enemigo no suelta nada.
+    this.lootTable = const {},
   }) {
     currentHp = ValueNotifier(maxHp);
   }

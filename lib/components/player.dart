@@ -6,6 +6,8 @@ import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 import 'package:renegade_dungeon/components/emote_component.dart';
+import 'package:flutter/foundation.dart'; // ¡Necesario para ValueNotifier!
+import 'package:renegade_dungeon/models/inventory_item.dart';
 import 'package:renegade_dungeon/models/player_stats.dart';
 import 'chest.dart';
 
@@ -13,6 +15,7 @@ class Player extends SpriteComponent
     with HasGameReference<RenegadeDungeonGame>, KeyboardHandler, CollisionCallbacks {
   Vector2 gridPosition;
   late final PlayerStats stats;
+  final inventory = ValueNotifier<List<InventorySlot>>([]);
 
   Player({required this.gridPosition})
       : super(size: Vector2(32, 48), anchor: Anchor.bottomCenter);
@@ -21,8 +24,8 @@ class Player extends SpriteComponent
   Future<void> onLoad() async {
     stats = PlayerStats(
       initialLevel: 1,
-      initialMaxHp: 100,
-      initialMaxMp: 50,
+      initialMaxHp: 25,
+      initialMaxMp: 10,
       initialAttack: 12,
       initialDefense: 5,
     );
@@ -32,7 +35,9 @@ class Player extends SpriteComponent
     add(RectangleHitbox(
       size: hitboxSize,
       position: Vector2((size.x - hitboxSize.x) / 2, size.y - hitboxSize.y),
-    ));
+    )
+    ..debugMode = true
+    );
     return super.onLoad();
   }
 
@@ -40,7 +45,22 @@ class Player extends SpriteComponent
   void onCollisionStart(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollisionStart(intersectionPoints, other);
     if (other is Chest) {
+      // --- ¡LA LÓGICA DE PROTECCIÓN! ---
+      // 1. Preguntamos: "¿Este cofre ya ha sido recogido?".
+      if (other.isCollected) {
+        // Si la respuesta es sí, no hacemos NADA. Salimos del método.
+        return; 
+      }
+      
+      // 2. Si llegamos aquí, significa que el cofre no ha sido recogido.
+      // Lo PRIMERO que hacemos es marcarlo como recogido para que nadie más pueda hacerlo.
+      other.isCollected = true;
+      
+      // 3. Ahora, y solo ahora, ejecutamos la lógica de forma segura.
       print('¡Cofre recogido en ${other.gridPosition} por colisión!');
+      addItem(ItemDatabase.potion);
+      
+      // 4. Finalmente, lo mandamos a la cola de eliminación.
       other.removeFromParent();
     }
   }
@@ -128,4 +148,40 @@ class Player extends SpriteComponent
     // Se posicionará relativo al ancla del jugador.
     add(EmoteComponent());
   }
+
+  void addItem(InventoryItem itemToAdd) {
+    // Buscamos si ya tenemos este objeto en el inventario.
+    final existingSlotIndex = inventory.value.indexWhere(
+      (slot) => slot.item.id == itemToAdd.id,
+    );
+
+    if (existingSlotIndex != -1) {
+      // Si ya lo tenemos, simplemente aumentamos la cantidad.
+      inventory.value[existingSlotIndex].quantity++;
+    } else {
+      // Si es un objeto nuevo, creamos un nuevo slot.
+      inventory.value.add(InventorySlot(item: itemToAdd));
+    }
+
+    // ¡Muy importante! Notificamos a los 'listeners' (como nuestra UI) que el inventario ha cambiado.
+    inventory.notifyListeners();
+    print('Añadido ${itemToAdd.name}. Inventario ahora tiene ${inventory.value.length} tipos de objetos.');
+  }
+
+  void useItem(InventorySlot slot) {
+    // 1. Llama a la función 'effect' del objeto.
+    slot.item.effect(game);
+
+    // 2. Reduce la cantidad.
+    slot.quantity--;
+
+    // 3. Si la cantidad llega a 0, elimina el slot del inventario.
+    if (slot.quantity <= 0) {
+      inventory.value.remove(slot);
+    }
+
+    // 4. Notifica a la UI que el inventario ha cambiado.
+    inventory.notifyListeners();
+  }
+  
 }

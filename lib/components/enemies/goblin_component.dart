@@ -2,6 +2,7 @@
 
 import 'package:flame/components.dart';
 import 'package:renegade_dungeon/models/enemy_stats.dart';
+import 'package:renegade_dungeon/models/inventory_item.dart';
 
 // Lo convertimos en SpriteAnimationComponent para que sea del mismo tipo que el Slime
 class GoblinComponent extends SpriteAnimationComponent {
@@ -16,6 +17,10 @@ class GoblinComponent extends SpriteAnimationComponent {
       attack: 8,
       defense: 2,
       xpValue: 45,
+      lootTable: {
+        // 10% de probabilidad de soltar una poción. ¡Un drop raro!
+        ItemDatabase.potion: 0.10, 
+      },
     );
     
     // Creamos una "animación" de un solo frame

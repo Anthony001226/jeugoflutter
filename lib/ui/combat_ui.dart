@@ -1,8 +1,7 @@
 // lib/ui/combat_ui.dart
 
-import 'package:flame/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:renegade_dungeon/components/enemies/goblin_component.dart'; // ¡IMPORT AÑADIDO!
+import 'package:renegade_dungeon/components/enemies/goblin_component.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 import 'package:renegade_dungeon/models/enemy_stats.dart';
 
@@ -13,11 +12,8 @@ class CombatUI extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // --- ¡SOLUCIÓN! ---
-    // Hacemos una comprobación de nulos al principio para satisfacer al compilador.
     final enemy = game.combatManager.currentEnemy;
     if (enemy == null) {
-      // Esto no debería pasar en la práctica, pero protege la app.
       return const Center(child: Text('Error: No se encontró el enemigo.', style: TextStyle(color: Colors.red)));
     }
     
@@ -48,12 +44,28 @@ class CombatUI extends StatelessWidget {
                   valueListenable: enemyStats.currentHp,
                   builder: (context, enemyHp, child) {
                     if (enemyHp == 0) {
+                      // Obtenemos la lista de objetos que se dropearon.
+                      final drops = game.combatManager.lastDroppedItems;
+
                       return Column(
                         children: [
                           Text(
                             '¡ENEMIGO DERROTADO! (+${enemyStats.xpValue} XP)',
                             style: const TextStyle(fontSize: 24, color: Colors.greenAccent)
                           ),
+                          
+                          // --- ¡AQUÍ MOSTRAMOS EL BOTÍN! ---
+                          if (drops.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            const Text('Botín Obtenido:', style: TextStyle(color: Colors.white, fontSize: 18)),
+                            // Usamos un Column para mostrar cada objeto en una nueva línea.
+                            ...drops.map((item) => Text(
+                              item.name,
+                              style: const TextStyle(color: Colors.amber, fontSize: 16),
+                            )).toList(),
+                          ],
+                          // ---------------------------------
+                          
                           const SizedBox(height: 20),
                           ElevatedButton(
                             onPressed: () => game.endCombat(),
@@ -74,22 +86,51 @@ class CombatUI extends StatelessWidget {
                 valueListenable: enemyStats.currentHp,
                 builder: (context, enemyHp, child) {
                   if (game.player.stats.currentHp.value == 0 || enemyHp == 0) {
-                    return const SizedBox.shrink();
+                    return const SizedBox.shrink(); // No mostrar botones si el combate ha terminado
                   }
                   return ValueListenableBuilder<CombatTurn>(
                     valueListenable: game.combatManager.currentTurn,
                     builder: (context, turn, child) {
-                      return ElevatedButton(
-                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
-                        onPressed: turn == CombatTurn.playerTurn
-                            ? () {
-                                game.combatManager.playerAttack();
-                              }
-                            : null,
-                        child: Text(
-                          turn == CombatTurn.playerTurn ? 'Atacar' : 'Turno del Enemigo...',
-                          style: const TextStyle(fontSize: 20),
-                        ),
+                      final isPlayerTurn = turn == CombatTurn.playerTurn;
+                      
+                      // Usamos un Row para poner los botones uno al lado del otro.
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // 1. BOTÓN DE ATACAR
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                              // Se deshabilita si no es el turno del jugador
+                              backgroundColor: isPlayerTurn ? null : Colors.grey.shade800,
+                            ),
+                            onPressed: isPlayerTurn
+                                ? () {
+                                    game.combatManager.playerAttack();
+                                  }
+                                : null,
+                            child: const Text('Atacar', style: TextStyle(fontSize: 20)),
+                          ),
+
+                          const SizedBox(width: 20), // Un espacio entre botones
+
+                          // 2. NUEVO BOTÓN DE OBJETOS
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                              backgroundColor: isPlayerTurn ? Colors.blue.shade700 : Colors.grey.shade800,
+                            ),
+                            onPressed: isPlayerTurn
+                                ? () {
+                                    // Por ahora, solo imprime un mensaje.
+                                    // En el siguiente paso, esto abrirá un nuevo overlay.
+                                    print('¡Botón de Objetos presionado!');
+                                    game.overlays.add('CombatInventoryUI');
+                                  }
+                                : null,
+                            child: const Text('Objetos', style: TextStyle(fontSize: 20)),
+                          ),
+                        ],
                       );
                     },
                   );
@@ -103,8 +144,6 @@ class CombatUI extends StatelessWidget {
   }
 
   Widget _buildEnemyHealthBar(int hp, EnemyStats stats) {
-    // --- ¡SOLUCIÓN! ---
-    // Usamos la variable enemyName que habíamos creado.
     final enemyName = game.combatManager.currentEnemy is GoblinComponent ? 'Goblin' : 'Slime';
     return Column(
       children: [

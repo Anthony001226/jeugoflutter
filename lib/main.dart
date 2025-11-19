@@ -9,6 +9,8 @@ import 'package:renegade_dungeon/ui/main_menu.dart';
 import 'package:renegade_dungeon/ui/player_hud.dart';
 import 'package:renegade_dungeon/ui/slot_selection_menu.dart';
 import 'game/renegade_dungeon_game.dart';
+import 'package:renegade_dungeon/ui/pause_menu_ui.dart';
+import 'package:renegade_dungeon/ui/combat_inventory_ui.dart';
 
 // El StatefulWidget que creamos está perfecto. No necesita cambios.
 class MyApp extends StatefulWidget {
@@ -59,6 +61,8 @@ class _MyAppState extends State<MyApp> {
             'LoadingUI': (context, game) => const LoadingUI(),
             'MainMenu': (context, game) => MainMenu(game: game),
             'SlotSelectionMenu': (context, game) => SlotSelectionMenu(game: game),
+            'PauseMenuUI': (context, game) => PauseMenuUI(game: game),
+            'CombatInventoryUI': (context, game) => CombatInventoryUI(game: game),
           },
         ),
       ],

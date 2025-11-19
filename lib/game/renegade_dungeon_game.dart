@@ -13,6 +13,10 @@ import '../components/player.dart';
 import 'game_screen.dart'; // Importa la nueva pantalla de juego
 import 'package:renegade_dungeon/game/splash_screen.dart';
 import 'package:video_player/video_player.dart';
+import 'package:flutter/services.dart';
+import 'package:renegade_dungeon/models/inventory_item.dart';
+import 'dart:math'; // ¡AÑADIDA! Para poder usar la clase Random.
+import '../models/enemy_stats.dart';
 
 import '../components/enemies/goblin_component.dart';
 import '../components/enemies/slime_component.dart';
@@ -26,6 +30,7 @@ import 'package:flame_audio/flame_audio.dart';
 enum GameState {
   exploring,
   inCombat,
+  inMenu,
 }
 enum CombatTurn {
   playerTurn,
@@ -37,6 +42,7 @@ class CombatManager {
   final RenegadeDungeonGame game;
   SpriteAnimationComponent? currentEnemy;
   late final ValueNotifier<CombatTurn> currentTurn;
+  List<InventoryItem> lastDroppedItems = [];
 
   CombatManager(this.game) {
     currentTurn = ValueNotifier(CombatTurn.playerTurn);
@@ -59,12 +65,31 @@ class CombatManager {
   void playerAttack() {
     if (currentTurn.value != CombatTurn.playerTurn || currentEnemy == null) return;
     final playerAttackPower = game.player.stats.attack.value;
-    final enemyStats = (currentEnemy as dynamic).stats;
+    final enemyStats = (currentEnemy as dynamic).stats as EnemyStats;
     enemyStats.takeDamage(playerAttackPower);
     if (enemyStats.currentHp.value == 0) {
+      // El enemigo ha sido derrotado.
       game.player.stats.gainXp(enemyStats.xpValue);
-      return;
+
+      // --- ¡LÓGICA DEL DROP DE BOTÍN! ---
+      // Limpiamos la lista de drops anteriores.
+      lastDroppedItems.clear();
+      final random = Random();
+
+      // Recorremos la tabla de botín del enemigo.
+      enemyStats.lootTable.forEach((item, chance) {
+        // Lanzamos un "dado" de 0.0 a 1.0.
+        if (random.nextDouble() < chance) {
+          // ¡Éxito! Añadimos el objeto al jugador y a nuestra lista de drops.
+          game.player.addItem(item);
+          lastDroppedItems.add(item);
+        }
+      });
+      // ---------------------------------
+      
+      return; // Termina el turno, no hay contraataque.
     }
+    
     currentTurn.value = CombatTurn.enemyTurn;
     Future.delayed(const Duration(seconds: 1), () {
       enemyAttack();
@@ -80,7 +105,29 @@ class CombatManager {
     }
     currentTurn.value = CombatTurn.playerTurn;
   }
+
+  void playerUseItem(InventorySlot slot) {
+    // 1. Nos aseguramos de que sea el turno del jugador y de que el objeto sea usable.
+    if (currentTurn.value != CombatTurn.playerTurn || !slot.item.isUsable) {
+      return; // No hacemos nada si no se cumplen las condiciones.
+    }
+
+    // 2. Le decimos al jugador que use el objeto.
+    // Esto aplicará el efecto y consumirá una unidad del inventario.
+    game.player.useItem(slot);
+
+    // 3. ¡MUY IMPORTANTE! El turno del jugador ha terminado.
+    // Le pasamos el control al enemigo.
+    currentTurn.value = CombatTurn.enemyTurn;
+
+    // 4. Programamos el contraataque del enemigo después de un segundo.
+    Future.delayed(const Duration(seconds: 1), () {
+      enemyAttack();
+    });
+  }
 }
+
+
 
 class RenegadeDungeonGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDetection {
   late final RouterComponent router;
@@ -302,5 +349,28 @@ class RenegadeDungeonGame extends FlameGame with HasKeyboardHandlerComponents, H
       zoneEnemyTypes = typesString.split(',');
       zoneEnemyChances = chancesString.split(',').map((e) => double.tryParse(e) ?? 0.0).toList();
     }
+  }
+
+  void togglePauseMenu() {
+    if (state == GameState.inMenu) { // Sin 'this.'
+      state = GameState.exploring;   // Sin 'this.'
+      overlays.remove('PauseMenuUI');
+    } else if (state == GameState.exploring) { // Sin 'this.'
+      state = GameState.inMenu;          // Sin 'this.'
+      overlays.add('PauseMenuUI');
+    }
+  }
+
+  @override
+  KeyEventResult onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+    if (event is KeyDownEvent) {
+      if (keysPressed.contains(LogicalKeyboardKey.keyM)) {
+        togglePauseMenu();
+        return KeyEventResult.handled;
+      }
+    }
+    // ¡OJO! Asegúrate de que esta línea esté presente.
+    // Llama al método original para que otras teclas (como el movimiento) sigan funcionando.
+    return super.onKeyEvent(event, keysPressed);
   }
 }
