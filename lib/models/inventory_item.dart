@@ -93,4 +93,12 @@ class ItemDatabase {
     slot: EquipmentSlot.armor,
     defenseBonus: 1,
   );
+  
+  static final EquipmentItem goblinScimitar = const EquipmentItem(
+    id: 'weapon_goblin_scimitar',
+    name: 'Cimitarra Goblin',
+    description: 'Una hoja curva y dentada. Sorprendentemente efectiva.',
+    slot: EquipmentSlot.weapon,
+    attackBonus: 5, // ¡Es mejor que la Espada Oxidada!
+  );
 }

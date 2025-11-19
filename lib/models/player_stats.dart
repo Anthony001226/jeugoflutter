@@ -107,4 +107,27 @@ class PlayerStats {
     
     print('Equipado: ${newItem.name}. Nuevo Ataque: ${attack.value}, Nueva Defensa: ${defense.value}');
   }
+
+  void unequipItem(EquipmentSlot slot) {
+    // 1. Verificamos si realmente hay algo en esa ranura.
+    if (!equippedItems.value.containsKey(slot)) {
+      print('Nada que desequipar en la ranura $slot.');
+      return;
+    }
+
+    // 2. Guardamos una referencia al objeto que vamos a quitar.
+    final itemToReturn = equippedItems.value[slot]!;
+
+    // 3. Creamos un nuevo mapa SIN el objeto de esa ranura.
+    final newMap = Map<EquipmentSlot, EquipmentItem>.from(equippedItems.value);
+    newMap.remove(slot);
+
+    // 4. Actualizamos el equipo, lo que notificará a la UI y recalculará las stats.
+    equippedItems.value = newMap;
+    
+    // 5. Usamos nuestra referencia al 'player' para devolver el objeto al inventario.
+    player.addItem(itemToReturn);
+
+    print('Desequipado: ${itemToReturn.name}. Nuevo Ataque: ${attack.value}, Nueva Defensa: ${defense.value}');
+  }
 }

@@ -24,7 +24,7 @@ class Player extends SpriteComponent
   Future<void> onLoad() async {
     stats = PlayerStats(
       initialLevel: 1,
-      initialMaxHp: 25,
+      initialMaxHp: 5,
       initialMaxMp: 10,
       initialAttack: 12,
       initialDefense: 5,
@@ -61,7 +61,7 @@ class Player extends SpriteComponent
       
       // 3. Ahora, y solo ahora, ejecutamos la lógica de forma segura.
       print('¡Cofre recogido en ${other.gridPosition} por colisión!');
-      addItem(ItemDatabase.potion);
+      addItem(other.item);
       
       // 4. Finalmente, lo mandamos a la cola de eliminación.
       other.removeFromParent();
@@ -208,5 +208,8 @@ class Player extends SpriteComponent
     // 4. Notificamos a la UI que el inventario ha cambiado.
     inventory.notifyListeners();
   }
-
+  void unequipItem(EquipmentSlot slot) {
+    // Simplemente le pasa la orden a PlayerStats.
+    stats.unequipItem(slot);
+  }
 }

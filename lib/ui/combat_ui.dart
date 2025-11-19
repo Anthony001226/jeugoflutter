@@ -14,9 +14,11 @@ class CombatUI extends StatelessWidget {
   Widget build(BuildContext context) {
     final enemy = game.combatManager.currentEnemy;
     if (enemy == null) {
-      return const Center(child: Text('Error: No se encontró el enemigo.', style: TextStyle(color: Colors.red)));
+      return const Center(
+          child: Text('Error: No se encontró el enemigo.',
+              style: TextStyle(color: Colors.red)));
     }
-    
+
     final enemyStats = (enemy as dynamic).stats as EnemyStats;
 
     return Scaffold(
@@ -28,44 +30,46 @@ class CombatUI extends StatelessWidget {
             ValueListenableBuilder<int>(
               valueListenable: game.player.stats.currentHp,
               builder: (context, playerHp, child) {
+                // --- ¡ESTA ES LA LÓGICA RESTAURADA! ---
                 if (playerHp == 0) {
                   return Column(
                     children: [
-                      const Text('¡HAS SIDO DERROTADO!', style: TextStyle(fontSize: 24, color: Colors.redAccent)),
+                      const Text('¡HAS SIDO DERROTADO!',
+                          style:
+                              TextStyle(fontSize: 24, color: Colors.redAccent)),
                       const SizedBox(height: 20),
                       ElevatedButton(
+                        // Este botón simplemente termina el combate.
                         onPressed: () => game.endCombat(),
                         child: const Text('Reiniciar desde Punto de Control'),
                       ),
                     ],
                   );
                 }
+                // ------------------------------------
+
                 return ValueListenableBuilder<int>(
                   valueListenable: enemyStats.currentHp,
                   builder: (context, enemyHp, child) {
                     if (enemyHp == 0) {
-                      // Obtenemos la lista de objetos que se dropearon.
                       final drops = game.combatManager.lastDroppedItems;
-
                       return Column(
                         children: [
                           Text(
-                            '¡ENEMIGO DERROTADO! (+${enemyStats.xpValue} XP)',
-                            style: const TextStyle(fontSize: 24, color: Colors.greenAccent)
-                          ),
-                          
-                          // --- ¡AQUÍ MOSTRAMOS EL BOTÍN! ---
+                              '¡ENEMIGO DERROTADO! (+${enemyStats.xpValue} XP)',
+                              style: const TextStyle(
+                                  fontSize: 24, color: Colors.greenAccent)),
                           if (drops.isNotEmpty) ...[
                             const SizedBox(height: 12),
-                            const Text('Botín Obtenido:', style: TextStyle(color: Colors.white, fontSize: 18)),
-                            // Usamos un Column para mostrar cada objeto en una nueva línea.
-                            ...drops.map((item) => Text(
-                              item.name,
-                              style: const TextStyle(color: Colors.amber, fontSize: 16),
-                            )).toList(),
+                            const Text('Botín Obtenido:',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 18)),
+                            ...drops
+                                .map((item) => Text(item.name,
+                                    style: const TextStyle(
+                                        color: Colors.amber, fontSize: 16)))
+                                .toList(),
                           ],
-                          // ---------------------------------
-                          
                           const SizedBox(height: 20),
                           ElevatedButton(
                             onPressed: () => game.endCombat(),
@@ -86,49 +90,42 @@ class CombatUI extends StatelessWidget {
                 valueListenable: enemyStats.currentHp,
                 builder: (context, enemyHp, child) {
                   if (game.player.stats.currentHp.value == 0 || enemyHp == 0) {
-                    return const SizedBox.shrink(); // No mostrar botones si el combate ha terminado
+                    return const SizedBox.shrink();
                   }
                   return ValueListenableBuilder<CombatTurn>(
                     valueListenable: game.combatManager.currentTurn,
                     builder: (context, turn, child) {
                       final isPlayerTurn = turn == CombatTurn.playerTurn;
-                      
-                      // Usamos un Row para poner los botones uno al lado del otro.
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // 1. BOTÓN DE ATACAR
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                              // Se deshabilita si no es el turno del jugador
-                              backgroundColor: isPlayerTurn ? null : Colors.grey.shade800,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 32, vertical: 16),
+                              backgroundColor:
+                                  isPlayerTurn ? null : Colors.grey.shade800,
                             ),
                             onPressed: isPlayerTurn
-                                ? () {
-                                    game.combatManager.playerAttack();
-                                  }
+                                ? () => game.combatManager.playerAttack()
                                 : null,
-                            child: const Text('Atacar', style: TextStyle(fontSize: 20)),
+                            child: const Text('Atacar',
+                                style: TextStyle(fontSize: 20)),
                           ),
-
-                          const SizedBox(width: 20), // Un espacio entre botones
-
-                          // 2. NUEVO BOTÓN DE OBJETOS
+                          const SizedBox(width: 20),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                              backgroundColor: isPlayerTurn ? Colors.blue.shade700 : Colors.grey.shade800,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 32, vertical: 16),
+                              backgroundColor: isPlayerTurn
+                                  ? Colors.blue.shade700
+                                  : Colors.grey.shade800,
                             ),
                             onPressed: isPlayerTurn
-                                ? () {
-                                    // Por ahora, solo imprime un mensaje.
-                                    // En el siguiente paso, esto abrirá un nuevo overlay.
-                                    print('¡Botón de Objetos presionado!');
-                                    game.overlays.add('CombatInventoryUI');
-                                  }
+                                ? () => game.overlays.add('CombatInventoryUI')
                                 : null,
-                            child: const Text('Objetos', style: TextStyle(fontSize: 20)),
+                            child: const Text('Objetos',
+                                style: TextStyle(fontSize: 20)),
                           ),
                         ],
                       );
@@ -144,20 +141,30 @@ class CombatUI extends StatelessWidget {
   }
 
   Widget _buildEnemyHealthBar(int hp, EnemyStats stats) {
-    final enemyName = game.combatManager.currentEnemy is GoblinComponent ? 'Goblin' : 'Slime';
+    final enemyName =
+        game.combatManager.currentEnemy is GoblinComponent ? 'Goblin' : 'Slime';
     return Column(
       children: [
-        Text('$enemyName HP: $hp / ${stats.maxHp}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18, fontFamily: 'monospace')),
+        Text('$enemyName HP: $hp / ${stats.maxHp}',
+            style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                fontFamily: 'monospace')),
         const SizedBox(height: 8),
         Container(
           width: 200,
           height: 15,
-          decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(
+              color: Colors.grey.shade800,
+              borderRadius: BorderRadius.circular(8)),
           child: FractionallySizedBox(
             alignment: Alignment.centerLeft,
             widthFactor: hp / stats.maxHp,
             child: Container(
-              decoration: BoxDecoration(color: Colors.red.shade700, borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(
+                  color: Colors.red.shade700,
+                  borderRadius: BorderRadius.circular(8)),
             ),
           ),
         ),
