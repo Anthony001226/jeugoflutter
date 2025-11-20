@@ -32,6 +32,7 @@ enum GameState {
   inCombat,
   inMenu,
 }
+
 enum CombatTurn {
   playerTurn,
   enemyTurn,
@@ -61,9 +62,10 @@ class CombatManager {
     }
     currentTurn.value = CombatTurn.playerTurn;
   }
-  
+
   void playerAttack() {
-    if (currentTurn.value != CombatTurn.playerTurn || currentEnemy == null) return;
+    if (currentTurn.value != CombatTurn.playerTurn || currentEnemy == null)
+      return;
     final playerAttackPower = game.player.stats.attack.value;
     final enemyStats = (currentEnemy as dynamic).stats as EnemyStats;
     enemyStats.takeDamage(playerAttackPower);
@@ -86,10 +88,10 @@ class CombatManager {
         }
       });
       // ---------------------------------
-      
+
       return; // Termina el turno, no hay contraataque.
     }
-    
+
     currentTurn.value = CombatTurn.enemyTurn;
     Future.delayed(const Duration(seconds: 1), () {
       enemyAttack();
@@ -127,9 +129,8 @@ class CombatManager {
   }
 }
 
-
-
-class RenegadeDungeonGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDetection {
+class RenegadeDungeonGame extends FlameGame
+    with HasKeyboardHandlerComponents, HasCollisionDetection {
   late final RouterComponent router;
   VideoPlayerController? videoPlayerController;
   GameState state = GameState.exploring;
@@ -146,7 +147,8 @@ class RenegadeDungeonGame extends FlameGame with HasKeyboardHandlerComponents, H
   List<String> zoneEnemyTypes = [];
   List<double> zoneEnemyChances = [];
   BattleScene? _battleScene;
-  final videoPlayerControllerNotifier = ValueNotifier<VideoPlayerController?>(null);
+  final videoPlayerControllerNotifier =
+      ValueNotifier<VideoPlayerController?>(null);
 
   @override
   Color backgroundColor() => Colors.transparent;
@@ -169,18 +171,19 @@ class RenegadeDungeonGame extends FlameGame with HasKeyboardHandlerComponents, H
         initialRoute: 'splash-screen',
         routes: {
           'splash-screen': Route(SplashScreen.new),
-          
+
           // --- ¡LÓGICA CORREGIDA AQUÍ! ---
           'main-menu': Route(() {
             // 1. Inicia el video de fondo.
             playBackgroundVideo('menu_background.mp4');
-            
+
             // 2. Crea un componente que contiene el temporizador.
             //    Al devolver un Component aquí, reemplazamos el SplashScreen anterior,
             //    limpiando el escenario y dejando ver el video.
             return Component(children: [
               TimerComponent(
-                period: 0.001, // Un retraso mínimo para asegurar que todo esté listo
+                period:
+                    0.001, // Un retraso mínimo para asegurar que todo esté listo
                 repeat: false,
                 onTick: () {
                   // 3. Limpia cualquier overlay viejo y añade el del menú principal.
@@ -196,10 +199,13 @@ class RenegadeDungeonGame extends FlameGame with HasKeyboardHandlerComponents, H
             // ¡CAMBIO! Llamamos al método general con el video de los slots.
             playBackgroundVideo('slot_background.mp4');
             return Component(children: [
-              TimerComponent(period: 0.001, repeat: false, onTick: () {
-                overlays.clear();
-                overlays.add('SlotSelectionMenu');
-              }),
+              TimerComponent(
+                  period: 0.001,
+                  repeat: false,
+                  onTick: () {
+                    overlays.clear();
+                    overlays.add('SlotSelectionMenu');
+                  }),
             ]);
           }),
 
@@ -232,14 +238,15 @@ class RenegadeDungeonGame extends FlameGame with HasKeyboardHandlerComponents, H
     // Esto simula una carga más larga, puedes quitarlo después
     await Future.delayed(const Duration(seconds: 5));
 
-    mapComponent = await TiledComponent.load('dungeon.tmx', Vector2(tileWidth, tileHeight));
+    mapComponent = await TiledComponent.load(
+        'dungeon.tmx', Vector2(tileWidth, tileHeight));
     loadZoneData(); // Ahora _loadZoneData se llama loadZoneData y es público
     collisionLayer = mapComponent.tileMap.getLayer<TileLayer>('Collision')!;
     collisionLayer.visible = false;
-    
+
     // NOTA: La carga de cofres se queda en GameScreen porque son parte del mundo
     // y no son tan pesados. Si tuvieras muchos, también los podrías precargar aquí.
-    
+
     player = Player(gridPosition: Vector2(20.0, 20.0));
   }
 
@@ -247,10 +254,11 @@ class RenegadeDungeonGame extends FlameGame with HasKeyboardHandlerComponents, H
 
   Future<void> playBackgroundVideo(String videoName) async {
     // Si ya estamos reproduciendo el video correcto, no hacemos nada.
-    if (videoPlayerControllerNotifier.value?.dataSource == 'assets/videos/$videoName') {
+    if (videoPlayerControllerNotifier.value?.dataSource ==
+        'assets/videos/$videoName') {
       return;
     }
-    
+
     // Si hay otro video reproduciéndose, lo detenemos primero.
     if (videoPlayerControllerNotifier.value != null) {
       await stopBackgroundVideo();
@@ -260,9 +268,9 @@ class RenegadeDungeonGame extends FlameGame with HasKeyboardHandlerComponents, H
     await controller.initialize();
     await controller.setLooping(true);
     await controller.setVolume(0.0);
-    
+
     videoPlayerControllerNotifier.value = controller;
-    
+
     await controller.play();
   }
 
@@ -270,16 +278,16 @@ class RenegadeDungeonGame extends FlameGame with HasKeyboardHandlerComponents, H
   // AHORA: Solo un cambio de nombre por consistencia
   Future<void> stopBackgroundVideo() async {
     if (videoPlayerControllerNotifier.value == null) return;
-    
+
     final controller = videoPlayerControllerNotifier.value!;
     await controller.dispose();
-    
+
     videoPlayerControllerNotifier.value = null;
   }
 
   void playMenuMusic() {
     // Detiene cualquier música que esté sonando antes de empezar la nueva.
-    FlameAudio.bgm.stop(); 
+    FlameAudio.bgm.stop();
     // Reproduce la música del menú en un bucle infinito.
     FlameAudio.bgm.play('menu_music.ogg');
   }
@@ -305,7 +313,7 @@ class RenegadeDungeonGame extends FlameGame with HasKeyboardHandlerComponents, H
     );
     await Future.delayed(const Duration(milliseconds: 1000));
     final screenFade = ScreenFade();
-    camera.viewport.add(screenFade); 
+    camera.viewport.add(screenFade);
     await screenFade.fadeOut();
     world.removeFromParent();
     camera.viewfinder.zoom = 1.0;
@@ -317,6 +325,16 @@ class RenegadeDungeonGame extends FlameGame with HasKeyboardHandlerComponents, H
   }
 
   void endCombat() {
+    // --- ¡NUEVA LÓGICA AÑADIDA! ---
+    // Si el jugador fue derrotado, restauramos su estado.
+    if (player.stats.currentHp.value == 0) {
+      player.stats.currentHp.value = player.stats.maxHp.value;
+      player.stats.currentMp.value = player.stats.maxMp.value;
+      player.gridPosition = Vector2(20.0, 20.0);
+      player.position = gridToScreenPosition(player.gridPosition);
+    }
+    // -----------------------------
+
     if (combatManager.currentEnemy != null) {
       combatManager.currentEnemy = null;
     }
@@ -345,24 +363,31 @@ class RenegadeDungeonGame extends FlameGame with HasKeyboardHandlerComponents, H
     zoneHasEnemies = mapProperties.getValue<bool>('hasEnemies') ?? false;
     if (zoneHasEnemies) {
       final typesString = mapProperties.getValue<String>('enemyTypes') ?? '';
-      final chancesString = mapProperties.getValue<String>('enemyChances') ?? '';
+      final chancesString =
+          mapProperties.getValue<String>('enemyChances') ?? '';
       zoneEnemyTypes = typesString.split(',');
-      zoneEnemyChances = chancesString.split(',').map((e) => double.tryParse(e) ?? 0.0).toList();
+      zoneEnemyChances = chancesString
+          .split(',')
+          .map((e) => double.tryParse(e) ?? 0.0)
+          .toList();
     }
   }
 
   void togglePauseMenu() {
-    if (state == GameState.inMenu) { // Sin 'this.'
-      state = GameState.exploring;   // Sin 'this.'
+    if (state == GameState.inMenu) {
+      // Sin 'this.'
+      state = GameState.exploring; // Sin 'this.'
       overlays.remove('PauseMenuUI');
-    } else if (state == GameState.exploring) { // Sin 'this.'
-      state = GameState.inMenu;          // Sin 'this.'
+    } else if (state == GameState.exploring) {
+      // Sin 'this.'
+      state = GameState.inMenu; // Sin 'this.'
       overlays.add('PauseMenuUI');
     }
   }
 
   @override
-  KeyEventResult onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+  KeyEventResult onKeyEvent(
+      KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (event is KeyDownEvent) {
       if (keysPressed.contains(LogicalKeyboardKey.keyM)) {
         togglePauseMenu();

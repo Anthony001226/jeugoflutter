@@ -34,7 +34,8 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    print('--- PASO 3: Reconstruyendo UI. Estado del video: ${_game.videoPlayerControllerNotifier.value == null ? "NULL" : "EXISTE Y ESTÁ INICIALIZADO: ${_game.videoPlayerControllerNotifier.value!.value.isInitialized}"} ---');
+    print(
+        '--- PASO 3: Reconstruyendo UI. Estado del video: ${_game.videoPlayerControllerNotifier.value == null ? "NULL" : "EXISTE Y ESTÁ INICIALIZADO: ${_game.videoPlayerControllerNotifier.value!.value.isInitialized}"} ---');
     return Stack(
       children: [
         // CAPA 1: El Video de Fondo
@@ -44,25 +45,29 @@ class _MyAppState extends State<MyApp> {
             child: FittedBox(
               fit: BoxFit.cover,
               child: SizedBox(
-                width: _game.videoPlayerControllerNotifier.value!.value.size.width,
-                height: _game.videoPlayerControllerNotifier.value!.value.size.height,
+                width:
+                    _game.videoPlayerControllerNotifier.value!.value.size.width,
+                height: _game
+                    .videoPlayerControllerNotifier.value!.value.size.height,
                 child: VideoPlayer(_game.videoPlayerControllerNotifier.value!),
               ),
             ),
           ),
-        
+
         // CAPA 2: El Juego
         GameWidget<RenegadeDungeonGame>.controlled(
           gameFactory: () => _game,
-          backgroundBuilder: (context) => Container(color: Colors.transparent),          
+          backgroundBuilder: (context) => Container(color: Colors.transparent),
           overlayBuilderMap: {
             'CombatUI': (context, game) => CombatUI(game: game),
             'PlayerHud': (context, game) => PlayerHud(game: game),
             'LoadingUI': (context, game) => const LoadingUI(),
             'MainMenu': (context, game) => MainMenu(game: game),
-            'SlotSelectionMenu': (context, game) => SlotSelectionMenu(game: game),
+            'SlotSelectionMenu': (context, game) =>
+                SlotSelectionMenu(game: game),
             'PauseMenuUI': (context, game) => PauseMenuUI(game: game),
-            'CombatInventoryUI': (context, game) => CombatInventoryUI(game: game),
+            'CombatInventoryUI': (context, game) =>
+                CombatInventoryUI(game: game),
           },
         ),
       ],
@@ -72,13 +77,13 @@ class _MyAppState extends State<MyApp> {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // --- ¡AQUÍ ESTÁ LA SOLUCIÓN! ---
   // Envolvemos nuestro widget MyApp dentro de un MaterialApp.
   runApp(
     const MaterialApp(
       // Esto quita la cinta de "Debug" de la esquina superior derecha.
-      debugShowCheckedModeBanner: false, 
+      debugShowCheckedModeBanner: false,
       // Le decimos que nuestra página de inicio es el widget que ya creamos.
       home: MyApp(),
     ),

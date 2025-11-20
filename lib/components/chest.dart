@@ -2,11 +2,18 @@
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:renegade_dungeon/models/inventory_item.dart';
 
 class Chest extends SpriteComponent {
   final Vector2 gridPosition;
   bool isCollected = false;
-  Chest({required this.gridPosition});
+  final InventoryItem item;
+
+  // Actualizamos el constructor.
+  Chest({
+    required this.gridPosition,
+    required this.item,
+  });
   
   @override
   Future<void> onLoad() async {

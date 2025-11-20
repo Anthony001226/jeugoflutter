@@ -8,7 +8,7 @@ class EquipmentTabView extends StatelessWidget {
   final RenegadeDungeonGame game;
   const EquipmentTabView({super.key, required this.game});
 
-  // Un widget de ayuda para mostrar una ranura de equipo
+  // Un widget de ayuda para mostrar una ranura de equipo equipada.
   Widget _buildEquippedSlot(EquipmentSlot slot, EquipmentItem? item) {
     final String slotName = slot == EquipmentSlot.weapon ? 'Arma' : 'Armadura';
     
@@ -22,22 +22,28 @@ class EquipmentTabView extends StatelessWidget {
         item?.description ?? 'No tienes nada equipado en esta ranura.',
         style: const TextStyle(color: Colors.grey),
       ),
+      trailing: item != null
+        ? ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade800,
+            ),
+            onPressed: () {
+              game.player.unequipItem(slot);
+            },
+            child: const Text('Desequipar'),
+          )
+        : null,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Filtramos el inventario para obtener solo los objetos equipables.
-    final equipableItems = game.player.inventory.value
-        .where((slot) => slot.item is EquipmentItem)
-        .toList();
-
     return Column(
       children: [
         // --- SECCIÓN 1: EQUIPADO ACTUALMENTE ---
         const Text('Equipado Actualmente', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
         const Divider(color: Colors.grey),
-        // Usamos un ValueListenableBuilder para que esta sección se actualice al equipar/desequipar
+        // Este ValueListenableBuilder se actualiza cuando el equipo cambia.
         ValueListenableBuilder<Map<EquipmentSlot, EquipmentItem>>(
           valueListenable: game.player.stats.equippedItems,
           builder: (context, equipped, child) {
@@ -56,11 +62,19 @@ class EquipmentTabView extends StatelessWidget {
         const Text('Equipables en Inventario', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
         const Divider(color: Colors.grey),
         Expanded(
-          child: ValueListenableBuilder(
+          // Este ValueListenableBuilder se actualiza cuando el inventario cambia.
+          child: ValueListenableBuilder<List<InventorySlot>>(
             valueListenable: game.player.inventory,
             builder: (context, inventory, child) {
+              // --- ¡LA SOLUCIÓN! ---
+              // La lista de objetos equipables se calcula aquí DENTRO,
+              // cada vez que el inventario se actualiza.
+              final equipableItems = inventory
+                  .where((slot) => slot.item is EquipmentItem)
+                  .toList();
+
               if (equipableItems.isEmpty) {
-                return const Center(child: Text('No tienes objetos equipables.', style: TextStyle(color: Colors.white)));
+                return const Center(child: Text('No tienes objetos equipables en el inventario.', style: TextStyle(color: Colors.white)));
               }
               
               return ListView.builder(
@@ -71,7 +85,7 @@ class EquipmentTabView extends StatelessWidget {
                     title: Text(slot.item.name, style: const TextStyle(color: Colors.white)),
                     trailing: ElevatedButton(
                       onPressed: () {
-                        // ¡Llamamos al método que creamos en el Player!
+                        // Llama al método para equipar el objeto.
                         game.player.equipItem(slot);
                       },
                       child: const Text('Equipar'),
