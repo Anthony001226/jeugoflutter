@@ -86,7 +86,13 @@ class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
 
   @override
   void onRemove() {
+    // Detiene la música
     game.stopMusic();
+
+    // Remueve los overlays del juego
+    game.overlays.remove('PlayerHud');
+    game.overlays.remove('PauseMenuUI');
+
     super.onRemove();
   }
 }
