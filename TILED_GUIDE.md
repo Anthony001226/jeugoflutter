@@ -12,14 +12,17 @@ Cuando editas el mapa en Tiled y usas tilesets con imágenes, Tiled **guarda rut
 ### 1. **Organiza los Archivos ANTES de Editar**
 
 ```
-assets/tiles/
-├── dungeon.tmx           (El mapa)
-├── dungeon_tileset.tsx   (Tileset principal)
-├── mi_nuevo_tileset.tsx  (Nuevo tileset)
-└── mi_nuevo_tileset.png  (Imagen del tileset)
+assets/
+├── tiles/
+│   ├── dungeon.tmx           (El mapa)
+│   ├── dungeon_tileset.tsx   (Tileset principal)
+│   └── mi_nuevo_tileset.tsx  (Nuevo tileset)
+└── images/
+    ├── iso_tile_export.png   (Imagen del tileset principal)
+    └── mi_nuevo_tileset.png  (Imagen del nuevo tileset)
 ```
 
-**REGLA DE ORO**: La imagen `.png` DEBE estar en la misma carpeta que el `.tsx`
+**REGLA DE ORO**: Las imágenes `.png` pueden estar en `assets/images/` o `assets/tiles/`, pero **siempre usa rutas relativas**
 
 ---
 
@@ -44,14 +47,17 @@ assets/tiles/
 Abre el archivo `.tsx` en un editor de texto y verifica:
 
 ```xml
-<!-- ✅ CORRECTO: Ruta relativa -->
+<!-- ✅ CORRECTO: Ruta relativa (misma carpeta) -->
 <image source="mi_imagen.png" width="256" height="256"/>
+
+<!-- ✅ CORRECTO: Ruta relativa (carpeta images) -->
+<image source="../images/iso_tile_export.png" width="256" height="256"/>
 
 <!-- ❌ INCORRECTO: Ruta absoluta -->
 <image source="D:/mis_archivos/Tiled/mi_imagen.png" width="256" height="256"/>
 ```
 
-**Si ves rutas como `C:/` o `D:/`**: Cámbialas manualmente a solo el nombre del archivo.
+**Si ves rutas como `C:/` o `D:/`**: Cámbialas a rutas relativas como `../images/archivo.png`
 
 ---
 
@@ -94,10 +100,10 @@ git push origin main
 
 ## 📋 Checklist Antes de Push
 
-- [ ] ¿Las imágenes `.png` están en `assets/tiles/`?
-- [ ] ¿Los archivos `.tsx` tienen rutas relativas (sin `C:/` o `D:/`)?
+- [ ] ¿Las imágenes `.png` están en `assets/images/` o `assets/tiles/`?
+- [ ] ¿Los archivos `.tsx` tienen rutas relativas correctas (ej: `../images/archivo.png`)?
 - [ ] ¿El juego corre sin errores en mi máquina?
-- [ ] ¿Hice `git add` de TODOS los archivos necesarios?
+- [ ] ¿Hice `git add` de TODOS los archivos necesarios (`.tsx` Y `.png`)?
 
 ---
 
