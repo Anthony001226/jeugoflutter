@@ -7,6 +7,7 @@
  </properties>
  <tileset firstgid="1" source="dungeon_tileset.tsx"/>
  <tileset firstgid="161" source="tiles_box.tsx"/>
+ <tileset firstgid="185" source="boxes_wood.tsx"/>
  <layer id="5" name="Collision" width="80" height="80">
   <data encoding="csv">
 21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,0,0,0,0,0,0,0,0,0,0,
