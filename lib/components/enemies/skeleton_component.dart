@@ -5,26 +5,56 @@ import 'package:renegade_dungeon/models/combat_stats.dart';
 import 'package:renegade_dungeon/models/combat_ability.dart';
 import 'package:renegade_dungeon/models/ability_database.dart';
 import 'package:renegade_dungeon/models/inventory_item.dart';
+import 'package:renegade_dungeon/models/enemy_stats.dart';
+import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
+
+// Enemy wrapper que implementa CombatStatsHolder
+class SkeletonStats extends EnemyStats implements CombatStatsHolder {
+  @override
+  final CombatStats combatStats;
+
+  SkeletonStats(this.combatStats)
+      : super(
+          maxHp: combatStats.maxHp.value,
+          attack: combatStats.attack.value,
+          defense: combatStats.defense.value,
+          xpValue: 50,
+          lootTable: {
+            ItemDatabase.potion: 0.10,
+            ItemDatabase.rustySword: 0.05,
+          },
+        ) {
+    // Sincronizar currentHp con combatStats
+    currentHp = combatStats.currentHp;
+  }
+
+  @override
+  void takeDamage(int amount) {
+    combatStats.takeDamage(amount);
+  }
+}
 
 class SkeletonComponent extends SpriteAnimationComponent {
-  late final CombatStats stats;
+  late final SkeletonStats stats;
   late final List<CombatAbility> abilities;
 
   SkeletonComponent() : super(size: Vector2.all(128));
 
   @override
   Future<void> onLoad() async {
-    // Estadísticas: Defensivo y resistente
-    stats = CombatStats(
+    // Estadísticas: Tank con alta HP y defensa
+    final combatStats = CombatStats(
       initialHp: 35,
       initialMaxHp: 35,
-      initialMp: 30,
-      initialMaxMp: 30,
+      initialMp: 25,
+      initialMaxMp: 25,
       initialSpeed: 8, // LENTO
       initialAttack: 12,
       initialDefense: 8, // ALTA DEFENSA
-      initialCritChance: 0.05,
+      initialCritChance: 0.05, // 5% crítico
     );
+
+    stats = SkeletonStats(combatStats);
 
     // Habilidades
     abilities = AbilityDatabase.getSkeletonAbilities();
@@ -40,12 +70,4 @@ class SkeletonComponent extends SpriteAnimationComponent {
       ),
     );
   }
-
-  // Loot table
-  Map<InventoryItem, double> get lootTable => {
-        ItemDatabase.potion: 0.20,
-        // TODO: Añadir "Bone" o item especial de skeleton
-      };
-
-  int get xpValue => 50;
 }

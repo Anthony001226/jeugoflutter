@@ -17,9 +17,16 @@ import 'package:flutter/services.dart';
 import 'package:renegade_dungeon/models/inventory_item.dart';
 import 'dart:math'; // ¡AÑADIDA! Para poder usar la clase Random.
 import '../models/enemy_stats.dart';
+import '../models/combat_ability.dart';
+import '../models/combat_stats.dart';
+import '../utils/damage_calculator.dart';
+import '../game/enemy_ai.dart';
+import '../models/ability_database.dart';
 
 import '../components/enemies/goblin_component.dart';
 import '../components/enemies/slime_component.dart';
+import '../components/enemies/bat_component.dart';
+import '../components/enemies/skeleton_component.dart';
 import 'package:flame/effects.dart';
 import '../effects/screen_fade.dart';
 import 'package:flame_audio/flame_audio.dart';
@@ -56,6 +63,12 @@ class CombatManager {
         break;
       case 'slime':
         currentEnemy = SlimeComponent();
+        break;
+      case 'bat':
+        currentEnemy = BatComponent();
+        break;
+      case 'skeleton':
+        currentEnemy = SkeletonComponent();
         break;
       default:
         currentEnemy = GoblinComponent();
@@ -127,6 +140,154 @@ class CombatManager {
       enemyAttack();
     });
   }
+
+  // === NUEVO SISTEMA DE HABILIDADES ===
+
+  /// Usa una habilidad del jugador contra el enemigo
+  void usePlayerAbility(CombatAbility ability) {
+    if (currentTurn.value != CombatTurn.playerTurn || currentEnemy == null) {
+      print('❌ No es turno del jugador o no hay enemigo');
+      return;
+    }
+
+    final playerStats = game.player.stats.combatStats;
+
+    // Verificar si puede usar la habilidad
+    if (!ability.canUse(
+        playerStats.currentMp.value, playerStats.ultMeter.value)) {
+      print('❌ No se puede usar ${ability.name}: recursos insuficientes');
+      return;
+    }
+
+    print('⚔️ Jugador usa: ${ability.name}');
+
+    // Consumir recursos
+    if (ability.type == AbilityType.ultimate) {
+      playerStats.spendUlt();
+    } else if (ability.mpCost > 0) {
+      playerStats.spendMp(ability.mpCost);
+    }
+
+    // Calcular y aplicar daño
+    final enemyStats = (currentEnemy as dynamic).stats as EnemyStats;
+    final damage = DamageCalculator.calculateDamage(
+      ability: ability,
+      attackerAtk: playerStats.attack.value,
+      defenderDef: enemyStats.defense,
+      critChance: playerStats.critChance.value,
+    );
+
+    enemyStats.takeDamage(damage);
+    print('💥 ${ability.name} hizo $damage de daño!');
+
+    // Ganar carga de Ultimate
+    playerStats.gainUltCharge(ability.effect.ultGain);
+
+    // Verificar si el enemigo murió
+    if (enemyStats.currentHp.value == 0) {
+      print('💀 ¡Enemigo derrotado!');
+      game.player.stats.gainXp(enemyStats.xpValue);
+
+      // Loot drop
+      lastDroppedItems.clear();
+      final random = Random();
+      enemyStats.lootTable.forEach((item, chance) {
+        if (random.nextDouble() < chance) {
+          game.player.addItem(item);
+          lastDroppedItems.add(item);
+        }
+      });
+
+      return; // No hay contraataque
+    }
+
+    // Turno del enemigo
+    currentTurn.value = CombatTurn.enemyTurn;
+    Future.delayed(const Duration(seconds: 1), () {
+      enemyUseAbility();
+    });
+  }
+
+  /// El enemigo usa una habilidad elegida por IA
+  void enemyUseAbility() {
+    if (currentEnemy == null) return;
+
+    final enemyStats = (currentEnemy as dynamic).stats;
+    final enemyCombatStats =
+        (enemyStats is EnemyStats && enemyStats is CombatStatsHolder)
+            ? (enemyStats as CombatStatsHolder).combatStats
+            : null;
+
+    // Si el enemigo no tiene CombatStats, usar ataque simple
+    if (enemyCombatStats == null) {
+      print('🤖 Enemigo usa ataque simple (sin CombatStats)');
+      game.player.stats.takeDamage(enemyStats.attack);
+      if (game.player.stats.currentHp.value == 0) return;
+      currentTurn.value = CombatTurn.playerTurn;
+      return;
+    }
+
+    // Obtener habilidades del enemigo
+    final enemyType = _getEnemyType();
+    final abilities = AbilityDatabase.getEnemyAbilities(enemyType);
+
+    if (abilities.isEmpty) {
+      print('🤖 Enemigo usa ataque simple (sin habilidades)');
+      game.player.stats.takeDamage(enemyStats.attack);
+      if (game.player.stats.currentHp.value == 0) return;
+      currentTurn.value = CombatTurn.playerTurn;
+      return;
+    }
+
+    // Usar IA para elegir habilidad
+    final chosenAbility = EnemyAI.chooseAbility(
+      abilities: abilities,
+      stats: enemyCombatStats,
+    );
+
+    print('🤖 Enemigo usa: ${chosenAbility.name}');
+
+    // Consumir recursos del enemigo
+    if (chosenAbility.type == AbilityType.ultimate) {
+      enemyCombatStats.spendUlt();
+    } else if (chosenAbility.mpCost > 0) {
+      enemyCombatStats.spendMp(chosenAbility.mpCost);
+    }
+
+    // Calcular daño
+    final damage = DamageCalculator.calculateDamage(
+      ability: chosenAbility,
+      attackerAtk: enemyCombatStats.attack.value,
+      defenderDef: game.player.stats.combatStats.defense.value,
+      critChance: enemyCombatStats.critChance.value,
+    );
+
+    game.player.stats.takeDamage(damage);
+    print('💥 El enemigo hizo $damage de daño!');
+
+    // Ganar ULT al recibir daño (ya está en PlayerStats.takeDamage)
+
+    if (game.player.stats.currentHp.value == 0) {
+      print('💀 ¡Jugador derrotado!');
+      return;
+    }
+
+    currentTurn.value = CombatTurn.playerTurn;
+  }
+
+  /// Helper para obtener el tipo de enemigo actual
+  String _getEnemyType() {
+    if (currentEnemy is GoblinComponent) return 'goblin';
+    if (currentEnemy is SlimeComponent) return 'slime';
+    if (currentEnemy is BatComponent) return 'bat';
+    if (currentEnemy is SkeletonComponent) return 'skeleton';
+    return 'slime'; // fallback
+  }
+}
+
+// Interface para enemigos que tienen CombatStats
+abstract class CombatStatsHolder {
+  CombatStats get combatStats;
 }
 
 class RenegadeDungeonGame extends FlameGame

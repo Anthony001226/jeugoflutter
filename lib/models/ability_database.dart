@@ -11,7 +11,7 @@ class AbilityDatabase {
     type: AbilityType.basic,
     mpCost: 0,
     effect: AbilityEffect(
-      baseDamage: 12,
+      baseDamage: 8,
       damageMultiplier: 1.0,
       targetType: TargetType.singleEnemy,
       ultGain: 5,
@@ -25,7 +25,7 @@ class AbilityDatabase {
     type: AbilityType.strong,
     mpCost: 15,
     effect: AbilityEffect(
-      baseDamage: 30,
+      baseDamage: 18,
       damageMultiplier: 1.2,
       targetType: TargetType.singleEnemy,
       ultGain: 3,
@@ -39,7 +39,7 @@ class AbilityDatabase {
     type: AbilityType.skill,
     mpCost: 25,
     effect: AbilityEffect(
-      baseDamage: 18,
+      baseDamage: 12,
       damageMultiplier: 1.0,
       targetType: TargetType.allEnemies,
       ultGain: 3,
@@ -53,7 +53,7 @@ class AbilityDatabase {
     type: AbilityType.ultimate,
     ultCost: 100,
     effect: AbilityEffect(
-      baseDamage: 90,
+      baseDamage: 50,
       damageMultiplier: 1.5,
       targetType: TargetType.singleEnemy,
       ultGain: 0,
@@ -69,7 +69,7 @@ class AbilityDatabase {
     type: AbilityType.basic,
     mpCost: 0,
     effect: AbilityEffect(
-      baseDamage: 6,
+      baseDamage: 4,
       damageMultiplier: 1.0,
       targetType: TargetType.singleEnemy,
     ),
@@ -84,7 +84,7 @@ class AbilityDatabase {
     type: AbilityType.basic,
     mpCost: 0,
     effect: AbilityEffect(
-      baseDamage: 10,
+      baseDamage: 6,
       damageMultiplier: 1.0,
       targetType: TargetType.singleEnemy,
     ),
@@ -97,7 +97,7 @@ class AbilityDatabase {
     type: AbilityType.strong,
     mpCost: 10,
     effect: AbilityEffect(
-      baseDamage: 22,
+      baseDamage: 14,
       damageMultiplier: 1.1,
       targetType: TargetType.singleEnemy,
     ),
@@ -112,7 +112,7 @@ class AbilityDatabase {
     type: AbilityType.basic,
     mpCost: 0,
     effect: AbilityEffect(
-      baseDamage: 8,
+      baseDamage: 5,
       damageMultiplier: 1.0,
       targetType: TargetType.singleEnemy,
     ),
@@ -127,7 +127,7 @@ class AbilityDatabase {
     type: AbilityType.basic,
     mpCost: 0,
     effect: AbilityEffect(
-      baseDamage: 12,
+      baseDamage: 8,
       damageMultiplier: 1.0,
       targetType: TargetType.singleEnemy,
     ),
@@ -172,5 +172,21 @@ class AbilityDatabase {
 
   static List<CombatAbility> getSkeletonAbilities() {
     return [skeletonBasicAttack, skeletonGuard];
+  }
+
+  // General method to get enemy abilities by type
+  static List<CombatAbility> getEnemyAbilities(String enemyType) {
+    switch (enemyType) {
+      case 'slime':
+        return getSlimeAbilities();
+      case 'goblin':
+        return getGoblinAbilities();
+      case 'bat':
+        return getBatAbilities();
+      case 'skeleton':
+        return getSkeletonAbilities();
+      default:
+        return getSlimeAbilities();
+    }
   }
 }
