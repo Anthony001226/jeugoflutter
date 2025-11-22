@@ -775,6 +775,12 @@ class RenegadeDungeonGame extends FlameGame
         tileWidth; // Using tileWidth (32) as scale (assuming square grid basis)
 
     // print('🔍 DEBUG: Screen=$worldPos -> Grid=$gridPos -> Map=($mapX, $mapY)');
+    // TEMPORARY DEBUG: Print every check to see what's happening
+    if (stepsSinceLastBattle % 10 == 0) {
+      // Just print it.
+      print(
+          '🔍 DEBUG: Screen=$worldPos -> Grid=${gridPos.toString()} -> Map=(${mapX.toStringAsFixed(1)}, ${mapY.toStringAsFixed(1)})');
+    }
 
     for (int i = 0; i < spawnZoneRects.length; i++) {
       if (spawnZoneRects[i].contains(Offset(mapX, mapY))) {
