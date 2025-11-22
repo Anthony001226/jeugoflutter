@@ -733,9 +733,51 @@ class RenegadeDungeonGame extends FlameGame
     }
   }
 
+  Vector2 screenToGridPosition(Vector2 screenPos) {
+    final mapWidthInTiles = mapComponent.tileMap.map.width;
+    final originX = mapWidthInTiles * (tileWidth / 2);
+
+    final halfW = tileWidth / 2;
+    final halfH = tileHeight / 2;
+
+    // Adjust screen pos relative to origin
+    final dx = screenPos.x - originX;
+    final dy = screenPos.y -
+        (tileHeight / 2); // Adjust for vertical center/offset if needed
+
+    // Inverse isometric formula
+    // screenX = (gridX - gridY) * halfW
+    // screenY = (gridX + gridY) * halfH
+    // => dx / halfW = gridX - gridY
+    // => dy / halfH = gridX + gridY
+
+    final A = dx / halfW;
+    final B = dy / halfH;
+
+    final gridX = (B + A) / 2;
+    final gridY = (B - A) / 2;
+
+    return Vector2(gridX, gridY);
+  }
+
   ZoneProperties? _getZoneAt(Vector2 worldPos) {
+    // Convert screen/world position to grid position
+    final gridPos = screenToGridPosition(worldPos);
+
+    // Tiled objects in isometric maps are typically defined in "projection" pixels.
+    // Assuming Tiled uses tileWidth (32) as the base unit for object coordinates on the orthogonal plane.
+    // We need to verify if it's 32 or something else.
+    // Based on zone_test.tmx, zones are 300-400 wide.
+    // If 1 tile = 32 units, then 300 units ~= 9.3 tiles.
+
+    final mapX = gridPos.x * tileWidth; // Using tileWidth (32) as scale
+    final mapY = gridPos.y *
+        tileWidth; // Using tileWidth (32) as scale (assuming square grid basis)
+
+    // print('🔍 DEBUG: Screen=$worldPos -> Grid=$gridPos -> Map=($mapX, $mapY)');
+
     for (int i = 0; i < spawnZoneRects.length; i++) {
-      if (spawnZoneRects[i].contains(Offset(worldPos.x, worldPos.y))) {
+      if (spawnZoneRects[i].contains(Offset(mapX, mapY))) {
         return zonePropertiesMap[i];
       }
     }
