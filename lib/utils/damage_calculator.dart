@@ -2,6 +2,7 @@
 
 import 'dart:math';
 import 'package:renegade_dungeon/models/combat_ability.dart';
+import 'package:renegade_dungeon/models/item_rarity.dart';
 
 class DamageCalculator {
   static final Random _random = Random();
@@ -13,13 +14,14 @@ class DamageCalculator {
   /// 2. Aplicar multiplicador
   /// 3. Añadir Attack del atacante
   /// 4. Restar Defense del defensor
-  /// 5. Aplicar crítico si corresponde
+  /// 5. Aplicar crítico si corresponde (con bonus de passive si existe)
   /// 6. Mínimo de daño: 1
   static int calculateDamage({
     required CombatAbility ability,
     required int attackerAtk,
     required int defenderDef,
     required double critChance,
+    dynamic attackerStats, // PlayerStats para chequear passives
   }) {
     // 1. Daño base de la habilidad
     int baseDamage = ability.effect.baseDamage;
@@ -33,14 +35,33 @@ class DamageCalculator {
     // 4. Restar defensa
     int damageAfterDefense = totalDamage - defenderDef;
 
-    // 5. Aplicar crítico (50% más de daño)
+    // 5. Aplicar crítico (base 1.5x, puede aumentar con passive)
     bool isCrit = _random.nextDouble() < critChance;
+    double critMultiplier = 1.5;
+
     if (isCrit) {
-      damageAfterDefense = (damageAfterDefense * 1.5).round();
-      print('💥 ¡CRÍTICO! Daño x1.5');
+      // Check for crit damage bonus passive
+      if (attackerStats != null) {
+        try {
+          final critBonus =
+              attackerStats.getPassiveValue(PassiveType.critDamageBonus);
+          if (critBonus > 0) {
+            critMultiplier += critBonus / 100; // +50 → 1.5 becomes 2.0
+            print('💥 ¡CRÍTICO con Bonus! Multiplicador: ${critMultiplier}x');
+          } else {
+            print('💥 ¡CRÍTICO! Daño x$critMultiplier');
+          }
+        } catch (e) {
+          // attackerStats doesn't have getPassiveValue
+          print('💥 ¡CRÍTICO! Daño x$critMultiplier');
+        }
+      } else {
+        print('💥 ¡CRÍTICO! Daño x$critMultiplier');
+      }
+      damageAfterDefense = (damageAfterDefense * critMultiplier).round();
     }
 
-    // 6. Mínimode daño: 1
+    // 6. Mínimo de daño: 1
     int finalDamage = max(1, damageAfterDefense);
 
     print(

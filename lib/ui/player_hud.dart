@@ -11,7 +11,7 @@ class PlayerHud extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Previene errores al inicio antes de que el jugador esté completamente cargado
-    if (!game.player.isLoaded) {
+    if (!game.player.isLoaded || !game.player.isMounted) {
       return const SizedBox.shrink(); // No dibuja nada si no está listo
     }
 
@@ -23,7 +23,8 @@ class PlayerHud extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0x99000000), // Negro con 60% opacidad
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0x33FFFFFF)), // Blanco con 20% opacidad
+          border: Border.all(
+              color: const Color(0x33FFFFFF)), // Blanco con 20% opacidad
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

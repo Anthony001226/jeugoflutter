@@ -6,6 +6,7 @@ import 'package:renegade_dungeon/components/player.dart';
 import 'package:renegade_dungeon/models/combat_stats.dart';
 import 'package:renegade_dungeon/models/combat_ability.dart';
 import 'package:renegade_dungeon/models/ability_database.dart';
+import 'package:renegade_dungeon/models/item_rarity.dart'; // For PassiveType and UniquePassive
 import 'dart:math';
 
 class PlayerStats {
@@ -18,6 +19,7 @@ class PlayerStats {
   // Stats Base (¡ahora los renombramos para que quede claro!)
   final ValueNotifier<int> baseAttack;
   final ValueNotifier<int> baseDefense;
+  final ValueNotifier<int> baseSpeed; // ← AGREGADO
 
   // ... (level, maxHp, maxMp no cambian)
   final ValueNotifier<int> level;
@@ -33,6 +35,15 @@ class PlayerStats {
   ValueNotifier<int> get defense => ValueNotifier(baseDefense.value +
       (equippedItems.value[EquipmentSlot.armor]?.defenseBonus ?? 0));
 
+  // Speed suma todos los bonuses de speed de TODOS los items equipados
+  ValueNotifier<int> get speed {
+    int speedBonus = 0;
+    for (var item in equippedItems.value.values) {
+      speedBonus += item.speedBonus;
+    }
+    return ValueNotifier(baseSpeed.value + speedBonus);
+  }
+
   // ... (currentHp, currentMp, etc. no cambian)
   late final ValueNotifier<int> currentHp;
   late final ValueNotifier<int> currentMp;
@@ -45,12 +56,15 @@ class PlayerStats {
     required int initialMaxMp,
     required int initialAttack,
     required int initialDefense,
+    int initialSpeed = 10, // ← AGREGADO con valor por defecto
   })  : level = ValueNotifier(initialLevel),
         maxHp = ValueNotifier(initialMaxHp),
         maxMp = ValueNotifier(initialMaxMp),
         // Guardamos los valores iniciales en las stats base.
         baseAttack = ValueNotifier(initialAttack),
-        baseDefense = ValueNotifier(initialDefense) {
+        baseDefense = ValueNotifier(initialDefense),
+        baseSpeed = ValueNotifier(initialSpeed) {
+    // ← AGREGADO
     currentHp = ValueNotifier(maxHp.value);
     currentMp = ValueNotifier(maxMp.value);
     currentXp = ValueNotifier(0);
@@ -153,7 +167,7 @@ class PlayerStats {
     _syncCombatStats();
 
     print(
-        'Equipado: ${newItem.name}. Nuevo Ataque: ${attack.value}, Nueva Defensa: ${defense.value}');
+        'Equipado: ${newItem.name}. Nuevo Ataque: ${attack.value}, Nueva Defensa: ${defense.value}, Nueva Velocidad: ${speed.value}');
   }
 
   void unequipItem(EquipmentSlot slot) {
@@ -180,6 +194,29 @@ class PlayerStats {
     _syncCombatStats();
 
     print(
-        'Desequipado: ${itemToReturn.name}. Nuevo Ataque: ${attack.value}, Nueva Defensa: ${defense.value}');
+        'Desequipado: ${itemToReturn.name}. Nuevo Ataque: ${attack.value}, Nueva Defensa: ${defense.value}, Nueva Velocidad: ${speed.value}');
+  }
+
+  // ========== UNIQUE PASSIVE HELPERS ==========
+
+  /// Get all active unique passives from equipped items
+  List<UniquePassive> getActivePassives() {
+    final passives = <UniquePassive>[];
+    for (var item in equippedItems.value.values) {
+      passives.addAll(item.uniquePassives);
+    }
+    return passives;
+  }
+
+  /// Check if player has a specific passive type
+  bool hasPassive(PassiveType type) {
+    return getActivePassives().any((p) => p.type == type);
+  }
+
+  /// Get total value for a passive type (stacks if multiple)
+  double getPassiveValue(PassiveType type) {
+    return getActivePassives()
+        .where((p) => p.type == type)
+        .fold(0.0, (sum, p) => sum + p.value);
   }
 }

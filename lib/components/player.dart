@@ -12,19 +12,22 @@ import 'package:renegade_dungeon/models/player_stats.dart';
 import 'chest.dart';
 
 class Player extends SpriteComponent
-    with HasGameReference<RenegadeDungeonGame>, KeyboardHandler, CollisionCallbacks {
+    with
+        HasGameReference<RenegadeDungeonGame>,
+        KeyboardHandler,
+        CollisionCallbacks {
   Vector2 gridPosition;
   late final PlayerStats stats;
   final inventory = ValueNotifier<List<InventorySlot>>([]);
 
   Player({required this.gridPosition})
       : super(size: Vector2(32, 48), anchor: Anchor.bottomCenter);
-      
+
   @override
   Future<void> onLoad() async {
     stats = PlayerStats(
       initialLevel: 1,
-      initialMaxHp: 5,
+      initialMaxHp: 20,
       initialMaxMp: 10,
       initialAttack: 12,
       initialDefense: 5,
@@ -34,40 +37,40 @@ class Player extends SpriteComponent
     addItem(ItemDatabase.leatherTunic);
     sprite = await game.loadSprite('characters/player.png');
     position = game.gridToScreenPosition(gridPosition);
+    priority = 10; // ← Render encima de map layers
     final hitboxSize = Vector2(24, 12);
     add(RectangleHitbox(
       size: hitboxSize,
       position: Vector2((size.x - hitboxSize.x) / 2, size.y - hitboxSize.y),
-    )
-    ..debugMode = true
-    );
+    )..debugMode = true);
     return super.onLoad();
   }
 
   @override
-  void onCollisionStart(Set<Vector2> intersectionPoints, PositionComponent other) {
+  void onCollisionStart(
+      Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollisionStart(intersectionPoints, other);
     if (other is Chest) {
       // --- ¡LA LÓGICA DE PROTECCIÓN! ---
       // 1. Preguntamos: "¿Este cofre ya ha sido recogido?".
       if (other.isCollected) {
         // Si la respuesta es sí, no hacemos NADA. Salimos del método.
-        return; 
+        return;
       }
-      
+
       // 2. Si llegamos aquí, significa que el cofre no ha sido recogido.
       // Lo PRIMERO que hacemos es marcarlo como recogido para que nadie más pueda hacerlo.
       other.isCollected = true;
-      
+
       // 3. Ahora, y solo ahora, ejecutamos la lógica de forma segura.
       print('¡Cofre recogido en ${other.gridPosition} por colisión!');
       addItem(other.item);
-      
+
       // 4. Finalmente, lo mandamos a la cola de eliminación.
       other.removeFromParent();
     }
   }
-  
+
   @override
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (game.state != GameState.exploring) {
@@ -99,7 +102,12 @@ class Player extends SpriteComponent
     if (!_hasCollision(targetGridPosition)) {
       gridPosition = targetGridPosition;
       position = game.gridToScreenPosition(gridPosition);
-      _checkForEncounter();
+
+      // Portal & Zone system
+      game.stepsSinceLastBattle++;
+      game.checkPortalCollision(gridPosition);
+      game.checkZoneTransition(position);
+      game.checkRandomEncounter();
     }
   }
 
@@ -108,15 +116,15 @@ class Player extends SpriteComponent
     if (!game.zoneHasEnemies) {
       return; // No hay encuentros aquí, sal del método
     }
-    
+
     // 2. Genera un número aleatorio
     final randomValue = Random().nextDouble();
     double cumulativeChance = 0.0;
-    
+
     // 3. Itera sobre los posibles enemigos de la zona
     for (int i = 0; i < game.zoneEnemyTypes.length; i++) {
       cumulativeChance += game.zoneEnemyChances[i];
-      
+
       if (randomValue < cumulativeChance) {
         final enemyType = game.zoneEnemyTypes[i];
         print('¡Encuentro aleatorio con $enemyType!');
@@ -139,7 +147,8 @@ class Player extends SpriteComponent
     if (tileData == null) {
       return false;
     }
-    final tileIndex = targetGridPos.y.toInt() * mapWidth + targetGridPos.x.toInt();
+    final tileIndex =
+        targetGridPos.y.toInt() * mapWidth + targetGridPos.x.toInt();
     if (tileIndex < 0 || tileIndex >= tileData.length) {
       return true;
     }
@@ -168,7 +177,8 @@ class Player extends SpriteComponent
 
     // ¡Muy importante! Notificamos a los 'listeners' (como nuestra UI) que el inventario ha cambiado.
     inventory.notifyListeners();
-    print('Añadido ${itemToAdd.name}. Inventario ahora tiene ${inventory.value.length} tipos de objetos.');
+    print(
+        'Añadido ${itemToAdd.name}. Inventario ahora tiene ${inventory.value.length} tipos de objetos.');
   }
 
   void useItem(InventorySlot slot) {
@@ -186,7 +196,7 @@ class Player extends SpriteComponent
     // 4. Notifica a la UI que el inventario ha cambiado.
     inventory.notifyListeners();
   }
-  
+
   void equipItem(InventorySlot slot) {
     // 1. Nos aseguramos de que el objeto que intentamos equipar sea realmente un EquipmentItem.
     if (slot.item is! EquipmentItem) {
@@ -195,19 +205,20 @@ class Player extends SpriteComponent
     }
 
     final equipmentItem = slot.item as EquipmentItem;
-    
+
     // 2. Le pasamos el objeto a PlayerStats para que él maneje la lógica de estadísticas.
     stats.equipItem(equipmentItem);
-    
+
     // 3. ¡Importante! Consumimos UNA unidad del objeto de nuestro inventario.
     slot.quantity--;
     if (slot.quantity <= 0) {
       inventory.value.remove(slot);
     }
-    
+
     // 4. Notificamos a la UI que el inventario ha cambiado.
     inventory.notifyListeners();
   }
+
   void unequipItem(EquipmentSlot slot) {
     // Simplemente le pasa la orden a PlayerStats.
     stats.unequipItem(slot);

@@ -1,0 +1,184 @@
+  // ========== PORTAL SYSTEM ==========
+
+  void _loadPortals() {
+    portals.clear();
+    final portalsLayer = mapComponent.tileMap.getLayer<ObjectGroup>('Portals');
+    if (portalsLayer == null) {
+      print('⚠️ No Portals layer found');
+      return;
+    }
+
+    for (final obj in portalsLayer.objects) {
+      final gridX = obj.properties.getValue<int>('gridX');
+      final gridY = obj.properties.getValue<int>('gridY');
+      final targetMap = obj.properties.getValue<String>('targetMap');
+      final targetX = obj.properties.getValue<int>('targetX') ?? 10;
+      final targetY = obj.properties.getValue<int>('targetY') ?? 10;
+
+      if (gridX != null && gridY != null && targetMap != null) {
+        portals[obj.name] = PortalData(
+          gridPosition: Vector2(gridX.toDouble(), gridY.toDouble()),
+          targetMap: targetMap,
+          targetPosition: Vector2(targetX.toDouble(), targetY.toDouble()),
+        );
+      }
+    }
+
+    print('✅ Loaded ${portals.length} portals');
+  }
+
+  void checkPortalCollision(Vector2 playerGridPos) {
+    for (final portal in portals.values) {
+      if (portal.gridPosition == playerGridPos) {
+        transitionToMap(portal.targetMap, portal.targetPosition);
+        break;
+      }
+    }
+  }
+
+  Future<void> transitionToMap(String mapName, Vector2 startPos) async {
+    print('🚪 Transitioning to $mapName...');
+
+    overlays.remove('PlayerHud');
+    overlays.add('map_transition');
+    await Future.delayed(Duration(milliseconds: 500));
+
+    world.remove(mapComponent);
+
+    mapComponent =
+        await TiledComponent.load(mapName, Vector2(tileWidth, tileHeight));
+    collisionLayer = mapComponent.tileMap.getLayer<TileLayer>('Collision')!;
+    collisionLayer.visible = false;
+    await world.add(mapComponent);
+
+    currentMapName = mapName;
+    _loadPortals();
+    _loadSpawnZones();
+
+    player.gridPosition = startPos;
+    player.position = gridToScreenPosition(startPos);
+
+    stepsSinceLastBattle = 0;
+
+    await Future.delayed(Duration(milliseconds: 300));
+    overlays.remove('map_transition');
+    overlays.add('PlayerHud');
+
+    print('✅ Loaded $mapName');
+  }
+
+  // ========== ZONE SYSTEM ==========
+
+  void _loadSpawnZones() {
+    spawnZoneRects.clear();
+    zonePropertiesMap.clear();
+    currentZone = null;
+
+    final zonesLayer = mapComponent.tileMap.getLayer<ObjectGroup>('SpawnZones');
+    if (zonesLayer == null) {
+      print('⚠️ No SpawnZones layer found');
+      return;
+    }
+
+    for (int i = 0; i < zonesLayer.objects.length; i++) {
+      final obj = zonesLayer.objects[i];
+
+      final rect = Rect.fromLTWH(obj.x, obj.y, obj.width, obj.height);
+      spawnZoneRects.add(rect);
+
+      final enemyTypesStr = obj.properties.getValue<String>('enemyTypes') ?? '';
+      final enemyTypes = enemyTypesStr.isEmpty
+          ? <String>[]
+          : enemyTypesStr.split(',').map((e) => e.trim()).toList();
+
+      final props = ZoneProperties(
+        name: obj.properties.getValue<String>('name') ?? 'Unknown Zone',
+        enemyTypes: enemyTypes,
+        encounterChance: obj.properties.getValue<double>('encounterChance') ?? 0.02,
+        minLevel: obj.properties.getValue<int>('minLevel') ?? 1,
+        maxLevel: obj.properties.getValue<int>('maxLevel') ?? 99,
+        maxRarity: _parseRarity(obj.properties.getValue<String>('maxRarity')),
+        dangerLevel: _parseDangerLevel(obj.properties.getValue<String>('dangerLevel')),
+      );
+
+      zonePropertiesMap[i] = props;
+    }
+
+    print('✅ Loaded ${spawnZoneRects.length} spawn zones');
+  }
+
+  DangerLevel _parseDangerLevel(String? str) {
+    if (str == null) return DangerLevel.medium;
+    switch (str.toLowerCase()) {
+      case 'safe':
+        return DangerLevel.safe;
+      case 'low':
+        return DangerLevel.low;
+      case 'medium':
+        return DangerLevel.medium;
+      case 'high':
+        return DangerLevel.high;
+      default:
+        return DangerLevel.medium;
+    }
+  }
+
+  ItemRarity _parseRarity(String? str) {
+    if (str == null) return ItemRarity.uncommon;
+    switch (str.toLowerCase()) {
+      case 'common':
+        return ItemRarity.common;
+      case 'uncommon':
+        return ItemRarity.uncommon;
+      case 'rare':
+        return ItemRarity.rare;
+      case 'epic':
+        return ItemRarity.epic;
+      case 'legendary':
+        return ItemRarity.legendary;
+      default:
+        return ItemRarity.uncommon;
+    }
+  }
+
+  ZoneProperties? _getZoneAt(Vector2 worldPos) {
+    for (int i = 0; i < spawnZoneRects.length; i++) {
+      if (spawnZoneRects[i].contains(Offset(worldPos.x, worldPos.y))) {
+        return zonePropertiesMap[i];
+      }
+    }
+    return null;
+  }
+
+  void checkZoneTransition(Vector2 playerWorldPos) {
+    final newZone = _getZoneAt(playerWorldPos);
+
+    if (newZone?.name != currentZone?.name) {
+      currentZone = newZone;
+
+      if (newZone != null) {
+        print('📍 Entered: ${newZone.name} (${newZone.dangerLevel.name})');
+
+        if (!discoveredZones.contains(newZone.name)) {
+          discoveredZones.add(newZone.name);
+        }
+      } else {
+        print('📍 Entered safe area (no zone)');
+      }
+    }
+  }
+
+  void checkRandomEncounter() {
+    if (currentZone == null || currentZone!.enemyTypes.isEmpty) return;
+    if (currentZone!.dangerLevel == DangerLevel.safe) return;
+    if (stepsSinceLastBattle < MIN_STEPS_BETWEEN_BATTLES) return;
+    if (player.stats.level.value < currentZone!.minLevel) return;
+    if (Random().nextDouble() > currentZone!.encounterChance) return;
+
+    print('⚔️ Random encounter after $stepsSinceLastBattle steps!');
+    stepsSinceLastBattle = 0;
+
+    final enemyType = currentZone!
+        .enemyTypes[Random().nextInt(currentZone!.enemyTypes.length)];
+    startCombat(enemyType);
+  }

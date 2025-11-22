@@ -30,7 +30,8 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
     );
     add(_playerSprite);
 
-    // 3. ¡YA NO CREA EL ENEMIGO! Simplemente lo añade como un hijo.
+    // 3. El enemigo ya fue pre-cargado pero removido del juego
+    // Ahora lo agregamos como hijo de BattleScene
     add(enemy);
     // Ajustamos su tamaño aquí
     enemy.size = Vector2.all(160);

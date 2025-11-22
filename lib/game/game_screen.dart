@@ -73,7 +73,8 @@ class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
           ..sprite = chestSprite
           ..size = Vector2(32, 32)
           ..position = game.gridToScreenPosition(gridPosition)
-          ..anchor = Anchor.bottomCenter;
+          ..anchor = Anchor.bottomCenter
+          ..priority = 10; // ← Render encima de map layers
 
         await game.world.add(chest);
       }

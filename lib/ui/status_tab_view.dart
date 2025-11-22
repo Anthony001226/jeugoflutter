@@ -21,7 +21,8 @@ class StatusTabView extends StatelessWidget {
           ),
           Text(
             value,
-            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -47,17 +48,20 @@ class StatusTabView extends StatelessWidget {
         // Para HP, MP y XP, que tienen un valor actual y uno máximo.
         ValueListenableBuilder<int>(
           valueListenable: stats.currentHp,
-          builder: (_, currentHp, __) => _buildStatRow('HP', '$currentHp / ${stats.maxHp.value}'),
+          builder: (_, currentHp, __) =>
+              _buildStatRow('HP', '$currentHp / ${stats.maxHp.value}'),
         ),
         ValueListenableBuilder<int>(
           valueListenable: stats.currentMp,
-          builder: (_, currentMp, __) => _buildStatRow('MP', '$currentMp / ${stats.maxMp.value}'),
+          builder: (_, currentMp, __) =>
+              _buildStatRow('MP', '$currentMp / ${stats.maxMp.value}'),
         ),
         ValueListenableBuilder<int>(
           valueListenable: stats.currentXp,
-          builder: (_, currentXp, __) => _buildStatRow('XP', '$currentXp / ${stats.xpToNextLevel.value}'),
+          builder: (_, currentXp, __) =>
+              _buildStatRow('XP', '$currentXp / ${stats.xpToNextLevel.value}'),
         ),
-        
+
         const Divider(color: Colors.grey, height: 40), // Una línea para separar
 
         // Para las estadísticas de combate.
@@ -68,6 +72,10 @@ class StatusTabView extends StatelessWidget {
         ValueListenableBuilder<int>(
           valueListenable: stats.defense,
           builder: (_, defense, __) => _buildStatRow('Defensa', '$defense'),
+        ),
+        ValueListenableBuilder<int>(
+          valueListenable: stats.speed,
+          builder: (_, speed, __) => _buildStatRow('Velocidad', '$speed'),
         ),
       ],
     );
