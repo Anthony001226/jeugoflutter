@@ -186,7 +186,7 @@ class CombatManager {
     playerStats.gainUltCharge(ability.effect.ultGain);
 
     // Verificar si el enemigo murió
-    if (enemyStats.currentHp.value == 0) {
+    if (enemyStats.currentHp.value <= 0) {
       print('💀 ¡Enemigo derrotado!');
       game.player.stats.gainXp(enemyStats.xpValue);
 
@@ -732,6 +732,7 @@ class RenegadeDungeonGame extends FlameGame
   }
 
   void checkZoneTransition(Vector2 playerWorldPos) {
+    print('🔍 DEBUG: Player worldPos = $playerWorldPos');
     final newZone = _getZoneAt(playerWorldPos);
 
     if (newZone?.name != currentZone?.name) {
