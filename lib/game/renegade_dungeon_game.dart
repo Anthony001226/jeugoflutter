@@ -5,17 +5,18 @@ import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' hide Route; // ¡LA IMPORTACIÓN CORREGIDA!
-import 'package:flutter/widgets.dart' hide Route; // ¡LA IMPORTACIÓN CORREGIDA!
+import 'package:flutter/material.dart' hide Route;
+import 'package:flutter/widgets.dart' hide Route;
+import 'package:flutter/services.dart';
+import 'package:video_player/video_player.dart';
+import 'dart:math';
 
 import '../components/battle_scene.dart';
 import '../components/player.dart';
-import 'game_screen.dart'; // Importa la nueva pantalla de juego
+import '../components/chest.dart';
+import 'game_screen.dart';
 import 'package:renegade_dungeon/game/splash_screen.dart';
-import 'package:video_player/video_player.dart';
-import 'package:flutter/services.dart';
 import 'package:renegade_dungeon/models/inventory_item.dart';
-import 'dart:math'; // ¡AÑADIDA! Para poder usar la clase Random.
 import '../models/enemy_stats.dart';
 import '../models/combat_ability.dart';
 import '../models/combat_stats.dart';
@@ -634,6 +635,12 @@ class RenegadeDungeonGame extends FlameGame
     await Future.delayed(Duration(milliseconds: 500));
 
     world.remove(mapComponent);
+
+    // Remove all chests from the previous map
+    final chests = world.children.whereType<Chest>().toList();
+    for (final chest in chests) {
+      chest.removeFromParent();
+    }
 
     mapComponent =
         await TiledComponent.load(mapName, Vector2(tileWidth, tileHeight));
