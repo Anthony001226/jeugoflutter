@@ -121,8 +121,8 @@
  <objectgroup id="4" name="Portals">
   <object id="5" x="10" y="10" width="5" height="5">
    <properties>
-    <property name="gridX" type="int" value="10"/>
-    <property name="gridY" type="int" value="10"/>
+    <property name="gridX" type="int" value="5"/>
+    <property name="gridY" type="int" value="5"/>
     <property name="name" value="portal_to_dungeon"/>
     <property name="targetMap" value="dungeon.tmx"/>
     <property name="targetX" type="int" value="26"/>

@@ -215,6 +215,13 @@ class CombatManager {
     if (currentEnemy == null) return;
 
     final enemyStats = (currentEnemy as dynamic).stats;
+
+    // Check if enemy is already dead
+    if (enemyStats.currentHp.value <= 0) {
+      print('💀 ¡Enemigo derrotado! (Cancelando turno enemigo)');
+      return;
+    }
+
     final enemyCombatStats =
         (enemyStats is EnemyStats && enemyStats is CombatStatsHolder)
             ? (enemyStats as CombatStatsHolder).combatStats
@@ -271,6 +278,7 @@ class CombatManager {
 
     if (game.player.stats.currentHp.value == 0) {
       print('💀 ¡Jugador derrotado!');
+      game.endCombat(); // Call endCombat to handle respawn and UI reset
       return;
     }
 
@@ -425,7 +433,7 @@ class RenegadeDungeonGame extends FlameGame
     // NOTA: La carga de cofres se queda en GameScreen porque son parte del mundo
     // y no son tan pesados. Si tuvieras muchos, también los podrías precargar aquí.
 
-    player = Player(gridPosition: Vector2(20.0, 20.0));
+    player = Player(gridPosition: Vector2(5.0, 5.0));
   }
 
   // --- LOS MÉTODOS DE ABAJO SON GLOBALES Y SE QUEDAN AQUÍ ---
@@ -508,7 +516,7 @@ class RenegadeDungeonGame extends FlameGame
     if (player.stats.currentHp.value == 0) {
       player.stats.currentHp.value = player.stats.maxHp.value;
       player.stats.currentMp.value = player.stats.maxMp.value;
-      player.gridPosition = Vector2(20.0, 20.0);
+      player.gridPosition = Vector2(5.0, 5.0);
       player.position = gridToScreenPosition(player.gridPosition);
     }
     // -----------------------------
