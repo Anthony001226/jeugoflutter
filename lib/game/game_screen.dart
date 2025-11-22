@@ -2,11 +2,8 @@
 
 import 'package:flame/components.dart';
 import 'package:flame/palette.dart';
-import 'package:flame_tiled/flame_tiled.dart';
-import 'package:renegade_dungeon/components/chest.dart';
 import 'package:renegade_dungeon/components/player.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
-import 'package:renegade_dungeon/models/inventory_item.dart';
 
 class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
   @override
@@ -43,42 +40,8 @@ class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
     game.player.position = game.gridToScreenPosition(game.player.gridPosition);
 
     // --- FASE 4: AÑADIR OBJETOS DINÁMICOS ---
-    final pickupsLayer =
-        game.mapComponent.tileMap.getLayer<ObjectGroup>('Pickups');
-    if (pickupsLayer != null) {
-      int chestCounter = 0;
-      for (final tiledObject in pickupsLayer.objects) {
-        if (tiledObject.gid == null || tiledObject.gid == 0) continue;
-        final gridX = tiledObject.properties.getValue<int>('gridX');
-        final gridY = tiledObject.properties.getValue<int>('gridY');
-        if (gridX == null || gridY == null) continue;
-        final gridPosition = Vector2(gridX.toDouble(), gridY.toDouble());
-
-        InventoryItem itemForThisChest;
-        if (chestCounter == 0) {
-          itemForThisChest = ItemDatabase.rustySword;
-        } else if (chestCounter == 1) {
-          itemForThisChest = ItemDatabase.leatherTunic;
-        } else {
-          itemForThisChest = ItemDatabase.potion;
-        }
-        chestCounter++;
-
-        final chestSprite = await game.loadSprite('iso_tile_export.png',
-            srcPosition: Vector2(384, 32), srcSize: Vector2(32, 32));
-        final chest = Chest(
-          gridPosition: gridPosition,
-          item: itemForThisChest,
-        )
-          ..sprite = chestSprite
-          ..size = Vector2(32, 32)
-          ..position = game.gridToScreenPosition(gridPosition)
-          ..anchor = Anchor.bottomCenter
-          ..priority = 10; // ← Render encima de map layers
-
-        await game.world.add(chest);
-      }
-    }
+    // La carga de cofres ahora se maneja en RenegadeDungeonGame._loadChests()
+    // para soportar múltiples mapas y transiciones.
 
     // --- FASE 5: CONFIGURACIÓN FINAL DE LA UI ---
     game.camera.follow(game.player);

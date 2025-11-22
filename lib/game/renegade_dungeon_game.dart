@@ -431,11 +431,10 @@ class RenegadeDungeonGame extends FlameGame
     collisionLayer.visible = false;
 
     // Load portals and zones for initial map
+    // Load portals and zones for initial map
     _loadPortals();
     _loadSpawnZones();
-
-    // NOTA: La carga de cofres se queda en GameScreen porque son parte del mundo
-    // y no son tan pesados. Si tuvieras muchos, también los podrías precargar aquí.
+    await _loadChests();
 
     player = Player(gridPosition: Vector2(5.0, 5.0));
   }
@@ -651,6 +650,7 @@ class RenegadeDungeonGame extends FlameGame
     currentMapName = mapName;
     _loadPortals();
     _loadSpawnZones();
+    await _loadChests();
 
     player.gridPosition = startPos;
     player.position = gridToScreenPosition(startPos);
@@ -829,5 +829,46 @@ class RenegadeDungeonGame extends FlameGame
     final enemyType = currentZone!
         .enemyTypes[Random().nextInt(currentZone!.enemyTypes.length)];
     startCombat(enemyType);
+  }
+
+  Future<void> _loadChests() async {
+    final pickupsLayer = mapComponent.tileMap.getLayer<ObjectGroup>('Pickups');
+    if (pickupsLayer == null) return;
+
+    final chestSprite = await loadSprite('iso_tile_export.png',
+        srcPosition: Vector2(384, 32), srcSize: Vector2(32, 32));
+
+    int chestCounter = 0;
+    for (final tiledObject in pickupsLayer.objects) {
+      if (tiledObject.gid == null || tiledObject.gid == 0) continue;
+      final gridX = tiledObject.properties.getValue<int>('gridX');
+      final gridY = tiledObject.properties.getValue<int>('gridY');
+      if (gridX == null || gridY == null) continue;
+      final gridPosition = Vector2(gridX.toDouble(), gridY.toDouble());
+
+      InventoryItem itemForThisChest;
+      // Simple hardcoded logic for now, can be improved later
+      if (chestCounter == 0) {
+        itemForThisChest = ItemDatabase.rustySword;
+      } else if (chestCounter == 1) {
+        itemForThisChest = ItemDatabase.leatherTunic;
+      } else {
+        itemForThisChest = ItemDatabase.potion;
+      }
+      chestCounter++;
+
+      final chest = Chest(
+        gridPosition: gridPosition,
+        item: itemForThisChest,
+      )
+        ..sprite = chestSprite
+        ..size = Vector2(32, 32)
+        ..position = gridToScreenPosition(gridPosition)
+        ..anchor = Anchor.bottomCenter
+        ..priority = 10;
+
+      await world.add(chest);
+    }
+    print('✅ Loaded $chestCounter chests');
   }
 }
