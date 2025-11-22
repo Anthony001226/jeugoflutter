@@ -20,8 +20,15 @@ class BatStats extends EnemyStats implements CombatStatsHolder {
           defense: combatStats.defense.value,
           xpValue: 30,
           lootTable: {ItemDatabase.potion: 0.15},
-        );
-  // currentHp is already initialized by parent EnemyStats
+        ) {
+    // Sincronizar valores iniciales
+    currentHp.value = combatStats.currentHp.value;
+
+    // Escuchar cambios en combatStats y sincronizar
+    combatStats.currentHp.addListener(() {
+      currentHp.value = combatStats.currentHp.value;
+    });
+  }
 
   @override
   void takeDamage(int amount) {

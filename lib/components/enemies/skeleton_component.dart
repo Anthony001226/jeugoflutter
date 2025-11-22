@@ -24,8 +24,13 @@ class SkeletonStats extends EnemyStats implements CombatStatsHolder {
             ItemDatabase.rustySword: 0.05,
           },
         ) {
-    // Sincronizar currentHp con combatStats
-    currentHp = combatStats.currentHp;
+    // Sincronizar valores iniciales
+    currentHp.value = combatStats.currentHp.value;
+
+    // Escuchar cambios en combatStats y sincronizar
+    combatStats.currentHp.addListener(() {
+      currentHp.value = combatStats.currentHp.value;
+    });
   }
 
   @override

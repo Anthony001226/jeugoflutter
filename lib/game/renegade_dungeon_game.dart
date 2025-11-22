@@ -181,13 +181,14 @@ class CombatManager {
 
     enemyStats.takeDamage(damage);
     print('💥 ${ability.name} hizo $damage de daño!');
+    print('🔍 DEBUG: Enemy HP after damage: ${enemyStats.currentHp.value}');
 
     // Ganar carga de Ultimate
     playerStats.gainUltCharge(ability.effect.ultGain);
 
     // Verificar si el enemigo murió
     if (enemyStats.currentHp.value <= 0) {
-      print('💀 ¡Enemigo derrotado!');
+      print('💀 ¡Enemigo derrotado! (HP <= 0 detected)');
       game.player.stats.gainXp(enemyStats.xpValue);
 
       // Loot drop
@@ -203,9 +204,11 @@ class CombatManager {
       return; // No hay contraataque
     }
 
+    print('⏳ Scheduling enemy turn...');
     // Turno del enemigo
     currentTurn.value = CombatTurn.enemyTurn;
     Future.delayed(const Duration(seconds: 1), () {
+      print('🤖 Executing scheduled enemy turn...');
       enemyUseAbility();
     });
   }

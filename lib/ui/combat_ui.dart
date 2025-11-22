@@ -2,6 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:renegade_dungeon/components/enemies/goblin_component.dart';
+import 'package:renegade_dungeon/components/enemies/slime_component.dart';
+import 'package:renegade_dungeon/components/enemies/bat_component.dart';
+import 'package:renegade_dungeon/components/enemies/skeleton_component.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 import 'package:renegade_dungeon/models/enemy_stats.dart';
 import 'package:renegade_dungeon/models/combat_ability.dart';
@@ -55,8 +58,15 @@ class CombatUI extends StatelessWidget {
   }
 
   Widget _buildCombatScreen(int enemyHp, EnemyStats enemyStats) {
-    final enemyName =
-        game.combatManager.currentEnemy is GoblinComponent ? 'Goblin' : 'Slime';
+    String enemyName = 'Enemigo';
+    final enemy = game.combatManager.currentEnemy;
+    if (enemy is GoblinComponent)
+      enemyName = 'Goblin';
+    else if (enemy is SlimeComponent)
+      enemyName = 'Slime';
+    else if (enemy is BatComponent)
+      enemyName = 'Murciélago';
+    else if (enemy is SkeletonComponent) enemyName = 'Esqueleto';
 
     return Column(
       children: [
