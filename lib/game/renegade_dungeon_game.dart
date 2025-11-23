@@ -474,6 +474,11 @@ class CombatManager {
   void _removeDefeatedEnemy(int index) {
     if (index >= 0 && index < currentEnemies.length) {
       print('🗑️ Removiendo enemigo #${index + 1} derrotado');
+
+      // Remove visual component first
+      game._battleScene?.removeEnemy(index);
+
+      // Then remove from data list
       currentEnemies.removeAt(index);
 
       // Adjust selected target if needed

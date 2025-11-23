@@ -15,6 +15,7 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
   late final SpriteComponent _playerSprite;
   late final List<EnemyHPBar> _hpBars = [];
   EnemyTargetIndicator? _targetIndicator;
+  late final List<_ClickableEnemy> _enemyWrappers = [];
 
   // Constructor supports both modes
   BattleScene({this.enemy, this.enemies});
@@ -51,6 +52,7 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
           onTap: _onEnemyTapped,
         );
         clickable.priority = 10; // Same as player
+        _enemyWrappers.add(clickable);
         add(clickable);
 
         // Add HP bar for each enemy
@@ -75,6 +77,30 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
       final hpBar = EnemyHPBar(enemy: enemy!);
       _hpBars.add(hpBar);
       add(hpBar);
+    }
+  }
+
+  /// Remove visual components of a defeated enemy
+  void removeEnemy(int index) {
+    if (index >= 0 && index < _enemyWrappers.length) {
+      // Remove visual components
+      final wrapper = _enemyWrappers[index];
+      final hpBar = _hpBars[index];
+
+      wrapper.removeFromParent();
+      hpBar.removeFromParent();
+
+      // Remove from lists
+      _enemyWrappers.removeAt(index);
+      _hpBars.removeAt(index);
+
+      // Update indices for remaining enemies
+      for (int i = 0; i < _enemyWrappers.length; i++) {
+        _enemyWrappers[i].enemyIndex = i;
+      }
+
+      // Update target indicator
+      _updateTargetIndicator();
     }
   }
 
@@ -125,23 +151,29 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
       if (enemyCount == 1) {
         // Single enemy: center-right
         enemies![0].position = Vector2(size.x * 0.75, size.y * 0.6);
-        _hpBars[0].position = Vector2(size.x * 0.75 - 60, size.y * 0.6 - 100);
+        if (_hpBars.isNotEmpty)
+          _hpBars[0].position = Vector2(size.x * 0.75 - 60, size.y * 0.6 - 100);
       } else if (enemyCount == 2) {
-        // Two enemies: spread horizontally
-        enemies![0].position = Vector2(size.x * 0.65, size.y * 0.6);
+        // Two enemies: spread horizontally (wider)
+        enemies![0].position = Vector2(size.x * 0.60, size.y * 0.6);
         enemies![1].position = Vector2(size.x * 0.85, size.y * 0.6);
 
-        _hpBars[0].position = Vector2(size.x * 0.65 - 60, size.y * 0.6 - 100);
-        _hpBars[1].position = Vector2(size.x * 0.85 - 60, size.y * 0.6 - 100);
+        if (_hpBars.length >= 2) {
+          _hpBars[0].position = Vector2(size.x * 0.60 - 60, size.y * 0.6 - 100);
+          _hpBars[1].position = Vector2(size.x * 0.85 - 60, size.y * 0.6 - 100);
+        }
       } else if (enemyCount == 3) {
-        // Three enemies: left, center, right
-        enemies![0].position = Vector2(size.x * 0.60, size.y * 0.6);
-        enemies![1].position = Vector2(size.x * 0.75, size.y * 0.6);
+        // Three enemies: left, center, right (wider)
+        enemies![0].position = Vector2(size.x * 0.55, size.y * 0.6);
+        enemies![1].position = Vector2(size.x * 0.725, size.y * 0.6);
         enemies![2].position = Vector2(size.x * 0.90, size.y * 0.6);
 
-        _hpBars[0].position = Vector2(size.x * 0.60 - 60, size.y * 0.6 - 100);
-        _hpBars[1].position = Vector2(size.x * 0.75 - 60, size.y * 0.6 - 100);
-        _hpBars[2].position = Vector2(size.x * 0.90 - 60, size.y * 0.6 - 100);
+        if (_hpBars.length >= 3) {
+          _hpBars[0].position = Vector2(size.x * 0.55 - 60, size.y * 0.6 - 100);
+          _hpBars[1].position =
+              Vector2(size.x * 0.725 - 60, size.y * 0.6 - 100);
+          _hpBars[2].position = Vector2(size.x * 0.90 - 60, size.y * 0.6 - 100);
+        }
       }
     } else if (enemy != null) {
       // Single enemy mode (legacy)
@@ -156,7 +188,7 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
 /// Wrapper component that makes an enemy clickable
 class _ClickableEnemy extends PositionComponent with TapCallbacks {
   final SpriteAnimationComponent enemy;
-  final int enemyIndex;
+  int enemyIndex; // Made mutable
   final void Function(int) onTap;
 
   _ClickableEnemy({
