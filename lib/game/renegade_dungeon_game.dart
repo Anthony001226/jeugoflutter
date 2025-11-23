@@ -21,6 +21,7 @@ import 'package:renegade_dungeon/models/inventory_item.dart';
 import '../models/enemy_stats.dart';
 import '../models/combat_ability.dart';
 import '../models/combat_stats.dart';
+import '../models/combat_stats_holder.dart';
 import '../utils/damage_calculator.dart';
 import '../game/enemy_ai.dart';
 import '../models/ability_database.dart';
@@ -54,6 +55,11 @@ class CombatManager {
   // ... (Esta clase no cambia en absoluto)
   final RenegadeDungeonGame game;
   SpriteAnimationComponent? currentEnemy;
+
+  // NEW: Multi-enemy support
+  List<SpriteAnimationComponent> currentEnemies = [];
+  int selectedTargetIndex = 0;
+
   late final ValueNotifier<CombatTurn> currentTurn;
   List<InventoryItem> lastDroppedItems = [];
 
@@ -97,6 +103,72 @@ class CombatManager {
       // Enemy gets first turn
       Future.delayed(const Duration(milliseconds: 1500), () {
         game.combatManager.enemyUseAbility();
+      });
+    }
+  }
+
+  /// Start combat against multiple enemies (1v2 or 1v3)
+  void startNewCombatMulti(List<String> enemyTypes) {
+    print('⚔️ Iniciando combate multi-enemigo: ${enemyTypes.length} enemigos');
+
+    // Clear previous enemies
+    currentEnemies.clear();
+    currentEnemy = null;
+    selectedTargetIndex = 0;
+
+    // Create all enemies
+    for (final enemyType in enemyTypes) {
+      SpriteAnimationComponent enemy;
+      switch (enemyType) {
+        case 'goblin':
+          enemy = GoblinComponent();
+          break;
+        case 'slime':
+          enemy = SlimeComponent();
+          break;
+        case 'bat':
+          enemy = BatComponent();
+          break;
+        case 'skeleton':
+          enemy = SkeletonComponent();
+          break;
+        default:
+          enemy = SlimeComponent();
+      }
+      currentEnemies.add(enemy);
+    }
+
+    // Apply group scaling for balance
+    _applyGroupScaling();
+
+    // Set first enemy as currentEnemy for backward compatibility
+    if (currentEnemies.isNotEmpty) {
+      currentEnemy = currentEnemies[0];
+    }
+
+    // Calculate initiative (use average enemy speed)
+    final playerSpeed = game.player.stats.speed.value;
+    int totalEnemySpeed = 0;
+    for (final enemy in currentEnemies) {
+      final speed = (enemy as dynamic).stats.speed ?? 5;
+      totalEnemySpeed += (speed is int) ? speed : (speed as num).toInt();
+    }
+    final avgEnemySpeed = (totalEnemySpeed / currentEnemies.length).toInt();
+
+    final playerInitiative = playerSpeed + Random().nextInt(11);
+    final enemyInitiative = avgEnemySpeed + Random().nextInt(11);
+
+    if (playerInitiative >= enemyInitiative) {
+      currentTurn.value = CombatTurn.playerTurn;
+      print(
+          '⚡ ¡El jugador empieza primero! (Initiative: $playerInitiative vs $enemyInitiative)');
+    } else {
+      currentTurn.value = CombatTurn.enemyTurn;
+      print(
+          '⚡ ¡Los enemigos empiezan primero! (Initiative: $enemyInitiative vs $playerInitiative)');
+      // Enemies get first turn
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        _executeEnemyTurns();
       });
     }
   }
@@ -170,7 +242,12 @@ class CombatManager {
 
   /// Usa una habilidad del jugador contra el enemigo
   void usePlayerAbility(CombatAbility ability) {
-    if (currentTurn.value != CombatTurn.playerTurn || currentEnemy == null) {
+    // Check if in multi-enemy or single-enemy mode
+    final isMultiEnemy = currentEnemies.isNotEmpty;
+    final targetEnemy =
+        isMultiEnemy ? currentEnemies[selectedTargetIndex] : currentEnemy;
+
+    if (currentTurn.value != CombatTurn.playerTurn || targetEnemy == null) {
       print('❌ No es turno del jugador o no hay enemigo');
       return;
     }
@@ -184,7 +261,12 @@ class CombatManager {
       return;
     }
 
-    print('⚔️ Jugador usa: ${ability.name}');
+    if (isMultiEnemy) {
+      print(
+          '⚔️ Jugador usa: ${ability.name} contra enemigo #${selectedTargetIndex + 1}');
+    } else {
+      print('⚔️ Jugador usa: ${ability.name}');
+    }
 
     // Consumir recursos
     if (ability.type == AbilityType.ultimate) {
@@ -194,7 +276,7 @@ class CombatManager {
     }
 
     // Calcular y aplicar daño
-    final enemyStats = (currentEnemy as dynamic).stats as EnemyStats;
+    final enemyStats = (targetEnemy as dynamic).stats as EnemyStats;
     final damage = DamageCalculator.calculateDamage(
       ability: ability,
       attackerAtk: playerStats.attack.value,
@@ -224,7 +306,25 @@ class CombatManager {
         }
       });
 
-      return; // No hay contraataque
+      // Handle multi-enemy defeat
+      if (isMultiEnemy) {
+        _removeDefeatedEnemy(selectedTargetIndex);
+
+        // Check if all enemies defeated
+        if (currentEnemies.isEmpty) {
+          print('🎉 ¡Todos los enemigos derrotados!');
+          return; // Combat ends
+        }
+
+        // More enemies remain, continue to enemy turns
+        print('⏳ Quedan ${currentEnemies.length} enemigos...');
+        currentTurn.value = CombatTurn.enemyTurn;
+        Future.delayed(const Duration(seconds: 1), () {
+          _executeEnemyTurns();
+        });
+      }
+
+      return; // No hay contraataque si solo había un enemigo
     }
 
     print('⏳ Scheduling enemy turn...');
@@ -232,7 +332,11 @@ class CombatManager {
     currentTurn.value = CombatTurn.enemyTurn;
     Future.delayed(const Duration(seconds: 1), () {
       print('🤖 Executing scheduled enemy turn...');
-      enemyUseAbility();
+      if (isMultiEnemy) {
+        _executeEnemyTurns();
+      } else {
+        enemyUseAbility();
+      }
     });
   }
 
@@ -319,11 +423,164 @@ class CombatManager {
     if (currentEnemy is SkeletonComponent) return 'skeleton';
     return 'slime'; // fallback
   }
-}
 
-// Interface para enemigos que tienen CombatStats
-abstract class CombatStatsHolder {
-  CombatStats get combatStats;
+  /// Get enemy type for a specific enemy component
+  String _getEnemyTypeForComponent(SpriteAnimationComponent enemy) {
+    if (enemy is GoblinComponent) return 'goblin';
+    if (enemy is SlimeComponent) return 'slime';
+    if (enemy is BatComponent) return 'bat';
+    if (enemy is SkeletonComponent) return 'skeleton';
+    return 'slime'; // fallback
+  }
+
+  /// Apply stat scaling for group encounters (2 enemies = 70%, 3 enemies = 60%)
+  void _applyGroupScaling() {
+    if (currentEnemies.length <= 1) return;
+
+    final scaleFactor = currentEnemies.length == 2 ? 0.7 : 0.6;
+    print(
+        '⚖️ Aplicando balance de grupo (${currentEnemies.length} enemigos): ${(scaleFactor * 100).toInt()}% stats');
+
+    for (final enemy in currentEnemies) {
+      final stats = (enemy as dynamic).stats;
+
+      // Handle different stat types
+      if (stats is EnemyStats) {
+        // EnemyStats: modify currentHp directly (no mutable maxHp/attack)
+        final originalHp = stats.maxHp;
+        stats.currentHp.value = (originalHp * scaleFactor).round();
+      }
+
+      // Handle CombatStatsHolder (Goblin, Bat, Skeleton)
+      if (stats is CombatStatsHolder) {
+        final combatStats = stats.combatStats;
+        combatStats.maxHp.value =
+            (combatStats.maxHp.value * scaleFactor).round();
+        combatStats.currentHp.value = combatStats.maxHp.value;
+        combatStats.attack.value =
+            (combatStats.attack.value * scaleFactor).round();
+      }
+    }
+  }
+
+  /// Remove defeated enemy from the battle
+  void _removeDefeatedEnemy(int index) {
+    if (index >= 0 && index < currentEnemies.length) {
+      print('🗑️ Removiendo enemigo #${index + 1} derrotado');
+      currentEnemies.removeAt(index);
+
+      // Adjust selected target if needed
+      if (selectedTargetIndex >= currentEnemies.length &&
+          currentEnemies.isNotEmpty) {
+        selectedTargetIndex = currentEnemies.length - 1;
+      } else if (currentEnemies.isEmpty) {
+        selectedTargetIndex = 0;
+      }
+
+      // Trigger visual update
+      final temp = currentTurn.value;
+      currentTurn.value = temp;
+    }
+  }
+
+  /// Cycle to next enemy target (Tab/E)
+  void cycleTargetNext() {
+    if (currentEnemies.isEmpty) return;
+
+    selectedTargetIndex = (selectedTargetIndex + 1) % currentEnemies.length;
+    print('🎯 Target switched to enemy #${selectedTargetIndex + 1}');
+
+    final temp = currentTurn.value;
+    currentTurn.value = temp;
+  }
+
+  /// Cycle to previous enemy target (Q)
+  void cycleTargetPrevious() {
+    if (currentEnemies.isEmpty) return;
+
+    selectedTargetIndex = (selectedTargetIndex - 1 + currentEnemies.length) %
+        currentEnemies.length;
+    print('🎯 Target switched to enemy #${selectedTargetIndex + 1}');
+
+    final temp = currentTurn.value;
+    currentTurn.value = temp;
+  }
+
+  /// Single enemy takes their turn
+  void _enemyTakeTurn(SpriteAnimationComponent enemy, int index) {
+    final stats = (enemy as dynamic).stats;
+    final enemyType = _getEnemyTypeForComponent(enemy);
+
+    // Check if enemy has CombatStats
+    final hasCombatStats = stats is CombatStatsHolder;
+
+    if (!hasCombatStats) {
+      // Simple attack for enemies without CombatStats
+      print('🤖 Enemigo #${index + 1} usa ataque simple');
+      final damage =
+          (stats.attack - game.player.stats.defense.value).clamp(1, 999);
+      game.player.stats.takeDamage(damage);
+      print('💥 Enemigo #${index + 1} hizo $damage de daño!');
+      return;
+    }
+
+    // Get enemy abilities
+    final combatStats = (stats as CombatStatsHolder).combatStats;
+    final abilities = AbilityDatabase.getEnemyAbilities(enemyType);
+
+    if (abilities.isEmpty) {
+      // Fallback to simple attack
+      print('🤖 Enemigo #${index + 1} usa ataque simple (sin habilidades)');
+      game.player.stats.takeDamage(combatStats.attack.value);
+      return;
+    }
+
+    // Use AI to choose ability
+    final chosenAbility = EnemyAI.chooseAbility(
+      abilities: abilities,
+      stats: combatStats,
+    );
+
+    print('🤖 Enemigo #${index + 1} usa: ${chosenAbility.name}');
+
+    // Consume resources
+    if (chosenAbility.type == AbilityType.ultimate) {
+      combatStats.spendUlt();
+    } else if (chosenAbility.mpCost > 0) {
+      combatStats.spendMp(chosenAbility.mpCost);
+    }
+
+    // Calculate and apply damage
+    final damage = DamageCalculator.calculateDamage(
+      ability: chosenAbility,
+      attackerAtk: combatStats.attack.value,
+      defenderDef: game.player.stats.combatStats.defense.value,
+      critChance: combatStats.critChance.value,
+    );
+
+    game.player.stats.takeDamage(damage);
+    print('💥 Enemigo #${index + 1} hizo $damage de daño!');
+  }
+
+  /// Execute turns for all alive enemies (called after player turn)
+  void _executeEnemyTurns() {
+    if (currentEnemies.isEmpty) return;
+
+    print('🤖 Ejecutando turnos de ${currentEnemies.length} enemigos...');
+
+    for (int i = 0; i < currentEnemies.length; i++) {
+      _enemyTakeTurn(currentEnemies[i], i);
+
+      // Check if player died mid-combat
+      if (game.player.stats.currentHp.value <= 0) {
+        print('💀 ¡Jugador derrotado durante turnos enemigos!');
+        return;
+      }
+    }
+
+    // All enemies attacked, back to player turn
+    currentTurn.value = CombatTurn.playerTurn;
+  }
 }
 
 class RenegadeDungeonGame extends FlameGame
@@ -531,8 +788,40 @@ class RenegadeDungeonGame extends FlameGame
     await screenFade.fadeOut();
     world.removeFromParent();
     camera.viewfinder.zoom = 1.0;
-    combatManager.startNewCombat(enemyType);
-    _battleScene = BattleScene(enemy: combatManager.currentEnemy!);
+
+    // Support both single and multi-enemy modes
+    if (combatManager.currentEnemies.isEmpty) {
+      // Single enemy mode (legacy)
+      combatManager.startNewCombat(enemyType);
+      _battleScene = BattleScene(enemy: combatManager.currentEnemy!);
+    } else {
+      // Multi-enemy mode (currentEnemies already populated)
+      _battleScene = BattleScene(enemies: combatManager.currentEnemies);
+    }
+
+    await add(_battleScene!);
+    overlays.add('CombatUI');
+    await screenFade.fadeIn();
+  }
+
+  /// Start multi-enemy combat (for testing or zone spawning)
+  void startCombatMulti(List<String> enemyTypes) async {
+    state = GameState.inCombat;
+    player.showSurpriseEmote();
+    camera.viewfinder.add(
+      ScaleEffect.to(
+        Vector2.all(1.5),
+        EffectController(duration: 0.4, curve: Curves.easeIn),
+      ),
+    );
+    await Future.delayed(const Duration(milliseconds: 1000));
+    final screenFade = ScreenFade();
+    camera.viewport.add(screenFade);
+    await screenFade.fadeOut();
+    world.removeFromParent();
+    camera.viewfinder.zoom = 1.0;
+    combatManager.startNewCombatMulti(enemyTypes);
+    _battleScene = BattleScene(enemies: combatManager.currentEnemies);
     await add(_battleScene!);
     overlays.add('CombatUI');
     await screenFade.fadeIn();
@@ -603,9 +892,25 @@ class RenegadeDungeonGame extends FlameGame
   KeyEventResult onKeyEvent(
       KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (event is KeyDownEvent) {
+      // Pause menu toggle
       if (keysPressed.contains(LogicalKeyboardKey.keyM)) {
         togglePauseMenu();
         return KeyEventResult.handled;
+      }
+
+      // Target cycling in combat (only in multi-enemy mode)
+      if (state == GameState.inCombat &&
+          combatManager.currentEnemies.length > 1) {
+        if (keysPressed.contains(LogicalKeyboardKey.tab) ||
+            keysPressed.contains(LogicalKeyboardKey.keyE)) {
+          combatManager.cycleTargetNext();
+          return KeyEventResult.handled;
+        }
+
+        if (keysPressed.contains(LogicalKeyboardKey.keyQ)) {
+          combatManager.cycleTargetPrevious();
+          return KeyEventResult.handled;
+        }
       }
     }
     // ¡OJO! Asegúrate de que esta línea esté presente.

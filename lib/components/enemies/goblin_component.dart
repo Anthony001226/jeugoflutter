@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:renegade_dungeon/models/enemy_stats.dart';
 import 'package:renegade_dungeon/models/inventory_item.dart';
 import 'package:renegade_dungeon/models/combat_stats.dart';
+import 'package:renegade_dungeon/models/combat_stats_holder.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 
 // Wrapper que combina EnemyStats con CombatStats

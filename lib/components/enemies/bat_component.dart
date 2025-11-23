@@ -2,6 +2,7 @@
 
 import 'package:flame/components.dart';
 import 'package:renegade_dungeon/models/combat_stats.dart';
+import 'package:renegade_dungeon/models/combat_stats_holder.dart';
 import 'package:renegade_dungeon/models/combat_ability.dart';
 import 'package:renegade_dungeon/models/ability_database.dart';
 import 'package:renegade_dungeon/models/inventory_item.dart';
