@@ -78,7 +78,27 @@ class CombatManager {
       default:
         currentEnemy = GoblinComponent();
     }
-    currentTurn.value = CombatTurn.playerTurn;
+
+    // Calculate initiative to determine who goes first
+    final playerSpeed = game.player.stats.speed.value;
+    final enemySpeed = (currentEnemy as dynamic).stats.speed ?? 5;
+
+    final playerInitiative = playerSpeed + Random().nextInt(11); // SPD + 0-10
+    final enemyInitiative = enemySpeed + Random().nextInt(11);
+
+    if (playerInitiative >= enemyInitiative) {
+      currentTurn.value = CombatTurn.playerTurn;
+      print(
+          '⚡ ¡El jugador empieza primero! (Initiative: $playerInitiative vs $enemyInitiative)');
+    } else {
+      currentTurn.value = CombatTurn.enemyTurn;
+      print(
+          '⚡ ¡El enemigo empieza primero! (Initiative: $enemyInitiative vs $playerInitiative)');
+      // Enemy gets first turn
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        game.combatManager.enemyUseAbility();
+      });
+    }
   }
 
   void playerAttack() {
@@ -334,6 +354,9 @@ class RenegadeDungeonGame extends FlameGame
   final Map<int, ZoneProperties> zonePropertiesMap = {};
   ZoneProperties? currentZone;
   final Set<String> discoveredZones = {};
+
+  // Track opened chests to prevent regeneration
+  final Set<String> openedChests = {};
 
   final videoPlayerControllerNotifier =
       ValueNotifier<VideoPlayerController?>(null);
@@ -875,6 +898,14 @@ class RenegadeDungeonGame extends FlameGame
       if (gridX == null || gridY == null) continue;
       final gridPosition = Vector2(gridX.toDouble(), gridY.toDouble());
 
+      // Create unique chest ID based on map name and position
+      final chestId = '$currentMapName:$gridX,$gridY';
+
+      // Skip if chest was already opened
+      if (openedChests.contains(chestId)) {
+        continue;
+      }
+
       InventoryItem itemForThisChest;
       // Simple hardcoded logic for now, can be improved later
       if (chestCounter == 0) {
@@ -898,6 +929,7 @@ class RenegadeDungeonGame extends FlameGame
 
       await world.add(chest);
     }
-    print('✅ Loaded $chestCounter chests');
+    print(
+        '✅ Loaded $chestCounter chests (${openedChests.length} already opened)');
   }
 }

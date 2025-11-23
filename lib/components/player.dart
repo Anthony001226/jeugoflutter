@@ -66,6 +66,12 @@ class Player extends SpriteComponent
       print('¡Cofre recogido en ${other.gridPosition} por colisión!');
       addItem(other.item);
 
+      // Track this chest as opened in game state
+      final chestId =
+          '${game.currentMapName}:${other.gridPosition.x.toInt()},${other.gridPosition.y.toInt()}';
+      game.openedChests.add(chestId);
+      print('Chest $chestId marked as opened');
+
       // 4. Finalmente, lo mandamos a la cola de eliminación.
       other.removeFromParent();
     }
