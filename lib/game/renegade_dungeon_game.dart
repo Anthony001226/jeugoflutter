@@ -586,9 +586,6 @@ class RenegadeDungeonGame extends FlameGame
     }
     // ¡OJO! Asegúrate de que esta línea esté presente.
     // Llama al método original para que otras teclas (como el movimiento) sigan funcionando.
-    return super.onKeyEvent(event, keysPressed);
-  }
-
   // ========== PORTAL SYSTEM ==========
 
   void _loadPortals() {
@@ -607,11 +604,17 @@ class RenegadeDungeonGame extends FlameGame
       final targetY = obj.properties.getValue<int>('targetY') ?? 10;
 
       if (gridX != null && gridY != null && targetMap != null) {
+        final gridPos = Vector2(gridX.toDouble(), gridY.toDouble());
         portals[obj.name] = PortalData(
-          gridPosition: Vector2(gridX.toDouble(), gridY.toDouble()),
+          gridPosition: gridPos,
           targetMap: targetMap,
           targetPosition: Vector2(targetX.toDouble(), targetY.toDouble()),
         );
+
+        // Add visual indicator for portal
+        final visualPos = gridToScreenPosition(gridPos);
+        final portalVisual = PortalVisual(position: visualPos);
+        world.add(portalVisual);
       }
     }
 
@@ -637,10 +640,14 @@ class RenegadeDungeonGame extends FlameGame
     try {
       world.remove(mapComponent);
 
-      // Remove all chests from the previous map
+      // Remove all chests and portal visuals from the previous map
       final chests = world.children.whereType<Chest>().toList();
       for (final chest in chests) {
         chest.removeFromParent();
+      }
+      final portalVisuals = world.children.whereType<PortalVisual>().toList();
+      for (final visual in portalVisuals) {
+        visual.removeFromParent();
       }
 
       mapComponent =
@@ -683,10 +690,22 @@ class RenegadeDungeonGame extends FlameGame
       return;
     }
 
+    // Scale factor for isometric projection (Tiled vs Game)
+    // Tiled seems to export isometric object coordinates based on tileHeight (16)
+    // while our game logic uses tileWidth (32) for grid conversion.
+    // Empirical evidence suggests a 2.0 scale factor is needed.
+    const double scaleFactor = 2.0;
+
     for (int i = 0; i < zonesLayer.objects.length; i++) {
       final obj = zonesLayer.objects[i];
 
-      final rect = Rect.fromLTWH(obj.x, obj.y, obj.width, obj.height);
+      // Scale the rect to match game coordinates
+      final rect = Rect.fromLTWH(
+        obj.x * scaleFactor,
+        obj.y * scaleFactor,
+        obj.width * scaleFactor,
+        obj.height * scaleFactor,
+      );
       spawnZoneRects.add(rect);
 
       final enemyTypesStr = obj.properties.getValue<String>('enemyTypes') ?? '';
