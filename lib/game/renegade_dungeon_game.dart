@@ -233,8 +233,13 @@ class CombatManager {
     currentTurn.value = CombatTurn.enemyTurn;
 
     // 4. Programamos el contraataque del enemigo después de un segundo.
+    final isMultiEnemy = currentEnemies.isNotEmpty;
     Future.delayed(const Duration(seconds: 1), () {
-      enemyAttack();
+      if (isMultiEnemy) {
+        _executeEnemyTurns();
+      } else {
+        enemyUseAbility();
+      }
     });
   }
 

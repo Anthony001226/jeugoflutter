@@ -64,7 +64,7 @@ class BatComponent extends SpriteAnimationComponent {
   @override
   Future<void> onLoad() async {
     // Sprite temporal (usaremos el del goblin por ahora)
-    final sprite = await Sprite.load('enemies/goblin.png');
+    final sprite = await Sprite.load('enemies/bat.png');
     animation = SpriteAnimation.fromFrameData(
       sprite.image,
       SpriteAnimationData.sequenced(

@@ -26,7 +26,7 @@ class CombatUI extends StatelessWidget {
     final enemyStats = (enemy as dynamic).stats as EnemyStats;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.transparent, // Allow BattleScene to show through
       body: Center(
         child: Column(
           children: [
