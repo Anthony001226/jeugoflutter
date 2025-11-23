@@ -25,6 +25,7 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
     _background = SpriteComponent(
       sprite: await game.loadSprite('backgrounds/battle_background_forest.png'),
       anchor: Anchor.center,
+      priority: 0, // Render first (background)
     );
     add(_background);
 
@@ -33,6 +34,7 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
       sprite: await game.loadSprite('characters/player_battle.png'),
       size: Vector2.all(200),
       anchor: Anchor.center,
+      priority: 10, // Render above background
     );
     add(_playerSprite);
 
@@ -48,10 +50,12 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
           enemyIndex: i,
           onTap: _onEnemyTapped,
         );
+        clickable.priority = 10; // Same as player
         add(clickable);
 
         // Add HP bar for each enemy
         final hpBar = EnemyHPBar(enemy: e);
+        hpBar.priority = 20; // Above sprites
         _hpBars.add(hpBar);
         add(hpBar);
       }
@@ -63,8 +67,9 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
       game.combatManager.currentTurn.addListener(_onTargetChanged);
     } else if (enemy != null) {
       // Single enemy mode (backward compatibility)
-      add(enemy!);
       enemy!.size = Vector2.all(160);
+      enemy!.anchor = Anchor.center;
+      add(enemy!);
 
       // Add HP bar for single enemy
       final hpBar = EnemyHPBar(enemy: enemy!);
@@ -162,16 +167,16 @@ class _ClickableEnemy extends PositionComponent with TapCallbacks {
 
   @override
   Future<void> onLoad() async {
-    add(enemy);
     enemy.size = Vector2.all(160);
     enemy.anchor = Anchor.center;
+    enemy.position = Vector2.zero(); // Position relative to wrapper
+    add(enemy);
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    // Follow enemy position (in case it moves)
-    position = enemy.position;
+    // Position is managed by onGameResize, no need to follow enemy
   }
 
   @override

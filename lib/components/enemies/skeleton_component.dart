@@ -66,8 +66,8 @@ class SkeletonComponent extends SpriteAnimationComponent {
 
   @override
   Future<void> onLoad() async {
-    // Sprite temporal (usaremos el del goblin por ahora)
-    final sprite = await Sprite.load('enemies/goblin.png');
+    // Load skeleton sprite
+    final sprite = await Sprite.load('enemies/skeleton.png');
     animation = SpriteAnimation.fromFrameData(
       sprite.image,
       SpriteAnimationData.sequenced(

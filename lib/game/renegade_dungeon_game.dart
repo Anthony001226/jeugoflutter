@@ -313,7 +313,7 @@ class CombatManager {
         // Check if all enemies defeated
         if (currentEnemies.isEmpty) {
           print('🎉 ¡Todos los enemigos derrotados!');
-          return; // Combat ends
+          return; // Combat ends - all enemies dead
         }
 
         // More enemies remain, continue to enemy turns
@@ -322,9 +322,11 @@ class CombatManager {
         Future.delayed(const Duration(seconds: 1), () {
           _executeEnemyTurns();
         });
+        return; // Exit early for multi-enemy (turns already scheduled)
       }
 
-      return; // No hay contraataque si solo había un enemigo
+      // Single enemy mode - end combat
+      return;
     }
 
     print('⏳ Scheduling enemy turn...');
@@ -831,10 +833,16 @@ class RenegadeDungeonGame extends FlameGame
     // --- ¡NUEVA LÓGICA AÑADIDA! ---
     // Si el jugador fue derrotado, restauramos su estado.
     if (player.stats.currentHp.value == 0) {
+      print('💀 ¡Has muerto! Reapareciendo en punto seguro...');
       player.stats.currentHp.value = player.stats.maxHp.value;
       player.stats.currentMp.value = player.stats.maxMp.value;
       player.gridPosition = Vector2(5.0, 5.0);
       player.position = gridToScreenPosition(player.gridPosition);
+
+      // Show respawn message briefly
+      Future.delayed(const Duration(milliseconds: 500), () {
+        print('✨ Has reaparecido con salud completa');
+      });
     }
     // -----------------------------
 
@@ -1183,9 +1191,31 @@ class RenegadeDungeonGame extends FlameGame
     print('⚔️ Random encounter after $stepsSinceLastBattle steps!');
     stepsSinceLastBattle = 0;
 
-    final enemyType = currentZone!
-        .enemyTypes[Random().nextInt(currentZone!.enemyTypes.length)];
-    startCombat(enemyType);
+    final random = Random();
+
+    // 30% chance for multi-enemy if zone has multiple types
+    final canMultiEnemy = currentZone!.enemyTypes.length > 1;
+    final useMultiEnemy = canMultiEnemy && random.nextDouble() < 0.3;
+
+    if (useMultiEnemy) {
+      // Generate 2-3 enemy group
+      final enemyCount = random.nextBool() ? 2 : 3;
+      final enemyGroup = <String>[];
+
+      for (int i = 0; i < enemyCount; i++) {
+        final enemyType = currentZone!
+            .enemyTypes[random.nextInt(currentZone!.enemyTypes.length)];
+        enemyGroup.add(enemyType);
+      }
+
+      print('🎲 Multi-enemy encounter: $enemyGroup');
+      startCombatMulti(enemyGroup);
+    } else {
+      // Single enemy (classic)
+      final enemyType = currentZone!
+          .enemyTypes[random.nextInt(currentZone!.enemyTypes.length)];
+      startCombat(enemyType);
+    }
   }
 
   Future<void> _loadChests() async {
