@@ -538,8 +538,8 @@ class RenegadeDungeonGame extends FlameGame
   }
 
   Vector2 gridToScreenPosition(Vector2 gridPos) {
-    final mapWidthInTiles = mapComponent.tileMap.map.width;
-    final originX = mapWidthInTiles * (tileWidth / 2);
+    final mapHeightInTiles = mapComponent.tileMap.map.height;
+    final originX = mapHeightInTiles * (tileWidth / 2);
     final screenX = (gridPos.x - gridPos.y) * (tileWidth / 2);
     final screenY = (gridPos.x + gridPos.y) * (tileHeight / 2);
     return Vector2(
@@ -651,32 +651,6 @@ class RenegadeDungeonGame extends FlameGame
     currentMapName = mapName;
     _loadPortals();
     _loadSpawnZones();
-    await _loadChests();
-
-    player.gridPosition = startPos;
-    player.position = gridToScreenPosition(startPos);
-
-    print('🔍 DEBUG: Map Size: ${mapComponent.size}');
-    print('🔍 DEBUG: Map Width (tiles): ${mapComponent.tileMap.map.width}');
-    print('🔍 DEBUG: Map Height (tiles): ${mapComponent.tileMap.map.height}');
-    print('🔍 DEBUG: Player Start Screen Pos: ${player.position}');
-
-    // Add a debug marker at (0,0) grid
-    final markerPos = gridToScreenPosition(Vector2(0, 0));
-    print('🔍 DEBUG: Marker (0,0) Screen Pos: $markerPos');
-    world.add(CircleComponent(
-      radius: 10,
-      paint: BasicPalette.red.paint(),
-      position: markerPos,
-      anchor: Anchor.center,
-      priority: 100,
-    ));
-
-    stepsSinceLastBattle = 0;
-
-    await Future.delayed(Duration(milliseconds: 300));
-    overlays.remove('map_transition');
-    overlays.add('PlayerHud');
 
     print('✅ Loaded $mapName');
   }
@@ -758,8 +732,8 @@ class RenegadeDungeonGame extends FlameGame
   }
 
   Vector2 screenToGridPosition(Vector2 screenPos) {
-    final mapWidthInTiles = mapComponent.tileMap.map.width;
-    final originX = mapWidthInTiles * (tileWidth / 2);
+    final mapHeightInTiles = mapComponent.tileMap.map.height;
+    final originX = mapHeightInTiles * (tileWidth / 2);
 
     final halfW = tileWidth / 2;
     final halfH = tileHeight / 2;
