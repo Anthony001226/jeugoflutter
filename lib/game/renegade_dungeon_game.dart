@@ -634,25 +634,40 @@ class RenegadeDungeonGame extends FlameGame
     overlays.add('map_transition');
     await Future.delayed(Duration(milliseconds: 500));
 
-    world.remove(mapComponent);
+    try {
+      world.remove(mapComponent);
 
-    // Remove all chests from the previous map
-    final chests = world.children.whereType<Chest>().toList();
-    for (final chest in chests) {
-      chest.removeFromParent();
+      // Remove all chests from the previous map
+      final chests = world.children.whereType<Chest>().toList();
+      for (final chest in chests) {
+        chest.removeFromParent();
+      }
+
+      mapComponent =
+          await TiledComponent.load(mapName, Vector2(tileWidth, tileHeight));
+      collisionLayer = mapComponent.tileMap.getLayer<TileLayer>('Collision')!;
+      collisionLayer.visible = false;
+      await world.add(mapComponent);
+
+      currentMapName = mapName;
+      _loadPortals();
+      _loadSpawnZones();
+      await _loadChests();
+
+      player.gridPosition = startPos;
+      player.position = gridToScreenPosition(startPos);
+
+      stepsSinceLastBattle = 0;
+
+      print('✅ Loaded $mapName');
+    } catch (e, stackTrace) {
+      print('❌ Error loading map $mapName: $e');
+      print(stackTrace);
+    } finally {
+      await Future.delayed(Duration(milliseconds: 300));
+      overlays.remove('map_transition');
+      overlays.add('PlayerHud');
     }
-
-    mapComponent =
-        await TiledComponent.load(mapName, Vector2(tileWidth, tileHeight));
-    collisionLayer = mapComponent.tileMap.getLayer<TileLayer>('Collision')!;
-    collisionLayer.visible = false;
-    await world.add(mapComponent);
-
-    currentMapName = mapName;
-    _loadPortals();
-    _loadSpawnZones();
-
-    print('✅ Loaded $mapName');
   }
 
   // ========== ZONE SYSTEM ==========
