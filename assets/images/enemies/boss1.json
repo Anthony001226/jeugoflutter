@@ -1,0 +1,80 @@
+{ "frames": {
+   "boss1 0.ase": {
+    "frame": { "x": 0, "y": 0, "w": 160, "h": 117 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 160, "h": 117 },
+    "sourceSize": { "w": 160, "h": 117 },
+    "duration": 100
+   },
+   "boss1 1.ase": {
+    "frame": { "x": 160, "y": 0, "w": 160, "h": 117 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 160, "h": 117 },
+    "sourceSize": { "w": 160, "h": 117 },
+    "duration": 100
+   },
+   "boss1 2.ase": {
+    "frame": { "x": 320, "y": 0, "w": 160, "h": 117 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 160, "h": 117 },
+    "sourceSize": { "w": 160, "h": 117 },
+    "duration": 100
+   },
+   "boss1 3.ase": {
+    "frame": { "x": 480, "y": 0, "w": 160, "h": 117 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 160, "h": 117 },
+    "sourceSize": { "w": 160, "h": 117 },
+    "duration": 100
+   },
+   "boss1 4.ase": {
+    "frame": { "x": 640, "y": 0, "w": 160, "h": 117 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 160, "h": 117 },
+    "sourceSize": { "w": 160, "h": 117 },
+    "duration": 100
+   },
+   "boss1 5.ase": {
+    "frame": { "x": 800, "y": 0, "w": 160, "h": 117 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 160, "h": 117 },
+    "sourceSize": { "w": 160, "h": 117 },
+    "duration": 100
+   },
+   "boss1 6.ase": {
+    "frame": { "x": 960, "y": 0, "w": 160, "h": 117 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 160, "h": 117 },
+    "sourceSize": { "w": 160, "h": 117 },
+    "duration": 100
+   },
+   "boss1 7.ase": {
+    "frame": { "x": 1120, "y": 0, "w": 160, "h": 117 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 160, "h": 117 },
+    "sourceSize": { "w": 160, "h": 117 },
+    "duration": 100
+   }
+ },
+ "meta": {
+  "app": "https://github.com/LibreSprite/LibreSprite/",
+  "version": "1.1-dev",
+  "image": "C:\\dev\\renegade_dungeon_game\\assets\\images\\enemies\\boss1.png",
+  "format": "RGBA8888",
+  "size": { "w": 1280, "h": 117 },
+  "scale": "1",
+  "frameTags": [
+  ],
+  "layers": [
+   { "name": "Layer 1", "opacity": 255, "blendMode": "normal" }
+  ]
+ }
+}

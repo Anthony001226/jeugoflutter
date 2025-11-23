@@ -26,6 +26,7 @@ import '../game/enemy_ai.dart';
 import '../models/ability_database.dart';
 import '../models/zone_config.dart';
 import '../models/item_rarity.dart';
+import '../components/portal_visual.dart';
 
 import '../components/enemies/goblin_component.dart';
 import '../components/enemies/slime_component.dart';
@@ -586,6 +587,9 @@ class RenegadeDungeonGame extends FlameGame
     }
     // ¡OJO! Asegúrate de que esta línea esté presente.
     // Llama al método original para que otras teclas (como el movimiento) sigan funcionando.
+    return super.onKeyEvent(event, keysPressed);
+  }
+
   // ========== PORTAL SYSTEM ==========
 
   void _loadPortals() {
