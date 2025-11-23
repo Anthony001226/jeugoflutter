@@ -3,6 +3,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:flame/palette.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Route;
@@ -654,6 +655,22 @@ class RenegadeDungeonGame extends FlameGame
 
     player.gridPosition = startPos;
     player.position = gridToScreenPosition(startPos);
+
+    print('🔍 DEBUG: Map Size: ${mapComponent.size}');
+    print('🔍 DEBUG: Map Width (tiles): ${mapComponent.tileMap.map.width}');
+    print('🔍 DEBUG: Map Height (tiles): ${mapComponent.tileMap.map.height}');
+    print('🔍 DEBUG: Player Start Screen Pos: ${player.position}');
+
+    // Add a debug marker at (0,0) grid
+    final markerPos = gridToScreenPosition(Vector2(0, 0));
+    print('🔍 DEBUG: Marker (0,0) Screen Pos: $markerPos');
+    world.add(CircleComponent(
+      radius: 10,
+      paint: BasicPalette.red.paint(),
+      position: markerPos,
+      anchor: Anchor.center,
+      priority: 100,
+    ));
 
     stepsSinceLastBattle = 0;
 
