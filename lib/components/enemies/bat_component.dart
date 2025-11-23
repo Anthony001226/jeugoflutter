@@ -18,6 +18,7 @@ class BatStats extends EnemyStats implements CombatStatsHolder {
           maxHp: combatStats.maxHp.value,
           attack: combatStats.attack.value,
           defense: combatStats.defense.value,
+          speed: combatStats.speed.value, // Use speed from combatStats
           xpValue: 30,
           lootTable: {ItemDatabase.potion: 0.15},
         ) {
@@ -40,11 +41,8 @@ class BatComponent extends SpriteAnimationComponent {
   late final BatStats stats;
   late final List<CombatAbility> abilities;
 
-  BatComponent() : super(size: Vector2.all(128));
-
-  @override
-  Future<void> onLoad() async {
-    // Estadísticas: Rápido pero frágil
+  BatComponent() : super(size: Vector2.all(128)) {
+    // Initialize stats in constructor so it's available immediately
     final combatStats = CombatStats(
       initialHp: 15,
       initialMaxHp: 15,
@@ -60,7 +58,10 @@ class BatComponent extends SpriteAnimationComponent {
 
     // Habilidades
     abilities = AbilityDatabase.getBatAbilities();
+  }
 
+  @override
+  Future<void> onLoad() async {
     // Sprite temporal (usaremos el del goblin por ahora)
     final sprite = await Sprite.load('enemies/goblin.png');
     animation = SpriteAnimation.fromFrameData(

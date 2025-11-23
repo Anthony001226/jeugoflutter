@@ -18,6 +18,7 @@ class SkeletonStats extends EnemyStats implements CombatStatsHolder {
           maxHp: combatStats.maxHp.value,
           attack: combatStats.attack.value,
           defense: combatStats.defense.value,
+          speed: combatStats.speed.value, // Use speed from combatStats
           xpValue: 50,
           lootTable: {
             ItemDatabase.potion: 0.10,
@@ -43,11 +44,8 @@ class SkeletonComponent extends SpriteAnimationComponent {
   late final SkeletonStats stats;
   late final List<CombatAbility> abilities;
 
-  SkeletonComponent() : super(size: Vector2.all(128));
-
-  @override
-  Future<void> onLoad() async {
-    // Estadísticas: Tank con alta HP y defensa
+  SkeletonComponent() : super(size: Vector2.all(128)) {
+    // Initialize stats in constructor so it's available immediately
     final combatStats = CombatStats(
       initialHp: 35,
       initialMaxHp: 35,
@@ -63,7 +61,10 @@ class SkeletonComponent extends SpriteAnimationComponent {
 
     // Habilidades
     abilities = AbilityDatabase.getSkeletonAbilities();
+  }
 
+  @override
+  Future<void> onLoad() async {
     // Sprite temporal (usaremos el del goblin por ahora)
     final sprite = await Sprite.load('enemies/goblin.png');
     animation = SpriteAnimation.fromFrameData(

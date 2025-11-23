@@ -100,7 +100,7 @@
   <object id="2" x="300" y="0" width="400" height="400">
    <properties>
     <property name="dangerLevel" value="low"/>
-    <property name="encounterChance" type="float" value="0.3"/>
+    <property name="encounterChance" type="float" value="0.03"/>
     <property name="enemyTypes" value="slime"/>
     <property name="maxRarity" value="common"/>
     <property name="minLevel" type="int" value="1"/>
@@ -110,8 +110,8 @@
   <object id="3" x="700" y="0" width="400" height="400">
    <properties>
     <property name="dangerLevel" value="high"/>
-    <property name="encounterChance" type="float" value="0.4"/>
-    <property name="enemyTypes" value="goblin, bat"/>
+    <property name="encounterChance" type="float" value="0.015"/>
+    <property name="enemyTypes" value="goblin,bat,skeleton"/>
     <property name="maxRarity" value="rare"/>
     <property name="minLevel" type="int" value="1"/>
     <property name="name" value="Bosque Profundo"/>

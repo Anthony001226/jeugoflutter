@@ -30,6 +30,7 @@ class GoblinStats extends EnemyStats implements CombatStatsHolder {
           maxHp: maxHp,
           attack: attack,
           defense: defense,
+          speed: 5, // Use speed from combatStats
           xpValue: xpValue,
           lootTable: lootTable,
         ) {
@@ -53,22 +54,22 @@ class GoblinStats extends EnemyStats implements CombatStatsHolder {
 class GoblinComponent extends SpriteAnimationComponent {
   late final GoblinStats stats;
 
-  GoblinComponent() : super(size: Vector2.all(128));
-
-  @override
-  Future<void> onLoad() async {
+  GoblinComponent() : super(size: Vector2.all(128)) {
+    // Initialize stats in constructor so it's available immediately
     stats = GoblinStats(
       maxHp: 30,
       attack: 8,
       defense: 2,
       xpValue: 45,
       lootTable: {
-        // 10% de probabilidad de soltar una poción. ¡Un drop raro!
         ItemDatabase.potion: 0.10,
         ItemDatabase.goblinScimitar: 0.05,
       },
     );
+  }
 
+  @override
+  Future<void> onLoad() async {
     // Creamos una "animación" de un solo frame
     final sprite = await Sprite.load('enemies/goblin.png');
     animation = SpriteAnimation.fromFrameData(

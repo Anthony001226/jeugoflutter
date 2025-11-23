@@ -6,35 +6,36 @@ import 'package:renegade_dungeon/models/inventory_item.dart';
 
 class SlimeComponent extends SpriteAnimationComponent with HasGameReference {
   late final EnemyStats stats;
-  
+
   final Map<String, SpriteAnimation> _animations = {};
 
-  SlimeComponent() : super(size: Vector2.all(128));
-
-  @override
-  Future<void> onLoad() async {
+  SlimeComponent() : super(size: Vector2.all(128)) {
+    // Initialize stats in constructor so it's available immediately
     stats = EnemyStats(
       maxHp: 20,
       attack: 6,
       defense: 4,
+      speed: 6, // Slightly faster than average
       xpValue: 35,
       lootTable: {
-        // 75% de probabilidad de soltar un Residuo de Slime.
-        ItemDatabase.slimeResidue: 0.75, 
+        ItemDatabase.slimeResidue: 0.75,
       },
     );
+  }
 
+  @override
+  Future<void> onLoad() async {
     await _loadAnimations();
     animation = _animations['idle'];
   }
 
   Future<void> _loadAnimations() async {
     final jsonData = await game.assets.readJson('images/enemies/slime.json');
-    
+
     // --- CORRECCIÓN DEL NOMBRE DEL ARCHIVO ---
     // Usamos el nombre exacto que tienes en tu carpeta de assets.
-    final image = await game.images.load('enemies/slime-sheet.png'); 
-    
+    final image = await game.images.load('enemies/slime-sheet.png');
+
     final asepriteData = AsepriteData.fromJson(jsonData);
 
     _animations['idle'] = await asepriteData.getAnimation('idle', image);
@@ -49,7 +50,8 @@ class AsepriteData {
   Future<SpriteAnimation> getAnimation(String tag, image) async {
     final frameData = _json['frames'] as Map<String, dynamic>;
     final meta = _json['meta'];
-    final frameTags = (meta['frameTags'] as List).firstWhere((t) => t['name'] == tag, orElse: () => null);
+    final frameTags = (meta['frameTags'] as List)
+        .firstWhere((t) => t['name'] == tag, orElse: () => null);
 
     if (frameTags == null) {
       throw Exception('Tag "$tag" not found in Aseprite JSON file.');
@@ -58,10 +60,12 @@ class AsepriteData {
     final frameKeys = frameData.keys.toList();
     final firstFrameKey = frameKeys[frameTags['from']];
     final firstFrameInfo = frameData[firstFrameKey]['frame'];
-    final firstFrameSize = Vector2(firstFrameInfo['w'].toDouble(), firstFrameInfo['h'].toDouble());
+    final firstFrameSize =
+        Vector2(firstFrameInfo['w'].toDouble(), firstFrameInfo['h'].toDouble());
 
-    final frameDurations = (frameData.values.toList()
-        .sublist(frameTags['from'], frameTags['to'] + 1))
+    final frameDurations = (frameData.values
+            .toList()
+            .sublist(frameTags['from'], frameTags['to'] + 1))
         .map<double>((e) => (e['duration'] as int) / 1000.0)
         .toList();
 
