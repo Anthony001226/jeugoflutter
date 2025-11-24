@@ -1,6 +1,7 @@
 // lib/ui/combat_ui.dart
 
 import 'package:flutter/material.dart';
+import 'package:flame/components.dart';
 import 'package:renegade_dungeon/components/enemies/goblin_component.dart';
 import 'package:renegade_dungeon/components/enemies/slime_component.dart';
 import 'package:renegade_dungeon/components/enemies/bat_component.dart';
@@ -15,58 +16,93 @@ class CombatUI extends StatelessWidget {
   const CombatUI({super.key, required this.game});
 
   @override
+  @override
   Widget build(BuildContext context) {
-    final enemy = game.combatManager.currentEnemy;
-    if (enemy == null) {
-      return const Center(
-          child: Text('Error: No se encontró el enemigo.',
-              style: TextStyle(color: Colors.red)));
-    }
+    return ValueListenableBuilder<SpriteAnimationComponent?>(
+      valueListenable: game.combatManager.currentEnemyNotifier,
+      builder: (context, enemy, child) {
+        if (enemy == null) {
+          // If no enemy is selected, check if we won (all enemies dead)
+          if (game.combatManager.currentEnemies.isEmpty &&
+              game.combatManager.lastDroppedItems.isNotEmpty) {
+            // We can't easily get stats here if enemy is null, but we can show a generic victory or use the last known stats if we stored them.
+            // For now, let's assume if enemy is null and we are in combat, it might be an error OR victory transition.
+            // But usually _removeDefeatedEnemy sets currentEnemy to null ONLY if all are dead.
+            return const SizedBox(); // Wait for state change or show nothing
+          }
+          return const Center(
+              child: Text('Error: No se encontró el enemigo.',
+                  style: TextStyle(color: Colors.red)));
+        }
 
-    final enemyStats = (enemy as dynamic).stats as EnemyStats;
+        final enemyStats = (enemy as dynamic).stats as EnemyStats;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent, // Allow BattleScene to show through
-      body: Center(
-        child: Column(
-          children: [
-            const Spacer(),
-            // Enemy Info
-            ValueListenableBuilder<int>(
-              valueListenable: game.player.stats.currentHp,
-              builder: (context, playerHp, child) {
-                if (playerHp == 0) {
-                  return _buildDefeatScreen();
-                }
-
-                return ValueListenableBuilder<int>(
-                  valueListenable: enemyStats.currentHp,
-                  builder: (context, enemyHp, child) {
-                    if (enemyHp == 0) {
-                      return _buildVictoryScreen(enemyStats);
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(
+            child: Column(
+              children: [
+                const Spacer(),
+                // Enemy Info
+                ValueListenableBuilder<int>(
+                  valueListenable: game.player.stats.currentHp,
+                  builder: (context, playerHp, child) {
+                    if (playerHp == 0) {
+                      return _buildDefeatScreen();
                     }
-                    return _buildCombatScreen(enemyHp, enemyStats);
+
+                    return ValueListenableBuilder<int>(
+                      valueListenable: enemyStats.currentHp,
+                      builder: (context, enemyHp, child) {
+                        // Only show victory if HP is 0 AND it's the last enemy
+                        if (enemyHp <= 0) {
+                          final isLastEnemy =
+                              game.combatManager.currentEnemies.length <= 1;
+                          if (isLastEnemy) {
+                            return _buildVictoryScreen(enemyStats);
+                          }
+                          // If not last enemy, just show combat screen (it will switch soon)
+                          return _buildCombatScreen(0, enemyStats);
+                        }
+                        return _buildCombatScreen(enemyHp, enemyStats);
+                      },
+                    );
                   },
-                );
-              },
+                ),
+                const Spacer(),
+              ],
             ),
-            const Spacer(),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildCombatScreen(int enemyHp, EnemyStats enemyStats) {
     String enemyName = 'Enemigo';
     final enemy = game.combatManager.currentEnemy;
-    if (enemy is GoblinComponent)
-      enemyName = 'Goblin';
-    else if (enemy is SlimeComponent)
-      enemyName = 'Slime';
-    else if (enemy is BatComponent)
-      enemyName = 'Murciélago';
-    else if (enemy is SkeletonComponent) enemyName = 'Esqueleto';
+    if (enemy != null) {
+      enemyName = game.combatManager.getEnemyName(enemy);
+
+      // Append type if needed, or just use the name which already has #ID
+      // e.g. "Enemigo #2"
+      // If we want "Goblin #2", we need to store that in the map or construct it.
+      // Currently getEnemyName returns "Enemigo #X".
+      // Let's improve getEnemyName to include type if possible, or just use what we have.
+
+      // Actually, let's check if we can make it more descriptive in CombatManager later.
+      // For now, "Enemigo #X" is consistent with logs.
+
+      // If we want to show type:
+      if (enemy is GoblinComponent)
+        enemyName = enemyName.replaceFirst('Enemigo', 'Goblin');
+      else if (enemy is SlimeComponent)
+        enemyName = enemyName.replaceFirst('Enemigo', 'Slime');
+      else if (enemy is BatComponent)
+        enemyName = enemyName.replaceFirst('Enemigo', 'Murciélago');
+      else if (enemy is SkeletonComponent)
+        enemyName = enemyName.replaceFirst('Enemigo', 'Esqueleto');
+    }
 
     return Column(
       children: [

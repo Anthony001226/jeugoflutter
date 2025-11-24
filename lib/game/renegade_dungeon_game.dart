@@ -20,6 +20,7 @@ import 'package:renegade_dungeon/game/splash_screen.dart';
 import 'package:renegade_dungeon/models/inventory_item.dart';
 import '../models/enemy_stats.dart';
 import '../models/combat_ability.dart';
+import '../models/turn_entity.dart';
 import '../models/combat_stats.dart';
 import '../models/combat_stats_holder.dart';
 import '../utils/damage_calculator.dart';
@@ -54,11 +55,29 @@ enum CombatTurn {
 class CombatManager {
   // ... (Esta clase no cambia en absoluto)
   final RenegadeDungeonGame game;
-  SpriteAnimationComponent? currentEnemy;
+
+  // Backing field for currentEnemy
+  SpriteAnimationComponent? _currentEnemy;
+
+  // Notifier for UI updates
+  final ValueNotifier<SpriteAnimationComponent?> currentEnemyNotifier =
+      ValueNotifier(null);
+
+  // Getter and Setter
+  SpriteAnimationComponent? get currentEnemy => _currentEnemy;
+  set currentEnemy(SpriteAnimationComponent? value) {
+    _currentEnemy = value;
+    currentEnemyNotifier.value = value;
+  }
 
   // NEW: Multi-enemy support
   List<SpriteAnimationComponent> currentEnemies = [];
+  Map<SpriteAnimationComponent, String> enemyNames = {}; // Permanent names
   int selectedTargetIndex = 0;
+
+  // NEW: Turn Queue System
+  List<TurnEntity> turnQueue = [];
+  int currentTurnIndex = -1;
 
   late final ValueNotifier<CombatTurn> currentTurn;
   List<InventoryItem> lastDroppedItems = [];
@@ -67,57 +86,26 @@ class CombatManager {
     currentTurn = ValueNotifier(CombatTurn.playerTurn);
   }
 
+  /// Start combat against a single enemy (Legacy wrapper)
   void startNewCombat(String enemyType) {
-    switch (enemyType) {
-      case 'goblin':
-        currentEnemy = GoblinComponent();
-        break;
-      case 'slime':
-        currentEnemy = SlimeComponent();
-        break;
-      case 'bat':
-        currentEnemy = BatComponent();
-        break;
-      case 'skeleton':
-        currentEnemy = SkeletonComponent();
-        break;
-      default:
-        currentEnemy = GoblinComponent();
-    }
-
-    // Calculate initiative to determine who goes first
-    final playerSpeed = game.player.stats.speed.value;
-    final enemySpeed = (currentEnemy as dynamic).stats.speed ?? 5;
-
-    final playerInitiative = playerSpeed + Random().nextInt(11); // SPD + 0-10
-    final enemyInitiative = enemySpeed + Random().nextInt(11);
-
-    if (playerInitiative >= enemyInitiative) {
-      currentTurn.value = CombatTurn.playerTurn;
-      print(
-          '⚡ ¡El jugador empieza primero! (Initiative: $playerInitiative vs $enemyInitiative)');
-    } else {
-      currentTurn.value = CombatTurn.enemyTurn;
-      print(
-          '⚡ ¡El enemigo empieza primero! (Initiative: $enemyInitiative vs $playerInitiative)');
-      // Enemy gets first turn
-      Future.delayed(const Duration(milliseconds: 1500), () {
-        game.combatManager.enemyUseAbility();
-      });
-    }
+    startNewCombatMulti([enemyType]);
   }
 
-  /// Start combat against multiple enemies (1v2 or 1v3)
+  /// Start combat against multiple enemies with Individual Initiative
   void startNewCombatMulti(List<String> enemyTypes) {
     print('⚔️ Iniciando combate multi-enemigo: ${enemyTypes.length} enemigos');
 
-    // Clear previous enemies
+    // 1. Clear previous state
     currentEnemies.clear();
+    enemyNames.clear();
     currentEnemy = null;
     selectedTargetIndex = 0;
+    turnQueue.clear();
+    currentTurnIndex = -1;
 
-    // Create all enemies
-    for (final enemyType in enemyTypes) {
+    // 2. Create enemies
+    for (int i = 0; i < enemyTypes.length; i++) {
+      final enemyType = enemyTypes[i];
       SpriteAnimationComponent enemy;
       switch (enemyType) {
         case 'goblin':
@@ -136,39 +124,80 @@ class CombatManager {
           enemy = SlimeComponent();
       }
       currentEnemies.add(enemy);
+      // Assign permanent name (1-based index)
+      enemyNames[enemy] = 'Enemigo #${i + 1}';
     }
 
-    // Apply group scaling for balance
+    // 3. Apply scaling
     _applyGroupScaling();
 
-    // Set first enemy as currentEnemy for backward compatibility
+    // 4. Set initial currentEnemy
     if (currentEnemies.isNotEmpty) {
       currentEnemy = currentEnemies[0];
     }
 
-    // Calculate initiative (use average enemy speed)
+    // 5. Roll Initiatives & Build Queue
     final playerSpeed = game.player.stats.speed.value;
-    int totalEnemySpeed = 0;
-    for (final enemy in currentEnemies) {
+    final playerInit = playerSpeed + Random().nextInt(11);
+
+    // Add Player to queue
+    turnQueue.add(TurnEntity(isPlayer: true, initiative: playerInit));
+
+    // Add Enemies to queue
+    for (int i = 0; i < currentEnemies.length; i++) {
+      final enemy = currentEnemies[i];
       final speed = (enemy as dynamic).stats.speed ?? 5;
-      totalEnemySpeed += (speed is int) ? speed : (speed as num).toInt();
+      final enemySpeed = (speed is int) ? speed : (speed as num).toInt();
+      final enemyInit = enemySpeed + Random().nextInt(11);
+
+      turnQueue.add(
+          TurnEntity(isPlayer: false, enemy: enemy, initiative: enemyInit));
     }
-    final avgEnemySpeed = (totalEnemySpeed / currentEnemies.length).toInt();
 
-    final playerInitiative = playerSpeed + Random().nextInt(11);
-    final enemyInitiative = avgEnemySpeed + Random().nextInt(11);
+    // 6. Sort Queue (Higher initiative first)
+    turnQueue.sort((a, b) => b.initiative.compareTo(a.initiative));
 
-    if (playerInitiative >= enemyInitiative) {
+    print('📜 Orden de Turnos: $turnQueue');
+
+    // 7. Start First Turn
+    nextTurn();
+  }
+
+  /// Proceed to the next turn in the queue
+  void nextTurn() {
+    if (turnQueue.isEmpty) return;
+
+    // Increment index (looping)
+    currentTurnIndex = (currentTurnIndex + 1) % turnQueue.length;
+    final currentEntity = turnQueue[currentTurnIndex];
+
+    print('👉 Turno de: $currentEntity');
+
+    if (currentEntity.isPlayer) {
+      // Player's Turn
       currentTurn.value = CombatTurn.playerTurn;
-      print(
-          '⚡ ¡El jugador empieza primero! (Initiative: $playerInitiative vs $enemyInitiative)');
+      print('🎮 Tu turno!');
     } else {
+      // Enemy's Turn
       currentTurn.value = CombatTurn.enemyTurn;
-      print(
-          '⚡ ¡Los enemigos empiezan primero! (Initiative: $enemyInitiative vs $playerInitiative)');
-      // Enemies get first turn
-      Future.delayed(const Duration(milliseconds: 1500), () {
-        _executeEnemyTurns();
+
+      // Highlight the acting enemy (optional but helpful)
+      // We could update target to this enemy, but might be confusing if player was targeting someone else.
+      // For now, just execute logic.
+
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        if (currentEntity.enemy != null) {
+          // Find index of this enemy to pass to _enemyTakeTurn
+          final index = currentEnemies.indexOf(currentEntity.enemy!);
+          if (index != -1) {
+            _enemyTakeTurn(currentEntity.enemy!, index);
+          } else {
+            // Enemy might have died? Skip.
+            nextTurn();
+          }
+        } else {
+          nextTurn();
+        }
       });
     }
   }
@@ -229,16 +258,19 @@ class CombatManager {
     game.player.useItem(slot);
 
     // 3. ¡MUY IMPORTANTE! El turno del jugador ha terminado.
-    // Le pasamos el control al enemigo.
-    currentTurn.value = CombatTurn.enemyTurn;
+    // Le pasamos el control al siguiente turno.
+    // currentTurn.value = CombatTurn.enemyTurn; // REMOVED: Managed by nextTurn
 
-    // 4. Programamos el contraataque del enemigo después de un segundo.
+    // 4. Programamos el siguiente turno.
     final isMultiEnemy = currentEnemies.isNotEmpty;
     Future.delayed(const Duration(seconds: 1), () {
       if (isMultiEnemy) {
-        _executeEnemyTurns();
+        nextTurn();
       } else {
-        enemyUseAbility();
+        currentTurn.value = CombatTurn.enemyTurn;
+        Future.delayed(const Duration(seconds: 1), () {
+          enemyUseAbility();
+        });
       }
     });
   }
@@ -267,8 +299,8 @@ class CombatManager {
     }
 
     if (isMultiEnemy) {
-      print(
-          '⚔️ Jugador usa: ${ability.name} contra enemigo #${selectedTargetIndex + 1}');
+      final enemyName = getEnemyName(targetEnemy);
+      print('⚔️ Jugador usa: ${ability.name} contra $enemyName');
     } else {
       print('⚔️ Jugador usa: ${ability.name}');
     }
@@ -328,28 +360,29 @@ class CombatManager {
           return; // Combat ends - all enemies dead
         }
 
-        // More enemies remain, continue to enemy turns
-        print('⏳ Quedan ${currentEnemies.length} enemigos...');
-        currentTurn.value = CombatTurn.enemyTurn;
+        // More enemies remain, continue to next turn in queue
+        print('⏳ Enemigo derrotado. Siguiente turno...');
         Future.delayed(const Duration(seconds: 1), () {
-          _executeEnemyTurns();
+          nextTurn();
         });
-        return; // Exit early for multi-enemy (turns already scheduled)
+        return;
       }
 
       // Single enemy mode - end combat
       return;
     }
 
-    print('⏳ Scheduling enemy turn...');
-    // Turno del enemigo
-    currentTurn.value = CombatTurn.enemyTurn;
+    print('⏳ Fin del turno del jugador. Siguiente turno...');
+    // End player turn, proceed to next in queue
     Future.delayed(const Duration(seconds: 1), () {
-      print('🤖 Executing scheduled enemy turn...');
       if (isMultiEnemy) {
-        _executeEnemyTurns();
+        nextTurn();
       } else {
-        enemyUseAbility();
+        // Legacy single enemy support
+        currentTurn.value = CombatTurn.enemyTurn;
+        Future.delayed(const Duration(seconds: 1), () {
+          enemyUseAbility();
+        });
       }
     });
   }
@@ -445,6 +478,11 @@ class CombatManager {
     return 'slime'; // fallback
   }
 
+  /// Get permanent name for an enemy
+  String getEnemyName(SpriteAnimationComponent enemy) {
+    return enemyNames[enemy] ?? 'Enemigo';
+  }
+
   /// Get enemy type for a specific enemy component
   String _getEnemyTypeForComponent(SpriteAnimationComponent enemy) {
     if (enemy is GoblinComponent) return 'goblin';
@@ -487,13 +525,28 @@ class CombatManager {
   /// Remove defeated enemy from the battle
   void _removeDefeatedEnemy(int index) {
     if (index >= 0 && index < currentEnemies.length) {
-      print('🗑️ Removiendo enemigo #${index + 1} derrotado');
+      final enemyToRemove = currentEnemies[index];
+      final enemyName = getEnemyName(enemyToRemove);
+      print('🗑️ Removiendo $enemyName derrotado');
 
       // Remove visual component first
       game._battleScene?.removeEnemy(index);
 
       // Then remove from data list
       currentEnemies.removeAt(index);
+
+      // (Note: enemyNames entry persists, which is fine)
+
+      // NEW: Remove from Turn Queue
+      final queueIndex = turnQueue.indexWhere((e) => e.enemy == enemyToRemove);
+      if (queueIndex != -1) {
+        turnQueue.removeAt(queueIndex);
+        // If we removed an entity before the current index, decrement index
+        // to stay in sync.
+        if (queueIndex < currentTurnIndex) {
+          currentTurnIndex--;
+        }
+      }
 
       // Adjust selected target if needed
       if (selectedTargetIndex >= currentEnemies.length &&
@@ -504,16 +557,11 @@ class CombatManager {
       }
 
       // Update currentEnemy for UI compatibility
-      // This prevents the UI from showing "Victory" if the dead enemy #1 is still referenced
       if (currentEnemies.isNotEmpty) {
         currentEnemy = currentEnemies[selectedTargetIndex];
       } else {
         currentEnemy = null;
       }
-
-      // Trigger visual update
-      final temp = currentTurn.value;
-      currentTurn.value = temp;
     }
   }
 
@@ -522,7 +570,8 @@ class CombatManager {
     if (currentEnemies.isEmpty) return;
 
     selectedTargetIndex = (selectedTargetIndex + 1) % currentEnemies.length;
-    print('🎯 Target switched to enemy #${selectedTargetIndex + 1}');
+    final targetName = getEnemyName(currentEnemies[selectedTargetIndex]);
+    print('🎯 Target switched to $targetName');
 
     final temp = currentTurn.value;
     currentTurn.value = temp;
@@ -534,7 +583,8 @@ class CombatManager {
 
     selectedTargetIndex = (selectedTargetIndex - 1 + currentEnemies.length) %
         currentEnemies.length;
-    print('🎯 Target switched to enemy #${selectedTargetIndex + 1}');
+    final targetName = getEnemyName(currentEnemies[selectedTargetIndex]);
+    print('🎯 Target switched to $targetName');
 
     final temp = currentTurn.value;
     currentTurn.value = temp;
@@ -544,20 +594,26 @@ class CombatManager {
   void _enemyTakeTurn(SpriteAnimationComponent enemy, int index) {
     final stats = (enemy as dynamic).stats;
     final enemyType = _getEnemyTypeForComponent(enemy);
+    final enemyName = getEnemyName(enemy);
 
     // Check if enemy has CombatStats
     final hasCombatStats = stats is CombatStatsHolder;
 
     if (!hasCombatStats) {
       // Simple attack for enemies without CombatStats
-      print('🤖 Enemigo #${index + 1} usa ataque simple');
+      print('🤖 $enemyName usa ataque simple');
       final rawDamage = stats.attack;
       final playerDef = game.player.stats.defense.value;
       final estimatedNet = (rawDamage - playerDef).clamp(1, 999);
 
       game.player.stats.takeDamage(rawDamage);
       print(
-          '💥 Enemigo #${index + 1} hizo $estimatedNet de daño! (Bruto: $rawDamage - Def: $playerDef)');
+          '💥 $enemyName hizo $estimatedNet de daño! (Bruto: $rawDamage - Def: $playerDef)');
+
+      // Proceed to next turn
+      Future.delayed(const Duration(seconds: 1), () {
+        nextTurn();
+      });
       return;
     }
 
@@ -567,7 +623,7 @@ class CombatManager {
 
     if (abilities.isEmpty) {
       // Fallback to simple attack
-      print('🤖 Enemigo #${index + 1} usa ataque simple (sin habilidades)');
+      print('🤖 $enemyName usa ataque simple (sin habilidades)');
       game.player.stats.takeDamage(combatStats.attack.value);
       return;
     }
@@ -578,7 +634,7 @@ class CombatManager {
       stats: combatStats,
     );
 
-    print('🤖 Enemigo #${index + 1} usa: ${chosenAbility.name}');
+    print('🤖 $enemyName usa: ${chosenAbility.name}');
 
     // Consume resources
     if (chosenAbility.type == AbilityType.ultimate) {
@@ -602,27 +658,12 @@ class CombatManager {
 
     game.player.stats.takeDamage(grossDamage);
     print(
-        '💥 Enemigo #${index + 1} hizo $estimatedNetDamage de daño! (Bruto: $grossDamage - Def: $playerDef)');
-  }
+        '💥 $enemyName hizo $estimatedNetDamage de daño! (Bruto: $grossDamage - Def: $playerDef)');
 
-  /// Execute turns for all alive enemies (called after player turn)
-  void _executeEnemyTurns() {
-    if (currentEnemies.isEmpty) return;
-
-    print('🤖 Ejecutando turnos de ${currentEnemies.length} enemigos...');
-
-    for (int i = 0; i < currentEnemies.length; i++) {
-      _enemyTakeTurn(currentEnemies[i], i);
-
-      // Check if player died mid-combat
-      if (game.player.stats.currentHp.value <= 0) {
-        print('💀 ¡Jugador derrotado durante turnos enemigos!');
-        return;
-      }
-    }
-
-    // All enemies attacked, back to player turn
-    currentTurn.value = CombatTurn.playerTurn;
+    // Proceed to next turn after delay
+    Future.delayed(const Duration(seconds: 1), () {
+      nextTurn();
+    });
   }
 }
 
