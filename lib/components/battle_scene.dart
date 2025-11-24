@@ -98,9 +98,6 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
       for (int i = 0; i < _enemyWrappers.length; i++) {
         _enemyWrappers[i].enemyIndex = i;
       }
-
-      // Update target indicator
-      _updateTargetIndicator();
     }
   }
 

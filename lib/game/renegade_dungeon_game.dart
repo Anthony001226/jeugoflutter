@@ -282,15 +282,22 @@ class CombatManager {
 
     // Calcular y aplicar daño
     final enemyStats = (targetEnemy as dynamic).stats as EnemyStats;
-    final damage = DamageCalculator.calculateDamage(
+
+    // NOTA: Pasamos 0 como defensa aquí para obtener el daño BRUTO.
+    // La defensa se restará dentro de takeDamage().
+    final grossDamage = DamageCalculator.calculateDamage(
       ability: ability,
       attackerAtk: playerStats.attack.value,
-      defenderDef: enemyStats.defense,
+      defenderDef: 0, // 0 aquí porque takeDamage restará la defensa
       critChance: playerStats.critChance.value,
     );
 
-    enemyStats.takeDamage(damage);
-    print('💥 ${ability.name} hizo $damage de daño!');
+    final enemyDef = enemyStats.defense;
+    final estimatedNetDamage = (grossDamage - enemyDef).clamp(1, 999);
+
+    enemyStats.takeDamage(grossDamage);
+    print(
+        '💥 ${ability.name} hizo $estimatedNetDamage de daño! (Bruto: $grossDamage - Def: $enemyDef)');
     print('🔍 DEBUG: Enemy HP after damage: ${enemyStats.currentHp.value}');
 
     // Ganar carga de Ultimate
@@ -401,21 +408,28 @@ class CombatManager {
     }
 
     // Calcular daño
-    final damage = DamageCalculator.calculateDamage(
+    // NOTA: Pasamos 0 como defensa aquí para obtener el daño BRUTO (Gross Damage).
+    // La defensa se restará dentro de takeDamage().
+    final grossDamage = DamageCalculator.calculateDamage(
       ability: chosenAbility,
       attackerAtk: enemyCombatStats.attack.value,
-      defenderDef: game.player.stats.combatStats.defense.value,
+      defenderDef: 0, // 0 aquí porque takeDamage restará la defensa
       critChance: enemyCombatStats.critChance.value,
     );
 
-    game.player.stats.takeDamage(damage);
-    print('💥 El enemigo hizo $damage de daño!');
+    // Para el log, calculamos cuánto será el daño NETO aproximado
+    final playerDef = game.player.stats.combatStats.defense.value;
+    final estimatedNetDamage = (grossDamage - playerDef).clamp(1, 999);
+
+    game.player.stats.takeDamage(grossDamage);
+    print(
+        '💥 El enemigo hizo $estimatedNetDamage de daño! (Bruto: $grossDamage - Def: $playerDef)');
 
     // Ganar ULT al recibir daño (ya está en PlayerStats.takeDamage)
 
     if (game.player.stats.currentHp.value == 0) {
       print('💀 ¡Jugador derrotado!');
-      game.endCombat(); // Call endCombat to handle respawn and UI reset
+      // game.endCombat(); // REMOVED: Let UI handle defeat screen
       return;
     }
 
@@ -489,6 +503,14 @@ class CombatManager {
         selectedTargetIndex = 0;
       }
 
+      // Update currentEnemy for UI compatibility
+      // This prevents the UI from showing "Victory" if the dead enemy #1 is still referenced
+      if (currentEnemies.isNotEmpty) {
+        currentEnemy = currentEnemies[selectedTargetIndex];
+      } else {
+        currentEnemy = null;
+      }
+
       // Trigger visual update
       final temp = currentTurn.value;
       currentTurn.value = temp;
@@ -529,10 +551,13 @@ class CombatManager {
     if (!hasCombatStats) {
       // Simple attack for enemies without CombatStats
       print('🤖 Enemigo #${index + 1} usa ataque simple');
-      final damage =
-          (stats.attack - game.player.stats.defense.value).clamp(1, 999);
-      game.player.stats.takeDamage(damage);
-      print('💥 Enemigo #${index + 1} hizo $damage de daño!');
+      final rawDamage = stats.attack;
+      final playerDef = game.player.stats.defense.value;
+      final estimatedNet = (rawDamage - playerDef).clamp(1, 999);
+
+      game.player.stats.takeDamage(rawDamage);
+      print(
+          '💥 Enemigo #${index + 1} hizo $estimatedNet de daño! (Bruto: $rawDamage - Def: $playerDef)');
       return;
     }
 
@@ -563,15 +588,21 @@ class CombatManager {
     }
 
     // Calculate and apply damage
-    final damage = DamageCalculator.calculateDamage(
+    // NOTA: Pasamos 0 como defensa aquí para obtener el daño BRUTO.
+    // La defensa se restará dentro de takeDamage().
+    final grossDamage = DamageCalculator.calculateDamage(
       ability: chosenAbility,
       attackerAtk: combatStats.attack.value,
-      defenderDef: game.player.stats.combatStats.defense.value,
+      defenderDef: 0, // 0 aquí porque takeDamage restará la defensa
       critChance: combatStats.critChance.value,
     );
 
-    game.player.stats.takeDamage(damage);
-    print('💥 Enemigo #${index + 1} hizo $damage de daño!');
+    final playerDef = game.player.stats.combatStats.defense.value;
+    final estimatedNetDamage = (grossDamage - playerDef).clamp(1, 999);
+
+    game.player.stats.takeDamage(grossDamage);
+    print(
+        '💥 Enemigo #${index + 1} hizo $estimatedNetDamage de daño! (Bruto: $grossDamage - Def: $playerDef)');
   }
 
   /// Execute turns for all alive enemies (called after player turn)
