@@ -98,6 +98,7 @@ class CombatManager {
     // 1. Clear previous state
     currentEnemies.clear();
     enemyNames.clear();
+    lastDroppedItems.clear(); // Clear loot from previous battle
     currentEnemy = null;
     selectedTargetIndex = 0;
     turnQueue.clear();
@@ -340,8 +341,7 @@ class CombatManager {
       print('💀 ¡Enemigo derrotado! (HP <= 0 detected)');
       game.player.stats.gainXp(enemyStats.xpValue);
 
-      // Loot drop
-      lastDroppedItems.clear();
+      // Loot drop - ACCUMULATE items (don't clear the list)
       final random = Random();
       enemyStats.lootTable.forEach((item, chance) {
         if (random.nextDouble() < chance) {
@@ -352,9 +352,17 @@ class CombatManager {
 
       // Handle multi-enemy defeat
       if (isMultiEnemy) {
+        // Check if this is the LAST enemy
+        if (currentEnemies.length == 1) {
+          print('🎉 ¡Último enemigo derrotado!');
+          // DO NOT REMOVE. Let UI show victory screen based on HP <= 0.
+          // Also ensure we don't call nextTurn().
+          return;
+        }
+
         _removeDefeatedEnemy(selectedTargetIndex);
 
-        // Check if all enemies defeated
+        // Check if all enemies defeated (Should be covered by above check, but safety first)
         if (currentEnemies.isEmpty) {
           print('🎉 ¡Todos los enemigos derrotados!');
           return; // Combat ends - all enemies dead
@@ -643,22 +651,32 @@ class CombatManager {
       combatStats.spendMp(chosenAbility.mpCost);
     }
 
-    // Calculate and apply damage
-    // NOTA: Pasamos 0 como defensa aquí para obtener el daño BRUTO.
-    // La defensa se restará dentro de takeDamage().
-    final grossDamage = DamageCalculator.calculateDamage(
-      ability: chosenAbility,
-      attackerAtk: combatStats.attack.value,
-      defenderDef: 0, // 0 aquí porque takeDamage restará la defensa
-      critChance: combatStats.critChance.value,
-    );
+    // Check if ability is offensive (attacks player) or defensive (buffs self)
+    final isOffensive = chosenAbility.effect.targetType != TargetType.self &&
+        chosenAbility.effect.baseDamage > 0;
 
-    final playerDef = game.player.stats.combatStats.defense.value;
-    final estimatedNetDamage = (grossDamage - playerDef).clamp(1, 999);
+    if (isOffensive) {
+      // Calculate and apply damage
+      // NOTA: Pasamos 0 como defensa aquí para obtener el daño BRUTO.
+      // La defensa se restará dentro de takeDamage().
+      final grossDamage = DamageCalculator.calculateDamage(
+        ability: chosenAbility,
+        attackerAtk: combatStats.attack.value,
+        defenderDef: 0, // 0 aquí porque takeDamage restará la defensa
+        critChance: combatStats.critChance.value,
+      );
 
-    game.player.stats.takeDamage(grossDamage);
-    print(
-        '💥 $enemyName hizo $estimatedNetDamage de daño! (Bruto: $grossDamage - Def: $playerDef)');
+      final playerDef = game.player.stats.combatStats.defense.value;
+      final estimatedNetDamage = (grossDamage - playerDef).clamp(1, 999);
+
+      game.player.stats.takeDamage(grossDamage);
+      print(
+          '💥 $enemyName hizo $estimatedNetDamage de daño! (Bruto: $grossDamage - Def: $playerDef)');
+    } else {
+      // Defensive/buff ability
+      print('🛡️ $enemyName usa una habilidad defensiva (sin daño)');
+      // TODO: Apply defense buff when status effect system is implemented
+    }
 
     // Proceed to next turn after delay
     Future.delayed(const Duration(seconds: 1), () {
@@ -873,15 +891,11 @@ class RenegadeDungeonGame extends FlameGame
     world.removeFromParent();
     camera.viewfinder.zoom = 1.0;
 
-    // Support both single and multi-enemy modes
-    if (combatManager.currentEnemies.isEmpty) {
-      // Single enemy mode (legacy)
-      combatManager.startNewCombat(enemyType);
-      _battleScene = BattleScene(enemy: combatManager.currentEnemy!);
-    } else {
-      // Multi-enemy mode (currentEnemies already populated)
-      _battleScene = BattleScene(enemies: combatManager.currentEnemies);
-    }
+    // ALWAYS use multi-enemy system (single enemy = list of 1)
+    combatManager.startNewCombatMulti([enemyType]);
+
+    // Create BattleScene with the enemies
+    _battleScene = BattleScene(enemies: combatManager.currentEnemies);
 
     await add(_battleScene!);
     overlays.add('CombatUI');
@@ -918,6 +932,11 @@ class RenegadeDungeonGame extends FlameGame
       print('💀 ¡Has muerto! Reapareciendo en punto seguro...');
       player.stats.currentHp.value = player.stats.maxHp.value;
       player.stats.currentMp.value = player.stats.maxMp.value;
+
+      // CRÍTICO: Sincronizar con combatStats para que la UI lo vea
+      player.stats.combatStats.currentHp.value = player.stats.currentHp.value;
+      player.stats.combatStats.currentMp.value = player.stats.currentMp.value;
+
       player.gridPosition = Vector2(5.0, 5.0);
       player.position = gridToScreenPosition(player.gridPosition);
 
