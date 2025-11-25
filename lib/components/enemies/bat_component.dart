@@ -21,7 +21,7 @@ class BatStats extends EnemyStats implements CombatStatsHolder {
           defense: combatStats.defense.value,
           speed: combatStats.speed.value, // Use speed from combatStats
           xpValue: 30,
-          lootTable: {ItemDatabase.potion: 0.15},
+          lootTable: {ItemDatabase.potion: 0.50}, // 50% drop (was 15%)
         ) {
     // Sincronizar valores iniciales
     currentHp.value = combatStats.currentHp.value;

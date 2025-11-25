@@ -22,8 +22,8 @@ class SkeletonStats extends EnemyStats implements CombatStatsHolder {
           speed: combatStats.speed.value, // Use speed from combatStats
           xpValue: 50,
           lootTable: {
-            ItemDatabase.potion: 0.10,
-            ItemDatabase.rustySword: 0.05,
+            ItemDatabase.potion: 0.60, // 60% drop (was 10%)
+            ItemDatabase.rustySword: 0.30, // 30% drop (was 5%)
           },
         ) {
     // Sincronizar valores iniciales

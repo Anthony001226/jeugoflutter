@@ -81,6 +81,7 @@ class CombatManager {
 
   late final ValueNotifier<CombatTurn> currentTurn;
   List<InventoryItem> lastDroppedItems = [];
+  int totalXpEarned = 0; // NEW: Accumulate XP to award at end
 
   CombatManager(this.game) {
     currentTurn = ValueNotifier(CombatTurn.playerTurn);
@@ -99,6 +100,7 @@ class CombatManager {
     currentEnemies.clear();
     enemyNames.clear();
     lastDroppedItems.clear(); // Clear loot from previous battle
+    totalXpEarned = 0; // Reset XP counter
     currentEnemy = null;
     selectedTargetIndex = 0;
     turnQueue.clear();
@@ -351,7 +353,10 @@ class CombatManager {
     // Verificar si el enemigo murió
     if (enemyStats.currentHp.value <= 0) {
       print('💀 ¡Enemigo derrotado! (HP <= 0 detected)');
-      game.player.stats.gainXp(enemyStats.xpValue);
+
+      // NEW: Accumulate XP instead of giving immediately
+      totalXpEarned += enemyStats.xpValue;
+      print('📊 XP acumulado: +${enemyStats.xpValue} (Total: $totalXpEarned)');
 
       // Loot drop - ACCUMULATE items (don't clear the list)
       final random = Random();
@@ -367,6 +372,9 @@ class CombatManager {
         // Check if this is the LAST enemy
         if (currentEnemies.length == 1) {
           print('🎉 ¡Último enemigo derrotado!');
+          // NEW: Award all XP at END of battle
+          game.player.stats.gainXp(totalXpEarned);
+          print('⭐ XP TOTAL GANADO: $totalXpEarned');
           // DO NOT REMOVE. Let UI show victory screen based on HP <= 0.
           // Also ensure we don't call nextTurn().
           return;
@@ -377,6 +385,9 @@ class CombatManager {
         // Check if all enemies defeated (Should be covered by above check, but safety first)
         if (currentEnemies.isEmpty) {
           print('🎉 ¡Todos los enemigos derrotados!');
+          // NEW: Award all XP (safety check)
+          game.player.stats.gainXp(totalXpEarned);
+          print('⭐ XP TOTAL GANADO: $totalXpEarned');
           return; // Combat ends - all enemies dead
         }
 
@@ -389,6 +400,9 @@ class CombatManager {
       }
 
       // Single enemy mode - end combat
+      // NEW: Award XP for single enemy too
+      game.player.stats.gainXp(totalXpEarned);
+      print('⭐ XP TOTAL GANADO: $totalXpEarned');
       return;
     }
 

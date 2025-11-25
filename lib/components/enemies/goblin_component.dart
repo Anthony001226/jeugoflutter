@@ -63,8 +63,8 @@ class GoblinComponent extends SpriteAnimationComponent {
       defense: 2,
       xpValue: 45,
       lootTable: {
-        ItemDatabase.potion: 0.10,
-        ItemDatabase.goblinScimitar: 0.05,
+        ItemDatabase.potion: 0.50, // 50% drop (antes 10%)
+        ItemDatabase.goblinScimitar: 0.30, // 30% drop (antes 5%)
       },
     );
   }

@@ -18,7 +18,7 @@ class SlimeComponent extends SpriteAnimationComponent with HasGameReference {
       speed: 6, // Slightly faster than average
       xpValue: 35,
       lootTable: {
-        ItemDatabase.slimeResidue: 0.75,
+        ItemDatabase.potion: 0.30, // 30% drop (was slimeResidue 75%)
       },
     );
   }
