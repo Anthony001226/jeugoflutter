@@ -105,6 +105,12 @@ class Player extends SpriteComponent
 
   void _move(Vector2 direction) {
     final targetGridPosition = gridPosition + direction;
+
+    // NEW: Check if blocked by conditional barrier
+    if (!game.canPassBarrier(targetGridPosition)) {
+      return; // Movement blocked by barrier
+    }
+
     if (!_hasCollision(targetGridPosition)) {
       gridPosition = targetGridPosition;
       position = game.gridToScreenPosition(gridPosition);

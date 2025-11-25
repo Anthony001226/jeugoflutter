@@ -50,6 +50,13 @@ class PlayerStats {
   late final ValueNotifier<int> currentXp;
   late final ValueNotifier<int> xpToNextLevel;
 
+  // ===== NEW: Progression Tracking for Conditional Barriers =====
+  /// List of boss IDs that have been defeated
+  final Set<String> defeatedBosses = {};
+
+  /// List of quest IDs that have been completed (future use)
+  final Set<String> completedQuests = {};
+
   PlayerStats({
     required int initialLevel,
     required int initialMaxHp,
@@ -218,5 +225,31 @@ class PlayerStats {
     return getActivePassives()
         .where((p) => p.type == type)
         .fold(0.0, (sum, p) => sum + p.value);
+  }
+
+  // ========== BOSS & QUEST TRACKING ==========
+
+  /// Mark a boss as defeated
+  void defeatBoss(String bossId) {
+    if (defeatedBosses.add(bossId)) {
+      print('🏆 Boss derrotado: $bossId');
+    }
+  }
+
+  /// Check if a boss has been defeated
+  bool hasBossBeenDefeated(String bossId) {
+    return defeatedBosses.contains(bossId);
+  }
+
+  /// Mark a quest as completed (future use)
+  void completeQuest(String questId) {
+    if (completedQuests.add(questId)) {
+      print('✅ Quest completada: $questId');
+    }
+  }
+
+  /// Check if a quest has been completed
+  bool hasQuestBeenCompleted(String questId) {
+    return completedQuests.contains(questId);
   }
 }

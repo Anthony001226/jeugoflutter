@@ -29,6 +29,8 @@ import '../models/ability_database.dart';
 import '../models/zone_config.dart';
 import '../models/item_rarity.dart';
 import '../components/portal_visual.dart';
+import '../models/conditional_barrier.dart';
+import '../models/combat_stats_holder.dart';
 
 import '../components/enemies/goblin_component.dart';
 import '../components/enemies/slime_component.dart';
@@ -760,7 +762,8 @@ class RenegadeDungeonGame extends FlameGame
   final Map<int, ZoneProperties> zonePropertiesMap = {};
   ZoneProperties? currentZone;
   final Set<String> discoveredZones = {};
-
+  // NEW: Conditional Barriers System
+  final List<ConditionalBarrier> conditionalBarriers = [];
   // Track opened chests to prevent regeneration
   final Set<String> openedChests = {};
 
@@ -865,6 +868,7 @@ class RenegadeDungeonGame extends FlameGame
     // Load portals and zones for initial map
     _loadPortals();
     _loadSpawnZones();
+    _loadConditionalBarriers();
     await _loadChests();
 
     player = Player(gridPosition: Vector2(5.0, 5.0));
@@ -1147,6 +1151,7 @@ class RenegadeDungeonGame extends FlameGame
       currentMapName = mapName;
       _loadPortals();
       _loadSpawnZones();
+      _loadConditionalBarriers();
       await _loadChests();
 
       player.gridPosition = startPos;
@@ -1218,6 +1223,102 @@ class RenegadeDungeonGame extends FlameGame
 
     print('✅ Loaded ${spawnZoneRects.length} spawn zones');
   }
+
+  /// Load conditional barriers from Tiled map
+  void _loadConditionalBarriers() {
+    conditionalBarriers.clear();
+
+    final barriersLayer =
+        mapComponent.tileMap.getLayer<ObjectGroup>('ConditionalBarriers');
+    if (barriersLayer == null) {
+      print('ℹ️ No ConditionalBarriers layer found (this is optional)');
+      return;
+    }
+
+    // Same scale factor as spawn zones
+    const double scaleFactor = 2.0;
+
+    for (final obj in barriersLayer.objects) {
+      try {
+        final barrier = ConditionalBarrier(
+          id: obj.properties.getValue<String>('id') ?? 'barrier_${obj.id}',
+          position: Vector2(obj.x * scaleFactor, obj.y * scaleFactor),
+          size: Vector2(obj.width * scaleFactor, obj.height * scaleFactor),
+          requiredLevel: obj.properties.getValue<int>('requiredLevel') ?? 0,
+          requiredBoss:
+              obj.properties.getValue<String>('requiredBoss') ?? 'none',
+          requiredQuest:
+              obj.properties.getValue<String>('requiredQuest') ?? 'none',
+          blockedMessage: obj.properties.getValue<String>('blockedMessage') ??
+              'No puedes pasar aún.',
+          unlockedMessage: obj.properties.getValue<String>('unlockedMessage'),
+        );
+
+        conditionalBarriers.add(barrier);
+        print(
+            '✅ Loaded barrier: ${barrier.id} (Level: ${barrier.requiredLevel}, Boss: ${barrier.requiredBoss})');
+      } catch (e) {
+        print('⚠️ Error loading barrier from object ${obj.id}: $e');
+      }
+    }
+
+    print('✅ Loaded ${conditionalBarriers.length} conditional barriers');
+  }
+
+  /// Check if player can move to target position (barrier check)
+  /// Returns true if movement is allowed, false if blocked by barrier
+  bool canPassBarrier(Vector2 targetGridPosition) {
+    final mapX = targetGridPosition.x * tileWidth;
+    final mapY = targetGridPosition.y * tileWidth;
+
+    for (final barrier in conditionalBarriers) {
+      final barrierBounds = barrier.getBounds();
+
+      if (barrierBounds.contains(Offset(mapX, mapY))) {
+        if (barrier.isPermanentlyUnlocked) {
+          continue;
+        }
+
+        if (barrier.requiredLevel > 0 &&
+            player.stats.level.value < barrier.requiredLevel) {
+          print('🚫 Nivel ${barrier.requiredLevel} requerido');
+          overlays.add('barrier_dialog');
+          _currentBarrierMessage = barrier.blockedMessage;
+          _currentBarrierIsBlocked = true;
+          return false;
+        }
+
+        if (barrier.requiredBoss != 'none' &&
+            !player.stats.hasBossBeenDefeated(barrier.requiredBoss)) {
+          print('🚫 Boss ${barrier.requiredBoss} requerido');
+          overlays.add('barrier_dialog');
+          _currentBarrierMessage = barrier.blockedMessage;
+          _currentBarrierIsBlocked = true;
+          return false;
+        }
+
+        if (barrier.requiredQuest != 'none' &&
+            !player.stats.hasQuestBeenCompleted(barrier.requiredQuest)) {
+          print('🚫 Quest ${barrier.requiredQuest} requerida');
+          overlays.add('barrier_dialog');
+          _currentBarrierMessage = barrier.blockedMessage;
+          _currentBarrierIsBlocked = true;
+          return false;
+        }
+
+        barrier.isPermanentlyUnlocked = true;
+        if (barrier.unlockedMessage != null) {
+          overlays.add('barrier_dialog');
+          _currentBarrierMessage = barrier.unlockedMessage!;
+          _currentBarrierIsBlocked = false;
+        }
+      }
+    }
+    return true;
+  }
+
+  String _currentBarrierMessage = '';
+  bool _currentBarrierIsBlocked = true;
 
   DangerLevel _parseDangerLevel(String? str) {
     if (str == null) return DangerLevel.medium;
