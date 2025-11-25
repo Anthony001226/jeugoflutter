@@ -15,16 +15,108 @@ enum TargetType {
   allAllies, // Todos los aliados
 }
 
-class StatusEffect {
-  final String name;
-  final int duration; // Turnos
-  final Map<String, dynamic> effects;
+/// Types of status effects that can be applied in combat
+enum StatusEffectType {
+  attackBuff, // Aumenta ataque
+  defenseBuff, // Aumenta defensa
+  speedBuff, // Aumenta velocidad
+  attackDebuff, // Reduce ataque
+  defenseDebuff, // Reduce defensa
+  speedDebuff, // Reduce velocidad
+  poison, // Daño por turno
+  burn, // Daño por turno (fuego)
+  regeneration, // Cura por turno
+  stun, // Salta turno
+  // Future Phase 7 effects will be added here
+}
 
-  const StatusEffect({
+/// Represents a temporary status effect in combat
+class StatusEffect {
+  final StatusEffectType type;
+  final String name;
+  final String description;
+  int remainingTurns;
+  final double value; // Multiplier (for %) or flat value
+  final bool isPercentage; // true = multiplier, false = flat bonus
+
+  StatusEffect({
+    required this.type,
     required this.name,
-    required this.duration,
-    required this.effects,
-  });
+    required this.description,
+    required int duration,
+    required this.value,
+    this.isPercentage = true,
+  }) : remainingTurns = duration;
+
+  /// Decrements the duration by 1 turn
+  void tick() {
+    if (remainingTurns > 0) {
+      remainingTurns--;
+    }
+  }
+
+  /// Whether the effect has expired
+  bool get isExpired => remainingTurns <= 0;
+
+  /// Create a copy of this effect (for applying to multiple targets)
+  StatusEffect copy() {
+    return StatusEffect(
+      type: type,
+      name: name,
+      description: description,
+      duration: remainingTurns,
+      value: value,
+      isPercentage: isPercentage,
+    );
+  }
+
+  @override
+  String toString() => '$name ($remainingTurns turnos)';
+
+  // Predefined common effects
+  static StatusEffect defenseBuffStrong({int duration = 3}) {
+    return StatusEffect(
+      type: StatusEffectType.defenseBuff,
+      name: 'Guardia',
+      description: '+50% DEF',
+      duration: duration,
+      value: 0.5,
+      isPercentage: true,
+    );
+  }
+
+  static StatusEffect attackBuff({int duration = 3, double boost = 0.3}) {
+    return StatusEffect(
+      type: StatusEffectType.attackBuff,
+      name: 'Fuerza',
+      description: '+${(boost * 100).toInt()}% ATK',
+      duration: duration,
+      value: boost,
+      isPercentage: true,
+    );
+  }
+
+  static StatusEffect poison({int duration = 3, double damagePercent = 0.1}) {
+    return StatusEffect(
+      type: StatusEffectType.poison,
+      name: 'Envenenado',
+      description: '${(damagePercent * 100).toInt()}% HP por turno',
+      duration: duration,
+      value: damagePercent,
+      isPercentage: true,
+    );
+  }
+
+  static StatusEffect regeneration({int duration = 3, int healPerTurn = 5}) {
+    return StatusEffect(
+      type: StatusEffectType.regeneration,
+      name: 'Regeneración',
+      description: '+$healPerTurn HP por turno',
+      duration: duration,
+      value: healPerTurn.toDouble(),
+      isPercentage: false,
+    );
+  }
 }
 
 class AbilityEffect {

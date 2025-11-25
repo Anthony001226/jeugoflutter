@@ -161,6 +161,54 @@ class CombatUI extends StatelessWidget {
             Colors.purple,
           ),
         ),
+        // NEW: Status Effects Display
+        ValueListenableBuilder<int>(
+          valueListenable: game.player.stats.combatStats.effectsVersion,
+          builder: (context, _, __) {
+            final effects = game.player.stats.combatStats.activeEffects;
+            if (effects.isEmpty) return const SizedBox.shrink();
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: effects.map((effect) {
+                  final isBuff = effect.type.toString().contains('Buff');
+                  final color = isBuff ? Colors.green : Colors.red;
+
+                  return Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.2),
+                      border: Border.all(color: color, width: 1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          effect.name,
+                          style: TextStyle(
+                              color: color,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '(${effect.remainingTurns})',
+                          style: TextStyle(
+                              color: color.withOpacity(0.8), fontSize: 10),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            );
+          },
+        ),
         const SizedBox(height: 40),
 
         // Turn Indicator

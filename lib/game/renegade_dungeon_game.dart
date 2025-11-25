@@ -174,6 +174,16 @@ class CombatManager {
 
     print('👉 Turno de: $currentEntity');
 
+    // NEW: Process status effects at the start of this entity's turn
+    if (currentEntity.isPlayer) {
+      game.player.stats.combatStats.tickEffects();
+    } else if (currentEntity.enemy != null) {
+      final stats = (currentEntity.enemy as dynamic).stats;
+      if (stats is CombatStatsHolder) {
+        stats.combatStats.tickEffects();
+      }
+    }
+
     if (currentEntity.isPlayer) {
       // Player's Turn
       currentTurn.value = CombatTurn.playerTurn;
@@ -318,9 +328,11 @@ class CombatManager {
 
     // NOTA: Pasamos 0 como defensa aquí para obtener el daño BRUTO.
     // La defensa se restará dentro de takeDamage().
+    // Use effectiveAttack to include buffs
     final grossDamage = DamageCalculator.calculateDamage(
       ability: ability,
-      attackerAtk: playerStats.attack.value,
+      attackerAtk:
+          playerStats.effectiveAttack, // Changed to use effective stats
       defenderDef: 0, // 0 aquí porque takeDamage restará la defensa
       critChance: playerStats.critChance.value,
     );
@@ -451,15 +463,16 @@ class CombatManager {
     // Calcular daño
     // NOTA: Pasamos 0 como defensa aquí para obtener el daño BRUTO (Gross Damage).
     // La defensa se restará dentro de takeDamage().
+    // Use effectiveAttack to include enemy buffs
     final grossDamage = DamageCalculator.calculateDamage(
       ability: chosenAbility,
-      attackerAtk: enemyCombatStats.attack.value,
+      attackerAtk: enemyCombatStats.effectiveAttack, // Uses buffed attack
       defenderDef: 0, // 0 aquí porque takeDamage restará la defensa
       critChance: enemyCombatStats.critChance.value,
     );
 
     // Para el log, calculamos cuánto será el daño NETO aproximado
-    final playerDef = game.player.stats.combatStats.defense.value;
+    final playerDef = game.player.stats.combatStats.effectiveDefense;
     final estimatedNetDamage = (grossDamage - playerDef).clamp(1, 999);
 
     game.player.stats.takeDamage(grossDamage);
@@ -651,6 +664,25 @@ class CombatManager {
       combatStats.spendMp(chosenAbility.mpCost);
     }
 
+    // NEW: Apply status effects from ability
+    // Special handling for Guard ability (const limitations workaround)
+    if (chosenAbility.name == 'Guardia') {
+      combatStats.applyEffect(StatusEffect.defenseBuffStrong());
+      print('🛡️ $enemyName aplicó Guardia (+50% DEF por 3 turnos)');
+    } else if (chosenAbility.effect.statusEffects.isNotEmpty) {
+      for (final effect in chosenAbility.effect.statusEffects) {
+        if (chosenAbility.effect.targetType == TargetType.self) {
+          // Apply to self
+          combatStats.applyEffect(effect);
+          print('✨ $enemyName aplicó ${effect.name} a sí mismo');
+        } else {
+          // Apply to player (debuffs)
+          game.player.stats.combatStats.applyEffect(effect);
+          print('⚠️ $enemyName aplicó ${effect.name} al jugador');
+        }
+      }
+    }
+
     // Check if ability is offensive (attacks player) or defensive (buffs self)
     final isOffensive = chosenAbility.effect.targetType != TargetType.self &&
         chosenAbility.effect.baseDamage > 0;
@@ -659,14 +691,15 @@ class CombatManager {
       // Calculate and apply damage
       // NOTA: Pasamos 0 como defensa aquí para obtener el daño BRUTO.
       // La defensa se restará dentro de takeDamage().
+      // Use effectiveAttack to include enemy buffs
       final grossDamage = DamageCalculator.calculateDamage(
         ability: chosenAbility,
-        attackerAtk: combatStats.attack.value,
+        attackerAtk: combatStats.effectiveAttack, // Uses buffed attack
         defenderDef: 0, // 0 aquí porque takeDamage restará la defensa
         critChance: combatStats.critChance.value,
       );
 
-      final playerDef = game.player.stats.combatStats.defense.value;
+      final playerDef = game.player.stats.combatStats.effectiveDefense;
       final estimatedNetDamage = (grossDamage - playerDef).clamp(1, 999);
 
       game.player.stats.takeDamage(grossDamage);

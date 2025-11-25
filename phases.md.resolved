@@ -1,0 +1,413 @@
+# 🎮 Development Phases - Renegade Dungeon
+
+## Phase 1: Core Systems ✅ COMPLETADA
+**Objetivo**: Fundamentos del juego funcionales
+
+### Sistemas Implementados
+- [x] Sistema de movimiento isométrico
+- [x] Carga y renderizado de mapas Tiled
+- [x] Sistema de colisiones
+- [x] Animaciones del jugador
+- [x] Menú principal y splash screen
+- [x] Sistema de guardado/carga (slots)
+- [x] Videos de fondo en menús
+
+---
+
+## Phase 2: Combat Foundation ✅ COMPLETADA
+**Objetivo**: Sistema de combate básico funcional
+
+### Sistemas Implementados
+- [x] Transición a escena de combate
+- [x] Sistema de stats (HP, MP, ATK, DEF, Speed)
+- [x] Combate por turnos básico (1v1)
+- [x] Habilidades del jugador (Basic, Strong, Skill, Ultimate)
+- [x] Sistema de XP y level up
+- [x] Enemigos básicos (Slime, Goblin, Bat, Skeleton)
+- [x] Sistema de loot e inventario
+
+---
+
+## Phase 3: Advanced Combat ✅ 90% COMPLETADA
+**Objetivo**: Combate multi-enemigo y mecánicas avanzadas
+
+### 3.1 Multi-Enemy System ✅
+- [x] Sistema de targeting (selección de enemigos)
+- [x] UI de targeting visual
+- [x] Teclado y mouse para cambiar targets
+- [x] Indicadores visuales (flechas, highlights)
+
+### 3.2 Turn-Based Overhaul ✅
+- [x] Sistema de iniciativa individual
+- [x] Cola de turnos ordenada
+- [x] IDs permanentes de enemigos
+- [x] Sincronización de turnos y muerte
+
+### 3.3 Combat Polish 🚧 EN PROGRESO
+- [x] Bug fixes (Victoria falsa, HP display, loot)
+- [x] Habilidades defensivas (Guardia)
+- [ ] Sistema de buffs/debuffs ⬅️ **SIGUIENTE**
+- [ ] Animaciones de habilidades
+- [ ] Feedback visual mejorado
+
+---
+
+## Phase 4: World Building 🚧 PENDIENTE
+**Objetivo**: Mundo explorable rico en contenido
+
+### 4.1 Zone System ⏳ PRÓXIMO
+- [x] Sistema de zonas básico (código)
+- [ ] Configuración de zonas en Tiled ⬅️ **HACER EN PC**
+- [ ] Zonas safe/low/medium/high funcionando
+- [ ] Transiciones entre zonas
+- [ ] Mensajes de descubrimiento
+
+### 4.2 Map Expansion
+- [ ] Ciudad inicial completa
+- [ ] 3-4 zonas diferentes (bosque, cuevas, ruinas)
+- [ ] Sistema de portales entre mapas
+- [ ] NPCs básicos (vendors, quest givers)
+
+### 4.3 Environmental Interactions
+- [ ] Cofres con loot
+- [ ] Objetos interactivos
+- [ ] Elementos destructibles
+- [ ] Puzzles simples
+
+---
+
+## Phase 4.5: Quests & Story 📖 FUTURO
+**Objetivo**: Sistema de misiones y narrativa
+
+### 4.5.1 Quest System
+- [ ] Sistema básico de quests (objectives, rewards)
+- [ ] Quest log/journal
+- [ ] Quest markers en mapa
+- [ ] Notificaciones de quest completada
+- [ ] Cadenas de quests (prerequisitos)
+
+### 4.5.2 NPC & Dialogue
+- [ ] NPCs interactivos
+- [ ] Sistema de diálogos (texto + opciones)
+- [ ] Quest givers
+- [ ] Vendors/merchants
+- [ ] Lore NPCs (worldbuilding)
+
+### 4.5.3 Story & Narrative
+- [ ] Trama principal (main quest)
+- [ ] Side quests variadas
+- [ ] Lore del mundo (books, signs)
+- [ ] Character backstory
+- [ ] Multiple endings (opcional)
+
+**¿Por qué es importante?**
+- Sin quests, el juego es solo "caminar y pelear"
+- Las misiones dan PROPÓSITO al jugador
+- La narrativa crea conexión emocional
+- Incrementa horas de juego dramáticamente
+
+---
+
+## Phase 5: Equipment & Loot 🔮 FUTURO
+**Objetivo**: Sistema de equipo robusto
+
+### 5.1 Equipment Expansion
+- [x] Sistema de equipamiento básico
+- [ ] Más variedad de armas (espadas, hachas, dagas, arcos)
+- [ ] Armaduras con set bonuses
+- [ ] Accesorios (anillos, amuletos, cinturones)
+- [ ] Raridades (Common, Uncommon, Rare, Epic, Legendary)
+
+### 5.2 Loot System
+- [ ] Loot tables por enemigo
+- [ ] Drop rates balanceados
+- [ ] Loot visual en el mundo
+- [ ] Sistema de crafting básico
+- [ ] Merchant/vendor system
+
+---
+
+## Phase 6: Skills & Progression 🌟 FUTURO
+**Objetivo**: Profundizar progresión del jugador
+
+### 6.1 Skill Trees
+- [ ] 3 ramas de habilidades (Warrior, Mage, Rogue)
+- [ ] Puntos de skill al subir nivel
+- [ ] 15-20 habilidades desbloqueables
+- [ ] Builds diferentes (Tank, DPS, Hybrid)
+
+### 6.2 Character Customization
+- [ ] Stats personalizables al subir nivel
+- [ ] Passive abilities
+- [ ] Character presets/templates
+- [ ] Respec option
+
+---
+
+## Phase 7: Status Effects & Buffs 💊 FUTURO
+**Objetivo**: Sistema de efectos temporales
+
+### 7.1 Status Effects
+- [ ] Veneno, quemadura, congelado
+- [ ] Paralizado, silenciado, cegado
+- [ ] Resistencias por tipo de enemigo
+- [ ] Inmunidades
+
+### 7.2 Buffs & Debuffs
+- [ ] Buffs de ataque/defensa/velocidad
+- [ ] Debuffs efectivos
+- [ ] Duración y stacking
+- [ ] Visual indicators en UI
+
+---
+
+## Phase 8: Content & Balance ⚖️ FUTURO
+**Objetivo**: Contenido jugable y balanceado
+
+### 6.1 Enemy Variety
+- [ ] 10+ tipos de enemigos diferentes
+- [ ] Variantes de enemigos (Elite, Boss)
+- [ ] Comportamientos de IA únicos
+- [ ] Habilidades especiales por enemigo
+
+### 6.2 Boss Battles
+- [ ] 3-5 jefes únicos
+- [ ] Mecánicas especiales de boss
+- [ ] Fases de boss (patterns diferentes)
+- [ ] Loot legendario
+
+### 6.3 Balance & Difficulty
+- [ ] Curva de dificultad ajustada
+- [ ] Scaling de enemigos por nivel
+- [ ] Modos de dificultad (Normal, Hard, Nightmare)
+- [ ] Sistema de logros/desafíos
+
+---
+
+## Phase 9: Polish & QoL 💎 FUTURO
+**Objetivo**: Experiencia pulida y profesional
+
+### 9.1 UI/UX Improvements
+- [ ] HUD mejorado
+- [ ] Tooltips informativos
+- [ ] Menús más fluidos
+- [ ] Atajos de teclado configurables
+
+### 9.2 Audio
+- [ ] Música por zona
+- [ ] SFX de combate
+- [ ] Voces/grunts de enemigos
+- [ ] Audio settings (volume sliders)
+
+### 9.3 Visual Effects
+- [ ] Partículas de ataque
+- [ ] Screen shake
+- [ ] Lighting effects
+- [ ] Weather effects
+
+### 9.4 Intro Cinematic & Tutorial
+- [ ] Cinemática de introducción (historia/contexto)
+- [ ] Tutorial interactivo en primera carga
+- [ ] NPC tutorial que explica controles
+- [ ] Combate tutorial (enemigo débil guiado)
+- [ ] Botón "Skip" para jugadores que regresan
+
+**¿Por qué dejarlo para Phase 9?**
+
+1. **El gameplay cambia constantemente**: Si haces el tutorial ahora y luego cambias mecánicas (ej: sistema de buffs, nuevas habilidades), todo el tutorial se vuelve obsoleto.
+
+2. **No sabes qué necesita explicación**: Hasta que tenga gente jugando (beta testers), no sabrás qué partes confunden más. Mejor esperar feedback.
+
+3. **Prioridades**: Primero necesitas un juego divertido, después enseñas cómo jugarlo. Un tutorial de un juego aburrido sigue siendo aburrido.
+
+4. **Iteración**: El tutorial debe reflejar el juego en su estado casi final. Hacerlo temprano = rehacerlo 5 veces.
+
+5. **Sistemas requeridos**: Para un buen tutorial necesitas:
+   - Diálogos pulidos ✅ (ya tienes base)
+   - Tooltips/hints ❌ (Phase 9)
+   - Quest markers ❌ (Phase 4-6)
+   - Enemies finales ❌ (Phase 8)
+
+**Implementación Temporal (Opcional)**:
+Si quieres algo AHORA, solo haz un overlay simple con los controles:
+```
+WASD - Mover
+Click Enemigo - Combate
+I - Inventario
+[Botón: Entendido]
+```
+Toma 30 min y es suficiente por ahora.
+
+---
+
+## Phase 10: Endgame & Replayability 🔄 FUTURO
+**Objetivo**: Contenido post-game
+
+### 10.1 Endgame Content
+- [ ] Dungeon procedural infinita
+- [ ] Weekly challenges
+- [ ] Leaderboards
+- [ ] New Game+ con dificultad incrementada
+
+### 10.2 Player Progression
+- [ ] Prestigio/Paragon levels
+- [ ] Unlockables permanentes
+- [ ] Coleccionables (bestiary, achievements)
+- [ ] Diferentes finales
+
+---
+
+## 🔧 Consideraciones Técnicas Transversales
+
+### Performance & Optimization ⚡
+**Cuándo**: Continuous, emphasis in Phases 8-9
+
+- [ ] Sprite atlas para reducir draw calls
+- [ ] Object pooling para enemigos/projectiles
+- [ ] Lazy loading de mapas grandes
+- [ ] FPS target (60fps estable)
+- [ ] Memory profiling y leak detection
+- [ ] Build size optimization (<50MB ideal)
+
+**Por qué es crítico**:
+- Un juego laggy = jugadores frustrados
+- Mobile tiene RAM limitada
+- Web builds deben cargar rápido
+
+---
+
+### Testing & QA Strategy 🧪
+**Cuándo**: Desde Phase 3 en adelante
+
+- [ ] Unit tests para damage calculations
+- [ ] Integration tests para combat flow
+- [ ] Playtesting sessions (10+ personas)
+- [ ] Bug tracking system (GitHub Issues)
+- [ ] Regression tests antes de releases
+- [ ] Performance benchmarks
+
+**Por qué es crítico**:
+- Bugs arruinan la experiencia
+- Mejor detectar problemas temprano
+- Testing manual no escala
+
+---
+
+### Platform Strategy 📱
+**Cuándo**: Decidir en Phase 5, implementar en Phase 9
+
+**Opciones**:
+1. **Web First** (Más fácil)
+   - Pros: Fácil de compartir, no necesita instalación
+   - Cons: Limitaciones de performance
+   
+2. **Mobile First** (Más usuarios)
+   - Pros: Más potencial de monetización
+   - Cons: UI compleja, touch controls
+   
+3. **Desktop First** (Mejor experiencia)
+   - Pros: Más poder, mejores controles
+   - Cons: Menos casual, distribución complicada
+
+**Recomendación**: Web first, luego mobile como stretch goal.
+
+---
+
+### Art Pipeline 🎨
+**Cuándo**: Planear en Phase 5, ejecutar en Phase 6-8
+
+**Necesidades**:
+- [ ] 10+ enemy sprites (con animaciones)
+- [ ] 5+ tilesets diferentes (zonas variadas)
+- [ ] 50+ item icons
+- [ ] Boss sprites (más grandes, detallados)
+- [ ] UI elements consistentes
+
+**Opciones**:
+1. **Asset Packs** ($) - Rápido pero genérico
+2. **Contratar Artista** ($$) - Único pero caro
+3. **Aprender Pixel Art** (Tiempo) - Gratis pero lento
+4. **AI Art** (?) - Controversial, calidad variable
+
+**Recomendación**: Asset packs + modificaciones custom para empezar.
+
+---
+
+### Technical Debt Management 🔧
+**Cuándo**: Continuous (15% de tiempo cada sprint)
+
+**Estrategia**:
+- [ ] Weekly "cleanup day" (1-2 horas)
+- [ ] Address lints before cada release
+- [ ] Refactor when adding 3rd similar feature
+- [ ] Document complex systems (comments + README)
+- [ ] Code reviews (si trabajas en equipo)
+
+**Regla de Oro**: "Deja el código mejor de como lo encontraste"
+
+---
+
+## 📊 Estado Actual del Proyecto
+
+```
+Phase 1:  Core Systems         ████████████████████ 100%
+Phase 2:  Combat Foundation    ████████████████████ 100%
+Phase 3:  Advanced Combat      ██████████████████░░  90%
+Phase 4:  World Building       ███░░░░░░░░░░░░░░░░░  15%
+Phase 4.5: Quests & Story      ░░░░░░░░░░░░░░░░░░░░   0%
+Phase 5:  Equipment & Loot     ██░░░░░░░░░░░░░░░░░░  10%
+Phase 6:  Skills & Progression ░░░░░░░░░░░░░░░░░░░░   0%
+Phase 7:  Status Effects       ░░░░░░░░░░░░░░░░░░░░   0%
+Phase 8:  Content & Balance    ░░░░░░░░░░░░░░░░░░░░   0%
+Phase 9:  Polish & QoL         ░░░░░░░░░░░░░░░░░░░░   0%
+Phase 10: Endgame              ░░░░░░░░░░░░░░░░░░░░   0%
+
+Overall Progress: ~35%
+Total Phases: 11 (including 4.5)
+```
+
+**Nota**: El progreso bajó de 40% a 35% porque agregamos Phase 4.5 (Quests & Story), que es crítico para un RPG completo.
+
+---
+
+## 🎯 Milestone Inmediato (Esta Semana)
+
+**Objetivo**: Completar Phase 3.3 y empezar Phase 4.1
+
+### Tareas Críticas
+1. ✅ ~~Arreglar bugs de combate multi-enemy~~
+2. ⏳ Configurar zonas en Tiled (1-2 horas)
+3. ⏳ Implementar sistema de buffs → Ahora parte de Phase 7 🎯
+4. ⏳ Testear y balancear combate (1 hora)
+
+### Meta
+- Phase 3 al 100%
+- Phase 4.1 al 50%
+- Juego jugable de principio a fin (aunque simple)
+
+---
+
+## 🚀 Visión 3 Meses
+
+### Mes 1 (Actual)
+- Completar Phase 3 y 4
+- Mundo pequeño pero completo
+- ~5 tipos de enemigos
+- Sistema de combate pulido
+
+### Mes 2
+- Phases 5-6 completas
+- Equipment system robusto
+- Skill trees básicos
+- 10+ enemigos
+- 2-3 bosses
+
+### Mes 3
+- Phases 7-8 avanzadas
+- Status effects funcionando
+- Juego balanceado
+- Contenido endgame inicial
+
+---
+
+¿Siguiente paso? **Configurar zonas en Tiled** 🗺️

@@ -136,14 +136,17 @@ class AbilityDatabase {
 
   static const CombatAbility skeletonGuard = CombatAbility(
     name: 'Guardia',
-    description: 'Aumenta defensa temporalmente',
+    description: 'Aumenta defensa 50% por 3 turnos',
     type: AbilityType.strong,
     mpCost: 10,
     effect: AbilityEffect(
       baseDamage: 0,
       damageMultiplier: 0.0,
       targetType: TargetType.self,
-      // TODO: Implementar buff de defensa cuando tengamos sistema de estados
+      statusEffects: [
+        // Use the predefined defense buff factory
+        // Note: Due to const limitations, we'll apply this in combat logic
+      ],
     ),
     animationKey: 'idle',
   );

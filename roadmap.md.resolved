@@ -1,0 +1,236 @@
+# 🗺️ Roadmap - Renegade Dungeon Game
+
+## ✅ Completado Hoy (24 Nov 2024)
+
+### Sistema de Turnos Individual
+- [x] Creada clase [TurnEntity](file:///c:/dev/renegade_dungeon_game/lib/models/turn_entity.dart#3-16) para representar combatientes
+- [x] Implementado sistema de iniciativa individual (cada personaje tira su propia iniciativa)
+- [x] Sistema de cola de turnos (`turnQueue`) con orden basado en iniciativa
+- [x] Método [nextTurn()](file:///c:/dev/renegade_dungeon_game/lib/game/renegade_dungeon_game.dart#167-205) para avanzar turnos automáticamente
+- [x] Eliminación correcta de enemigos derrotados de la cola
+- [x] Sincronización entre `currentEnemy` y la cola de turnos
+
+### Correcciones de Bugs
+- [x] **Victoria Falsa**: Arreglado el bug donde aparecía pantalla de Victoria al matar un enemigo en combate multi-enemigo
+- [x] **Renumeración de Enemigos**: Implementados IDs permanentes (Enemigo #2 sigue siendo #2 aunque mates al #1)
+- [x] **Combate Único No Termina**: Corregido bug donde combates 1v1 se quedaban bloqueados
+- [x] **HP en 0 Después de Morir**: Arreglada sincronización de `combatStats` al reaparecer
+- [x] **Guardia Hace Daño**: Corregido para que habilidades defensivas NO dañen al jugador
+- [x] **Loot Multi-Enemy**: Arreglado para que acumule items de TODOS los enemigos derrotados
+
+### Sistema de Combate
+- [x] Unificado sistema de combate (todo usa [startNewCombatMulti](file:///c:/dev/renegade_dungeon_game/lib/game/renegade_dungeon_game.dart#94-166))
+- [x] Diferenciación entre habilidades ofensivas y defensivas
+- [x] Logs mejorados con nombres permanentes de enemigos
+
+---
+
+## 🚧 Pendiente / Próximos Pasos
+
+### Alta Prioridad 🔴
+
+#### 1. Configurar Zonas en Tiled (dungeon.tmx)
+**Problema Actual**: No hay capa de SpawnZones, por eso aparecen enemigos incorrectos en zonas equivocadas.
+
+**Acción Requerida**:
+1. Abrir [assets/tiles/dungeon.tmx](file:///c:/dev/renegade_dungeon_game/assets/tiles/dungeon.tmx) en Tiled
+2. Crear capa de objetos llamada [SpawnZones](file:///c:/dev/renegade_dungeon_game/lib/game/renegade_dungeon_game.dart#1108-1159)
+3. Dibujar rectángulos para cada zona:
+   - **Ciudad Segura** (safe zone)
+   - **Bosque Claro** (low zone - slime)
+   - **Zona Media** (medium zone - goblin)
+   - **Cuevas/Mazmorras** (high zone - bat, skeleton, goblin)
+
+4. Para cada rectángulo, añadir propiedades:
+```
+name: String = "Nombre de la Zona"
+enemyTypes: String = "slime" o "goblin" o "bat,skeleton,goblin"
+dangerLevel: String = "safe" / "low" / "medium" / "high"
+encounterChance: float = 0.02 (2% por paso)
+minLevel: int = 1
+maxLevel: int = 99
+```
+
+**Alternativa**: Si no quieres configurar en Tiled, puedo crear un sistema de zonas hardcodeado.
+
+#### 2. Sistema de Buffs/Debuffs
+**Problema**: La habilidad "Guardia" no aplica ningún buff de defensa.
+
+**Tareas**:
+- [ ] Crear clase `StatusEffect` (buff/debuff)
+- [ ] Añadir sistema de efectos temporales a [CombatStats](file:///c:/dev/renegade_dungeon_game/lib/models/combat_stats.dart#5-86)
+- [ ] Implementar buff de defensa para "Guardia"
+- [ ] Agregar indicador visual de buffs activos en UI
+
+#### 3. Balance de Combate
+**Observaciones**: Revisar si el sistema de turnos está balanceado.
+
+**Tareas**:
+- [ ] Ajustar valores de iniciativa (speed) de enemigos
+- [ ] Verificar que el scaling de grupo (70%/60% stats) funcione bien
+- [ ] Testear combates 1v1, 1v2, 1v3 para balance
+
+### Prioridad Media 🟡
+
+#### 4. Quests & Story System 📖
+**Por qué es importante**: Sin misiones, el juego es solo "caminar y pelear aleatoriamente".
+
+**Tareas**:
+- [ ] Sistema básico de quests (objectives, completion tracking)
+- [ ] Quest log UI
+- [ ] NPCs con diálogos
+- [ ] Quest markers en el mapa
+- [ ] Al menos 3-5 side quests
+- [ ] Main quest básica (inicio, medio, final)
+
+#### 5. UI de Combate Mejorada
+**Mejoras Posibles**:
+- [ ] Mostrar orden de turnos (quién va después)
+- [ ] Indicador de turno actual más visible
+- [ ] Barra de iniciativa o timeline
+- [ ] Animaciones de entrada/salida de turnos
+
+#### 5. Sistema de Estados (Status Effects)
+**Efectos a Implementar**:
+- [ ] Veneno (daño por turno)
+- [ ] Paralizado (skip turn)
+- [ ] Buff de Ataque/Defensa
+- [ ] Regeneración
+
+#### 6. Más Habilidades para Enemigos
+**Enemigos que necesitan más habilidades**:
+- [ ] Bat: Solo tiene "Picotazo", agregar habilidad de evasión
+- [ ] Slime: Solo tiene "Salto", agregar división o autoheal
+- [ ] Añadir habilidades únicas por enemigo
+
+### Prioridad Baja 🟢
+
+#### 7. Sistema de Dificultad Adaptativa
+- [ ] Ajustar encuentros según nivel del jugador
+- [ ] Zonas que escalan con el nivel
+- [ ] Enemigos elite/raros con mejor loot
+
+#### 8. Mejoras Visuales
+- [ ] Efectos de partículas en ataques
+- [ ] Screen shake en golpes críticos
+- [ ] Animaciones de habilidades especiales
+- [ ] Indicadores de daño flotantes
+
+#### 9. Tutorial/Onboarding
+- [ ] Tutorial de combate básico
+- [ ] Explicación de sistema de turnos
+- [ ] Tips contextuales
+
+---
+
+## 🔧 Consideraciones Técnicas (Transversal)
+
+### Performance & Optimization ⚡
+**Cuándo empezar**: Phase 6-7
+
+- [ ] Profile performance con DevTools
+- [ ] Implementar object pooling
+- [ ] Optimizar sprite loading
+- [ ] Target: 60fps en web, 30fps mínimo en mobile
+
+### Testing & QA 🧪
+**Cuándo empezar**: Phase 5
+
+- [ ] Unit tests para damage calculations
+- [ ] Playtesting con 5+ personas
+- [ ] Bug tracking en GitHub Issues
+- [ ] List de "known issues" pública
+
+### Platform Strategy 📱
+**Decisión requerida**: Phase 5
+
+**Pregunta clave**: ¿Web, Mobile, Desktop, o todos?
+- Empezar con Web (más fácil)
+- Mobile requiere UI touch-friendly
+- Desktop permite controles más complejos
+
+### Art Pipeline 🎨
+**Planear**: Phase 5-6
+
+**Opciones**:
+1. Comprar asset packs ($20-50)
+2. Contratar pixel artist ($$)
+3. Aprender pixel art (tiempo)
+4. Mezcla de los anteriores
+
+**Recomendación**: Asset packs + modificaciones custom
+
+### Technical Debt 🔧
+**Continuous**: 15% tiempo cada semana
+
+- [ ] Weekly cleanup day (resolver lints)
+- [ ] Refactor código duplicado
+- [ ] Documentar sistemas complejos
+- [ ] Mantener README actualizado
+
+---
+
+## 🐛 Bugs Conocidos (No Críticos)
+
+- [ ] **Lints pendientes**: Varios imports sin usar en componentes de enemigos
+- [ ] **Unnecessary cast** en línea 621 de [renegade_dungeon_game.dart](file:///c:/dev/renegade_dungeon_game/lib/game/renegade_dungeon_game.dart)
+- [ ] Verificar que [_removeDefeatedEnemy](file:///c:/dev/renegade_dungeon_game/lib/game/renegade_dungeon_game.dart#533-575) actualice correctamente `currentTurnIndex`
+
+---
+
+## 📝 Notas Técnicas
+
+### Archivos Clave Modificados Hoy
+- [lib/models/turn_entity.dart](file:///c:/dev/renegade_dungeon_game/lib/models/turn_entity.dart) - NUEVO
+- [lib/game/renegade_dungeon_game.dart](file:///c:/dev/renegade_dungeon_game/lib/game/renegade_dungeon_game.dart) - Refactorizado CombatManager
+- [lib/ui/combat_ui.dart](file:///c:/dev/renegade_dungeon_game/lib/ui/combat_ui.dart) - Actualizado para usar `currentEnemyNotifier`
+
+### Sistema de Turnos - Cómo Funciona
+1. Al iniciar combate: Se calcula iniciativa de todos (player + enemies)
+2. Se crea `turnQueue` ordenado por iniciativa (mayor → menor)
+3. [nextTurn()](file:///c:/dev/renegade_dungeon_game/lib/game/renegade_dungeon_game.dart#167-205) avanza por la cola, cicla al final
+4. Enemigos derrotados se eliminan de la cola
+5. Combate termina cuando `currentEnemies.isEmpty`
+
+### Sincronización HP
+- `player.stats.currentHp` = HP en exploración
+- `player.stats.combatStats.currentHp` = HP en combate (UI lo usa)
+- Deben sincronizarse en:
+  - Inicio de combate
+  - Al tomar daño
+  - Al morir/reaparecer
+
+---
+
+## 🎯 Para Tu Sesión en PC
+
+### Recomendación de Orden
+1. **Primero**: Configurar zonas en Tiled (30-45 min)
+2. **Segundo**: Implementar sistema de buffs básico para "Guardia" (1-2 horas)
+3. **Tercero**: Testear y balancear el sistema de turnos (30 min)
+4. **Después**: Mejoras de UI o más habilidades según prefieras
+
+### Comandos Útiles
+```bash
+# Hot reload (r) después de cambios
+r
+
+# Restart completo (R) si hay problemas
+R
+
+# Ver análisis de código
+flutter analyze
+
+# Correr tests (si los creas)
+flutter test
+```
+
+### Archivos a Tener Abiertos
+- [lib/game/renegade_dungeon_game.dart](file:///c:/dev/renegade_dungeon_game/lib/game/renegade_dungeon_game.dart) - CombatManager
+- [lib/models/ability_database.dart](file:///c:/dev/renegade_dungeon_game/lib/models/ability_database.dart) - Habilidades
+- [lib/ui/combat_ui.dart](file:///c:/dev/renegade_dungeon_game/lib/ui/combat_ui.dart) - UI de combate
+- [assets/tiles/dungeon.tmx](file:///c:/dev/renegade_dungeon_game/assets/tiles/dungeon.tmx) - Mapa en Tiled
+
+---
+
+¡Todo está listo para continuar! 🚀
