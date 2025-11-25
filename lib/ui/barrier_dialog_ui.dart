@@ -1,105 +1,126 @@
 // lib/ui/barrier_dialog_ui.dart
 
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 
-/// Simple dialog overlay for barrier messages
-class BarrierDialogUI extends StatelessWidget {
+/// RPG-style barrier notification at bottom - auto-closes after 3 seconds
+class BarrierDialogUI extends StatefulWidget {
+  final RenegadeDungeonGame game;
   final String message;
-  final bool isBlocked; // true = blocked (red), false = unlocked (green)
+  final bool isBlocked;
 
   const BarrierDialogUI({
     super.key,
+    required this.game,
     required this.message,
     required this.isBlocked,
   });
 
   @override
+  State<BarrierDialogUI> createState() => _BarrierDialogUIState();
+}
+
+class _BarrierDialogUIState extends State<BarrierDialogUI> {
+  Timer? _autoCloseTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-close after 3 seconds
+    _autoCloseTimer = Timer(const Duration(seconds: 3), _closeDialog);
+  }
+
+  @override
+  void dispose() {
+    _autoCloseTimer?.cancel();
+    super.dispose();
+  }
+
+  void _closeDialog() {
+    _autoCloseTimer?.cancel();
+    widget.game.overlays.remove('barrier_dialog');
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.black.withOpacity(0.5),
-      child: Center(
+    return GestureDetector(
+      onTap: _closeDialog,
+      behavior: HitTestBehavior.translucent,
+      child: Align(
+        alignment: Alignment.bottomCenter,
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 400),
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          padding: const EdgeInsets.all(24),
+          margin: const EdgeInsets.only(bottom: 40, left: 20, right: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          constraints: const BoxConstraints(maxWidth: 500),
           decoration: BoxDecoration(
+            // Medieval stone/gray style
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: isBlocked
+              colors: widget.isBlocked
                   ? [
-                      const Color(0xFF2D1B1B), // Dark red
-                      const Color(0xFF1A0F0F),
+                      const Color(0xFF2A2A2A), // Dark gray
+                      const Color(0xFF1A1A1A), // Darker gray
                     ]
                   : [
-                      const Color(0xFF1B2D1B), // Dark green
-                      const Color(0xFF0F1A0F),
+                      const Color(0xFF2A3A2A), // Dark green-gray
+                      const Color(0xFF1A251A), // Darker green-gray
                     ],
             ),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isBlocked
-                  ? Colors.red.withOpacity(0.5)
-                  : Colors.green.withOpacity(0.5),
+              color: widget.isBlocked
+                  ? const Color(0xFF6A6A6A) // Medium gray
+                  : const Color(0xFF5A7A5A), // Green-gray
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: isBlocked
-                    ? Colors.red.withOpacity(0.3)
-                    : Colors.green.withOpacity(0.3),
-                blurRadius: 20,
-                spreadRadius: 5,
+                color: Colors.black.withValues(alpha: 0.7),
+                blurRadius: 15,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          child: Column(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               // Icon
               Icon(
-                isBlocked ? Icons.lock : Icons.lock_open,
-                size: 48,
-                color: isBlocked ? Colors.red[300] : Colors.green[300],
+                widget.isBlocked ? Icons.lock : Icons.lock_open,
+                color: widget.isBlocked
+                    ? const Color(0xFFAAAAAA) // Light gray
+                    : const Color(0xFF88AA88), // Light green-gray
+                size: 28,
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(width: 12),
 
-              // Title
-              Text(
-                isBlocked ? '🚫 Acceso Denegado' : '✅ Acceso Permitido',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: isBlocked ? Colors.red[200] : Colors.green[200],
+              // Message - plain white, no decoration
+              Flexible(
+                child: Text(
+                  widget.message,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: Color(0xFFEEEEEE),
+                    fontWeight: FontWeight.w500,
+                    height: 1.3,
+                    decoration: TextDecoration.none,
+                    fontFamily: 'Arial',
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(width: 12),
 
-              // Message
-              Text(
-                message,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
-                  height: 1.4,
-                ),
-                textAlign: TextAlign.center,
-              ),
-
-              const SizedBox(height: 20),
-
-              // Close instruction
-              Text(
-                'Presiona cualquier tecla para continuar',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[400],
-                  fontStyle: FontStyle.italic,
-                ),
-                textAlign: TextAlign.center,
+              // Close hint - shows "3s"
+              const Icon(
+                Icons.timer,
+                color: Color(0xFF888888),
+                size: 18,
               ),
             ],
           ),

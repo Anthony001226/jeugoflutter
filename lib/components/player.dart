@@ -42,7 +42,7 @@ class Player extends SpriteComponent
     add(RectangleHitbox(
       size: hitboxSize,
       position: Vector2((size.x - hitboxSize.x) / 2, size.y - hitboxSize.y),
-    )..debugMode = true);
+    ));
     return super.onLoad();
   }
 

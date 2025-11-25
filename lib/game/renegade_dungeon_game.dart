@@ -1089,13 +1089,27 @@ class RenegadeDungeonGame extends FlameGame
     }
 
     for (final obj in portalsLayer.objects) {
-      final gridX = obj.properties.getValue<int>('gridX');
-      final gridY = obj.properties.getValue<int>('gridY');
+      // Try to get grid coordinates from properties first
+      int? gridX = obj.properties.getValue<int>('gridX');
+      int? gridY = obj.properties.getValue<int>('gridY');
+
+      // Fallback: Calculate from object position if properties are missing
+      if (gridX == null || gridY == null) {
+        // Tiled objects position is in pixels. Convert to grid.
+        // Note: Tiled objects (rectangles) usually have origin at top-left.
+        // We use a scale factor if needed, but usually for object layers on
+        // a 16x16 map, the x/y are pixel coordinates.
+        gridX = (obj.x / tileWidth).floor();
+        gridY = (obj.y / tileHeight).floor();
+        print(
+            'ℹ️ Portal ${obj.name}: Calculated grid pos from pixels ($gridX, $gridY)');
+      }
+
       final targetMap = obj.properties.getValue<String>('targetMap');
       final targetX = obj.properties.getValue<int>('targetX') ?? 10;
       final targetY = obj.properties.getValue<int>('targetY') ?? 10;
 
-      if (gridX != null && gridY != null && targetMap != null) {
+      if (targetMap != null) {
         final gridPos = Vector2(gridX.toDouble(), gridY.toDouble());
         portals[obj.name] = PortalData(
           gridPosition: gridPos,
@@ -1105,8 +1119,20 @@ class RenegadeDungeonGame extends FlameGame
 
         // Add visual indicator for portal
         final visualPos = gridToScreenPosition(gridPos);
-        final portalVisual = PortalVisual(position: visualPos);
-        world.add(portalVisual);
+        // Check if visual already exists to avoid duplicates
+        bool visualExists = world.children
+            .whereType<PortalVisual>()
+            .any((v) => v.position.distanceTo(visualPos) < 1.0);
+
+        if (!visualExists) {
+          final portalVisual = PortalVisual(position: visualPos);
+          world.add(portalVisual);
+        }
+
+        print(
+            '✅ Loaded portal ${obj.name} at $gridPos -> $targetMap ($targetX, $targetY)');
+      } else {
+        print('⚠️ Portal ${obj.name} missing "targetMap" property');
       }
     }
 
@@ -1319,6 +1345,10 @@ class RenegadeDungeonGame extends FlameGame
 
   String _currentBarrierMessage = '';
   bool _currentBarrierIsBlocked = true;
+
+  // Public getters for overlay access
+  String get currentBarrierMessage => _currentBarrierMessage;
+  bool get currentBarrierIsBlocked => _currentBarrierIsBlocked;
 
   DangerLevel _parseDangerLevel(String? str) {
     if (str == null) return DangerLevel.medium;

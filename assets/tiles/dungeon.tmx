@@ -259,7 +259,7 @@
 </data>
  </layer>
  <objectgroup id="13" name="Portals">
-  <object id="250" x="379" y="347" width="67.2665" height="71.3433">
+  <object id="250" name="test" x="400.01" y="399.906" width="15.7665" height="16.3433">
    <properties>
     <property name="gridX" type="int" value="25"/>
     <property name="gridY" type="int" value="25"/>
@@ -269,7 +269,7 @@
     <property name="targetY" type="int" value="10"/>
    </properties>
   </object>
-  <object id="251" x="491.333" y="675.333" width="65.3333" height="81.3333">
+  <object id="251" name="granja" x="511.083" y="703.583" width="15.9583" height="15.2083">
    <properties>
     <property name="gridX" type="int" value="33"/>
     <property name="gridY" type="int" value="44"/>
@@ -281,7 +281,7 @@
   </object>
  </objectgroup>
  <objectgroup id="15" name="ConditionalBarriers">
-  <object id="253" x="-0.333333" y="767.458" width="159.708" height="31.5417">
+  <object id="253" name="granaja barra" x="-0.333333" y="767.458" width="159.708" height="31.5417">
    <properties>
     <property name="blockedMessage" value="Necesitas ser nivel 15 y derrotar al Guardian del Panteón"/>
     <property name="id" value="granja_entrance"/>
