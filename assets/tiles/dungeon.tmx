@@ -259,9 +259,9 @@
 </data>
  </layer>
  <objectgroup id="13" name="Portals">
-  <object id="250" name="test" x="357.343" y="350.573" width="58.4332" height="65.6766">
+  <object id="250" name="test" x="410.343" y="340.239" width="58.4332" height="65.6766">
    <properties>
-    <property name="targetMap" value="zone_text.tmx"/>
+    <property name="targetMap" value="zone_test.tmx"/>
     <property name="targetX" type="int" value="26"/>
     <property name="targetY" type="int" value="26"/>
     <property name="transitionDuration" type="int" value="2000"/>

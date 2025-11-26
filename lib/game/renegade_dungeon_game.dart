@@ -1092,12 +1092,10 @@ class RenegadeDungeonGame extends FlameGame
     const double scaleFactor = 2.0;
 
     for (final obj in portalsLayer.objects) {
-      // Tiled object positions are in pixels, we need to apply scale factor
-      // Calculate grid position from pixels with scale factor
-      final pixelX = obj.x * scaleFactor;
-      final pixelY = obj.y * scaleFactor;
-      final gridX = (pixelX / tileWidth).floor();
-      final gridY = (pixelY / tileHeight).floor();
+      // Tiled object positions - convert directly to grid without scaleFactor
+      // (Tiled isometric coordinates are already in the correct space)
+      final gridX = (obj.x / 16.0).floor(); // Tiled uses 16x16 base tiles
+      final gridY = (obj.y / 16.0).floor();
 
       print(
           'ℹ️ Portal ${obj.name}: Calculated grid pos ($gridX, $gridY) from pixels (${obj.x}, ${obj.y})');
@@ -1131,11 +1129,9 @@ class RenegadeDungeonGame extends FlameGame
           transitionDuration: transitionDuration,
         );
 
-        // Add visual indicator - use the ORIGINAL Tiled object center position
-        // This matches how the portal appears in Tiled editor
-        final visualCenterX = (obj.x + obj.width / 2) * scaleFactor;
-        final visualCenterY = (obj.y + obj.height / 2) * scaleFactor;
-        final visualPos = Vector2(visualCenterX, visualCenterY);
+        // Add visual indicator for portal (centered on zone)
+        final zoneCenterGrid = gridPos + (zoneSize / 2);
+        final visualPos = gridToScreenPosition(zoneCenterGrid);
 
         // Check if visual already exists to avoid duplicates
         bool visualExists = world.children
