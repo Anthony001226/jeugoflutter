@@ -297,54 +297,62 @@ class CombatUI extends StatelessWidget {
     );
   }
 
-  Widget _buildAbilityButtons() {
+    Widget _buildAbilityButtons() {
     final abilities = game.player.stats.abilities;
     final playerStats = game.player.stats.combatStats;
 
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      alignment: WrapAlignment.center,
-      children: abilities.map((ability) {
-        return ValueListenableBuilder<int>(
-          valueListenable: ability.type == AbilityType.ultimate
-              ? playerStats.ultMeter
-              : playerStats.currentMp,
-          builder: (context, resource, _) {
-            final canUse = ability.canUse(
-              playerStats.currentMp.value,
-              playerStats.ultMeter.value,
-            );
+    // NEW: Wrap with turn listener for instant button disable
+    return ValueListenableBuilder<CombatTurn>(
+      valueListenable: game.combatManager.currentTurn,
+      builder: (context, currentTurn, _) {
+        final isPlayerTurn = currentTurn == CombatTurn.playerTurn;
+        
+        return Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          alignment: WrapAlignment.center,
+          children: abilities.map((ability) {
+            return ValueListenableBuilder<int>(
+              valueListenable: ability.type == AbilityType.ultimate
+                  ? playerStats.ultMeter
+                  : playerStats.currentMp,
+              builder: (context, resource, _) {
+                final canUse = ability.canUse(
+                  playerStats.currentMp.value,
+                  playerStats.ultMeter.value,
+                );
 
-            return ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: canUse
-                    ? _getAbilityColor(ability.type)
-                    : Colors.grey.shade800,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              ),
-              onPressed: canUse
-                  ? () => game.combatManager.usePlayerAbility(ability)
-                  : null,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    ability.name,
-                    style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.bold),
+                return ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: (canUse && isPlayerTurn)
+                        ? _getAbilityColor(ability.type)
+                        : Colors.grey.shade800,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
-                  Text(
-                    ability.getCostText(),
-                    style: const TextStyle(fontSize: 11),
+                  onPressed: (canUse && isPlayerTurn)
+                      ? () => game.combatManager.usePlayerAbility(ability)
+                      : null,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        ability.name,
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        ability.getCostText(),
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             );
-          },
+          }).toList(),
         );
-      }).toList(),
+      },
     );
   }
 

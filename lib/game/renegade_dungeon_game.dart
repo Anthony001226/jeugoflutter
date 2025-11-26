@@ -77,6 +77,8 @@ class CombatManager {
   Map<SpriteAnimationComponent, String> enemyNames = {}; // Permanent names
   int selectedTargetIndex = 0;
 
+  bool isProcessingAbility = false;
+
   // NEW: Turn Queue System
   List<TurnEntity> turnQueue = [];
   int currentTurnIndex = -1;
@@ -191,6 +193,7 @@ class CombatManager {
     if (currentEntity.isPlayer) {
       // Player's Turn
       currentTurn.value = CombatTurn.playerTurn;
+      isProcessingAbility = false;
       print('🎮 Tu turno!');
     } else {
       // Enemy's Turn
@@ -294,6 +297,19 @@ class CombatManager {
 
   /// Usa una habilidad del jugador contra el enemigo
   void usePlayerAbility(CombatAbility ability) {
+    // Prevent double execution
+    if (isProcessingAbility) {
+      print('⚠️ Ya procesando habilidad, ignorando clic...');
+      return;
+    }
+
+    if (currentTurn.value != CombatTurn.playerTurn) {
+      print('⚠️ No es tu turno!');
+      return;
+    }
+
+    isProcessingAbility = true; // Lock
+
     // Check if in multi-enemy or single-enemy mode
     final isMultiEnemy = currentEnemies.isNotEmpty;
     final targetEnemy =
@@ -407,6 +423,10 @@ class CombatManager {
       print('⭐ XP TOTAL GANADO: $totalXpEarned');
       return;
     }
+
+    Future.delayed(const Duration(milliseconds: 1), () {
+      isProcessingAbility = false; // Unlock after brief delay
+    });
 
     print('⏳ Fin del turno del jugador. Siguiente turno...');
     // End player turn, proceed to next in queue
@@ -747,6 +767,7 @@ class RenegadeDungeonGame extends FlameGame
 
   final double tileWidth = 32.0;
   final double tileHeight = 16.0;
+  final double cameraZoom = 1.5;
 
   bool zoneHasEnemies = false;
   List<String> zoneEnemyTypes = [];
@@ -775,6 +796,7 @@ class RenegadeDungeonGame extends FlameGame
   // --- ¡MÉTODO onLoad CORREGIDO Y LIMPIO! ---
   @override
   Future<void> onLoad() async {
+    camera.viewfinder.zoom = cameraZoom;
     //camera.viewport.transparent = true;
     FlameAudio.bgm.initialize();
     await FlameAudio.audioCache.loadAll([
@@ -931,7 +953,7 @@ class RenegadeDungeonGame extends FlameGame
     player.showSurpriseEmote();
     camera.viewfinder.add(
       ScaleEffect.to(
-        Vector2.all(1.5),
+        Vector2.all(2),
         EffectController(duration: 0.4, curve: Curves.easeIn),
       ),
     );
@@ -940,7 +962,7 @@ class RenegadeDungeonGame extends FlameGame
     camera.viewport.add(screenFade);
     await screenFade.fadeOut();
     world.removeFromParent();
-    camera.viewfinder.zoom = 1.0;
+    camera.viewfinder.zoom = 1.5;
 
     // ALWAYS use multi-enemy system (single enemy = list of 1)
     combatManager.startNewCombatMulti([enemyType]);
@@ -959,7 +981,7 @@ class RenegadeDungeonGame extends FlameGame
     player.showSurpriseEmote();
     camera.viewfinder.add(
       ScaleEffect.to(
-        Vector2.all(1.5),
+        Vector2.all(2),
         EffectController(duration: 0.4, curve: Curves.easeIn),
       ),
     );
@@ -968,7 +990,7 @@ class RenegadeDungeonGame extends FlameGame
     camera.viewport.add(screenFade);
     await screenFade.fadeOut();
     world.removeFromParent();
-    camera.viewfinder.zoom = 1.0;
+    camera.viewfinder.zoom = 1.5;
     combatManager.startNewCombatMulti(enemyTypes);
     _battleScene = BattleScene(enemies: combatManager.currentEnemies);
     await add(_battleScene!);

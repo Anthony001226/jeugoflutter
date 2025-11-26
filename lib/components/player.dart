@@ -9,6 +9,7 @@ import 'package:renegade_dungeon/components/emote_component.dart';
 import 'package:flutter/foundation.dart'; // ¡Necesario para ValueNotifier!
 import 'package:renegade_dungeon/models/inventory_item.dart';
 import 'package:renegade_dungeon/models/player_stats.dart';
+import 'package:flutter/services.dart';
 import 'chest.dart';
 
 class Player extends SpriteComponent
@@ -19,6 +20,11 @@ class Player extends SpriteComponent
   Vector2 gridPosition;
   late final PlayerStats stats;
   final inventory = ValueNotifier<List<InventorySlot>>([]);
+
+  // NEW: Movement system
+  double _moveCooldown = 0.0;
+  static const double moveCooldownDuration = 0.15; // 150ms entre movimientos
+  bool _isMoving = false;
 
   Player({required this.gridPosition})
       : super(size: Vector2(32, 48), anchor: Anchor.bottomCenter);
@@ -82,14 +88,38 @@ class Player extends SpriteComponent
     if (game.state != GameState.exploring) {
       return true;
     }
-    if (event is! KeyDownEvent) {
-      return super.onKeyEvent(event, keysPressed);
+    // Movement is now handled in update() for continuous movement
+    return super.onKeyEvent(event, keysPressed);
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+
+    // NEW: Block movement during combat transitions
+    if (game.state != GameState.exploring) {
+      return; // Don't process any movement
     }
+
+    // Update cooldown
+    if (_moveCooldown > 0) {
+      _moveCooldown -= dt;
+      return; // Still in cooldown, skip movement
+    }
+
+    // Don't process movement if already animating
+    if (_isMoving) return;
+
+    // Get current pressed keys
+    final keysPressed = HardwareKeyboard.instance.logicalKeysPressed;
     final moveDirection = Vector2.zero();
+
     if (keysPressed.contains(LogicalKeyboardKey.keyW)) moveDirection.y -= 1;
     if (keysPressed.contains(LogicalKeyboardKey.keyS)) moveDirection.y += 1;
     if (keysPressed.contains(LogicalKeyboardKey.keyA)) moveDirection.x -= 1;
     if (keysPressed.contains(LogicalKeyboardKey.keyD)) moveDirection.x += 1;
+
+    // Priority: vertical over horizontal
     if (moveDirection.x.abs() + moveDirection.y.abs() > 1) {
       if (moveDirection.y != 0) {
         moveDirection.x = 0;
@@ -97,13 +127,14 @@ class Player extends SpriteComponent
         moveDirection.y = 0;
       }
     }
+
     if (!moveDirection.isZero()) {
       _move(moveDirection);
+      _moveCooldown = moveCooldownDuration; // Set cooldown
     }
-    return true;
   }
 
-  void _move(Vector2 direction) {
+  void _move(Vector2 direction) async {
     final targetGridPosition = gridPosition + direction;
 
     // NEW: Check if blocked by conditional barrier
@@ -112,8 +143,41 @@ class Player extends SpriteComponent
     }
 
     if (!_hasCollision(targetGridPosition)) {
+      _isMoving = true;
+
+      // Update grid position
       gridPosition = targetGridPosition;
-      position = game.gridToScreenPosition(gridPosition);
+      final targetScreenPos = game.gridToScreenPosition(gridPosition);
+
+      // Smooth animation with small bounce (Crypt of NecroDancer style)
+      final startPos = position.clone();
+      final midPos = Vector2(
+        (startPos.x + targetScreenPos.x) / 2,
+        (startPos.y + targetScreenPos.y) / 2 - 4, // Small hop up
+      );
+
+      const animDuration = 0.12; // 120ms animation
+      double elapsed = 0.0;
+
+      // Animate to mid-point (hop up)
+      while (elapsed < animDuration / 2) {
+        await Future.delayed(const Duration(milliseconds: 16)); // ~60fps
+        elapsed += 0.016;
+        final t = (elapsed / (animDuration / 2)).clamp(0.0, 1.0);
+        position = startPos + (midPos - startPos) * t;
+      }
+
+      // Animate to target (hop down)
+      elapsed = 0.0;
+      while (elapsed < animDuration / 2) {
+        await Future.delayed(const Duration(milliseconds: 16));
+        elapsed += 0.016;
+        final t = (elapsed / (animDuration / 2)).clamp(0.0, 1.0);
+        position = midPos + (targetScreenPos - midPos) * t;
+      }
+
+      position = targetScreenPos; // Ensure exact position
+      _isMoving = false;
 
       // Portal & Zone system
       game.stepsSinceLastBattle++;
