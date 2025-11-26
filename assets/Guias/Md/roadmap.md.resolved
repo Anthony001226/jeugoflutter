@@ -111,7 +111,7 @@ maxLevel: int = 99
 - [ ] Enemigos elite/raros con mejor loot
 
 #### 8. Mejoras Visuales
-- [ ] Efectos de partículas en ataques
+- [ ] Efectos de part"../../images/Edits/Md"ículas en ataques
 - [ ] Screen shake en golpes críticos
 - [ ] Animaciones de habilidades especiales
 - [ ] Indicadores de daño flotantes
