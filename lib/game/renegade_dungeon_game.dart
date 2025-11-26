@@ -1088,22 +1088,33 @@ class RenegadeDungeonGame extends FlameGame
       return;
     }
 
-    for (final obj in portalsLayer.objects) {
-      // Try to get grid coordinates from properties first
-      int? gridX = obj.properties.getValue<int>('gridX');
-      int? gridY = obj.properties.getValue<int>('gridY');
+    // Same scale factor as conditional barriers and spawn zones
+    const double scaleFactor = 2.0;
 
-      // Fallback: Calculate from object position if properties are missing
-      if (gridX == null || gridY == null) {
-        // Tiled objects position is in pixels. Convert to grid.
-        // Note: Tiled objects (rectangles) usually have origin at top-left.
-        // We use a scale factor if needed, but usually for object layers on
-        // a 16x16 map, the x/y are pixel coordinates.
-        gridX = (obj.x / tileWidth).floor();
-        gridY = (obj.y / tileHeight).floor();
-        print(
-            'ℹ️ Portal ${obj.name}: Calculated grid pos from pixels ($gridX, $gridY)');
-      }
+    for (final obj in portalsLayer.objects) {
+      // Tiled object positions are in pixels, we need to apply scale factor
+      // Calculate grid position from pixels with scale factor
+      final pixelX = obj.x * scaleFactor;
+      final pixelY = obj.y * scaleFactor;
+      final gridX = (pixelX / tileWidth).floor();
+      final gridY = (pixelY / tileHeight).floor();
+
+      print(
+          'ℹ️ Portal ${obj.name}: Calculated grid pos ($gridX, $gridY) from pixels (${obj.x}, ${obj.y})');
+
+      // Extract zone size from Tiled object dimensions (convert pixels → grid units)
+      final zoneWidthGrid = ((obj.width * scaleFactor) / tileWidth).ceil();
+      final zoneHeightGrid = ((obj.height * scaleFactor) / tileHeight).ceil();
+      final zoneSize = Vector2(
+        zoneWidthGrid.toDouble().clamp(1.0, 100.0),
+        zoneHeightGrid.toDouble().clamp(1.0, 100.0),
+      );
+
+      // Read transition properties (with defaults)
+      final transitionType =
+          obj.properties.getValue<String>('transitionType') ?? 'fade';
+      final transitionDuration =
+          obj.properties.getValue<int>('transitionDuration') ?? 2000;
 
       final targetMap = obj.properties.getValue<String>('targetMap');
       final targetX = obj.properties.getValue<int>('targetX') ?? 10;
@@ -1113,12 +1124,19 @@ class RenegadeDungeonGame extends FlameGame
         final gridPos = Vector2(gridX.toDouble(), gridY.toDouble());
         portals[obj.name] = PortalData(
           gridPosition: gridPos,
+          size: zoneSize,
           targetMap: targetMap,
           targetPosition: Vector2(targetX.toDouble(), targetY.toDouble()),
+          transitionType: transitionType,
+          transitionDuration: transitionDuration,
         );
 
-        // Add visual indicator for portal
-        final visualPos = gridToScreenPosition(gridPos);
+        // Add visual indicator - use the ORIGINAL Tiled object center position
+        // This matches how the portal appears in Tiled editor
+        final visualCenterX = (obj.x + obj.width / 2) * scaleFactor;
+        final visualCenterY = (obj.y + obj.height / 2) * scaleFactor;
+        final visualPos = Vector2(visualCenterX, visualCenterY);
+
         // Check if visual already exists to avoid duplicates
         bool visualExists = world.children
             .whereType<PortalVisual>()
@@ -1130,7 +1148,7 @@ class RenegadeDungeonGame extends FlameGame
         }
 
         print(
-            '✅ Loaded portal ${obj.name} at $gridPos -> $targetMap ($targetX, $targetY)');
+            '✅ Loaded portal ${obj.name} at $gridPos (${zoneSize.x.toInt()}x${zoneSize.y.toInt()}) -> $targetMap ($targetX, $targetY) [$transitionType, ${transitionDuration}ms]');
       } else {
         print('⚠️ Portal ${obj.name} missing "targetMap" property');
       }
@@ -1141,21 +1159,70 @@ class RenegadeDungeonGame extends FlameGame
 
   void checkPortalCollision(Vector2 playerGridPos) {
     for (final portal in portals.values) {
-      if (portal.gridPosition == playerGridPos) {
-        transitionToMap(portal.targetMap, portal.targetPosition);
+      // Use zone-based detection instead of exact point match
+      if (portal.contains(playerGridPos)) {
+        transitionToMap(
+          portal.targetMap,
+          portal.targetPosition,
+          transitionType: portal.transitionType,
+          duration: portal.transitionDuration,
+        );
         break;
       }
     }
   }
 
-  Future<void> transitionToMap(String mapName, Vector2 startPos) async {
-    print('🚪 Transitioning to $mapName...');
+  Future<void> transitionToMap(
+    String mapName,
+    Vector2 startPos, {
+    String transitionType = 'fade',
+    int duration = 2000,
+  }) async {
+    print('🚪 Transitioning to $mapName using [$transitionType] transition...');
 
+    // Remove HUD during transition
     overlays.remove('PlayerHud');
-    overlays.add('map_transition');
-    await Future.delayed(Duration(milliseconds: 500));
 
+    // Handle different transition types
+    if (transitionType == 'fade') {
+      // Create and add fade effect
+      final screenFade = ScreenFade();
+      camera.viewport.add(screenFade);
+
+      // Fade out (duration in seconds)
+      final fadeOutDuration = (duration / 2) / 1000;
+      await screenFade.fadeOut(duration: fadeOutDuration);
+
+      try {
+        // Perform map transition while screen is black
+        await _performMapTransition(mapName, startPos);
+
+        // Fade in
+        await screenFade.fadeIn(duration: fadeOutDuration);
+      } catch (e, stackTrace) {
+        print('❌ Error during fade transition: $e');
+        print(stackTrace);
+        // Remove fade on error
+        screenFade.removeFromParent();
+      }
+    } else if (transitionType == 'instant') {
+      // Instant transition (no visual effect)
+      await _performMapTransition(mapName, startPos);
+    } else {
+      // Default to fade for unknown types
+      print('⚠️ Unknown transition type "$transitionType", using fade');
+      return transitionToMap(mapName, startPos,
+          transitionType: 'fade', duration: duration);
+    }
+
+    // Restore HUD after transition
+    overlays.add('PlayerHud');
+  }
+
+  /// Internal method to perform the actual map loading
+  Future<void> _performMapTransition(String mapName, Vector2 startPos) async {
     try {
+      // CRITICAL: Remove old map components FIRST before loading new map
       world.remove(mapComponent);
 
       // Remove all chests and portal visuals from the previous map
@@ -1168,6 +1235,7 @@ class RenegadeDungeonGame extends FlameGame
         visual.removeFromParent();
       }
 
+      // Load new map
       mapComponent =
           await TiledComponent.load(mapName, Vector2(tileWidth, tileHeight));
       collisionLayer = mapComponent.tileMap.getLayer<TileLayer>('Collision')!;
@@ -1189,10 +1257,7 @@ class RenegadeDungeonGame extends FlameGame
     } catch (e, stackTrace) {
       print('❌ Error loading map $mapName: $e');
       print(stackTrace);
-    } finally {
-      await Future.delayed(Duration(milliseconds: 300));
-      overlays.remove('map_transition');
-      overlays.add('PlayerHud');
+      rethrow; // Propagate error to caller
     }
   }
 

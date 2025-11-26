@@ -14,18 +14,32 @@ enum DangerLevel {
 /// Datos de un portal para transición de mapas
 class PortalData {
   final Vector2 gridPosition;
+  final Vector2 size; // Portal zone size (in grid units)
   final String targetMap;
   final Vector2 targetPosition;
+  final String transitionType; // 'fade', 'instant', 'walk'
+  final int transitionDuration; // milliseconds
 
-  const PortalData({
+  PortalData({
     required this.gridPosition,
+    Vector2? size, // Make nullable
     required this.targetMap,
     required this.targetPosition,
-  });
+    this.transitionType = 'fade',
+    this.transitionDuration = 2000, // 2 seconds default
+  }) : size = size ?? Vector2(1, 1); // Initialize in initializer list
+
+  /// Check if a grid position is within this portal zone
+  bool contains(Vector2 gridPos) {
+    return gridPos.x >= gridPosition.x &&
+        gridPos.x < gridPosition.x + size.x &&
+        gridPos.y >= gridPosition.y &&
+        gridPos.y < gridPosition.y + size.y;
+  }
 
   @override
   String toString() {
-    return 'Portal to $targetMap at ${targetPosition}';
+    return 'Portal to $targetMap at $targetPosition (${size.x}x${size.y}) - $transitionType';
   }
 }
 

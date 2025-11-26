@@ -43,14 +43,13 @@
  </layer>
  <objectgroup id="4" name="SpawnZones"/>
  <objectgroup id="5" name="Portals">
-  <object id="1" x="384.31" y="128.046" width="15.1395" height="15.1061">
+  <object id="1" x="369.81" y="58.546" width="51.8895" height="94.3561">
    <properties>
-    <property name="gridX" type="int" value="24"/>
-    <property name="gridY" type="int" value="8"/>
-    <property name="name" value="to_dungeon"/>
     <property name="targetMap" value="dungeon.tmx"/>
     <property name="targetX" type="int" value="31"/>
     <property name="targetY" type="int" value="42"/>
+    <property name="transitionDuration" type="int" value="2000"/>
+    <property name="transitionType" value="fade"/>
    </properties>
   </object>
  </objectgroup>

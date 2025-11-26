@@ -120,14 +120,13 @@
   </object>
  </objectgroup>
  <objectgroup id="4" name="Portals">
-  <object id="5" x="10" y="10" width="5" height="5">
+  <object id="5" x="30.3333" y="427" width="47.6667" height="46.3333">
    <properties>
-    <property name="gridX" type="int" value="5"/>
-    <property name="gridY" type="int" value="5"/>
-    <property name="name" value="portal_to_dungeon"/>
     <property name="targetMap" value="dungeon.tmx"/>
     <property name="targetX" type="int" value="26"/>
     <property name="targetY" type="int" value="26"/>
+    <property name="transitionDuration" type="int" value="2000"/>
+    <property name="transitionType" value="fade"/>
    </properties>
   </object>
  </objectgroup>

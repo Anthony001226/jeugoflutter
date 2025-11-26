@@ -259,24 +259,22 @@
 </data>
  </layer>
  <objectgroup id="13" name="Portals">
-  <object id="250" name="test" x="400.01" y="399.906" width="15.7665" height="16.3433">
+  <object id="250" name="test" x="357.343" y="350.573" width="58.4332" height="65.6766">
    <properties>
-    <property name="gridX" type="int" value="25"/>
-    <property name="gridY" type="int" value="25"/>
-    <property name="name" value="portal_to_test_zone"/>
-    <property name="targetMap" value="zone_test.tmx"/>
-    <property name="targetX" type="int" value="10"/>
-    <property name="targetY" type="int" value="10"/>
+    <property name="targetMap" value="zone_text.tmx"/>
+    <property name="targetX" type="int" value="26"/>
+    <property name="targetY" type="int" value="26"/>
+    <property name="transitionDuration" type="int" value="2000"/>
+    <property name="transitionType" value="fade"/>
    </properties>
   </object>
-  <object id="251" name="granja" x="511.083" y="703.583" width="15.9583" height="15.2083">
+  <object id="251" name="granja" x="453.75" y="703.583" width="73.2916" height="75.2083">
    <properties>
-    <property name="gridX" type="int" value="33"/>
-    <property name="gridY" type="int" value="44"/>
-    <property name="name" value="to_granja"/>
     <property name="targetMap" value="granja.tmx"/>
     <property name="targetX" type="int" value="25"/>
     <property name="targetY" type="int" value="9"/>
+    <property name="transitionDuration" type="int" value="2000"/>
+    <property name="transitionType" value="fade"/>
    </properties>
   </object>
  </objectgroup>
