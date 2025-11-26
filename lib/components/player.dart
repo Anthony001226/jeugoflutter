@@ -88,6 +88,14 @@ class Player extends SpriteComponent
     if (game.state != GameState.exploring) {
       return true;
     }
+
+    // NPC Interaction with E key
+    if (event is KeyDownEvent &&
+        keysPressed.contains(LogicalKeyboardKey.keyE)) {
+      game.checkNPCInteraction();
+      return true;
+    }
+
     // Movement is now handled in update() for continuous movement
     return super.onKeyEvent(event, keysPressed);
   }

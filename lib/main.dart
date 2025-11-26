@@ -13,6 +13,7 @@ import 'package:renegade_dungeon/ui/pause_menu_ui.dart';
 import 'package:renegade_dungeon/ui/combat_inventory_ui.dart';
 import 'package:renegade_dungeon/ui/map_transition_overlay.dart';
 import 'package:renegade_dungeon/ui/barrier_dialog_ui.dart';
+import 'package:renegade_dungeon/ui/dialogue_ui.dart';
 
 // El StatefulWidget que creamos está perfecto. No necesita cambios.
 class MyApp extends StatefulWidget {
@@ -76,6 +77,7 @@ class _MyAppState extends State<MyApp> {
                   message: game.currentBarrierMessage,
                   isBlocked: game.currentBarrierIsBlocked,
                 ),
+            'DialogueUI': (context, game) => DialogueUI(game: game),
           },
         ),
       ],

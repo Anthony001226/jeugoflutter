@@ -39,6 +39,8 @@ import '../components/enemies/skeleton_component.dart';
 import 'package:flame/effects.dart';
 import '../effects/screen_fade.dart';
 import 'package:flame_audio/flame_audio.dart';
+import '../models/npc.dart';
+import '../components/npc_component.dart';
 
 // ¡YA NO NECESITAMOS TANTAS IMPORTACIONES DE COMPONENTES AQUÍ!
 // PORQUE AHORA VIVEN EN GameScreen
@@ -788,6 +790,11 @@ class RenegadeDungeonGame extends FlameGame
   // Track opened chests to prevent regeneration
   final Set<String> openedChests = {};
 
+  // ========== NPC SYSTEM ==========
+  final Map<String, NPC> npcs = {};
+  List<NPCComponent> npcComponents = [];
+  String? activeDialogueNPC;
+
   final videoPlayerControllerNotifier =
       ValueNotifier<VideoPlayerController?>(null);
 
@@ -892,6 +899,7 @@ class RenegadeDungeonGame extends FlameGame
     _loadSpawnZones();
     _loadConditionalBarriers();
     await _loadChests();
+    _loadNPCs(); // Load NPCs for initial map
 
     player = Player(gridPosition: Vector2(5.0, 5.0));
   }
@@ -1628,5 +1636,106 @@ class RenegadeDungeonGame extends FlameGame
     }
     print(
         '✅ Loaded $chestCounter chests (${openedChests.length} already opened)');
+  }
+
+  // ========== NPC SYSTEM ==========
+
+  void _loadNPCs() {
+    npcs.clear();
+    // Remove old NPC components
+    for (final npc in npcComponents) {
+      npc.removeFromParent();
+    }
+    npcComponents.clear();
+
+    final npcsLayer = mapComponent.tileMap.getLayer<ObjectGroup>('NPCs');
+    if (npcsLayer == null) {
+      print('ℹ️ No NPCs layer found (this is optional)');
+      return;
+    }
+
+    for (final obj in npcsLayer.objects) {
+      // Extract properties from Tiled
+      final id = obj.properties.getValue<String>('npcId') ?? 'npc_${obj.id}';
+      final name = obj.properties.getValue<String>('name') ?? 'NPC';
+      final typeStr = obj.properties.getValue<String>('npcType') ?? 'generic';
+      final type = _parseNPCType(typeStr);
+      final spriteSheet = obj.properties.getValue<String>('spriteSheet') ??
+          'characters/player.png';
+      final dialogue = obj.properties.getValue<String>('dialogue') ?? 'Hola.';
+
+      // Calculate grid position (same as portals - no scaleFactor on x/y)
+      final gridX = (obj.x / 16.0).floor();
+      final gridY = (obj.y / 16.0).floor();
+      final gridPos = Vector2(gridX.toDouble(), gridY.toDouble());
+
+      // Create NPC model
+      final npc = NPC(
+        id: id,
+        name: name,
+        type: type,
+        gridPosition: gridPos,
+        spriteSheet: spriteSheet,
+        dialogue: dialogue,
+      );
+
+      npcs[id] = npc;
+
+      // Create visual component
+      final npcComponent = NPCComponent(npc: npc);
+      npcComponents.add(npcComponent);
+      world.add(npcComponent);
+
+      print('✅ Loaded NPC: $name ($type) at $gridPos');
+    }
+
+    print('✅ Loaded ${npcs.length} NPCs');
+  }
+
+  NPCType _parseNPCType(String typeStr) {
+    switch (typeStr.toLowerCase()) {
+      case 'vendor':
+        return NPCType.vendor;
+      case 'quest_giver':
+      case 'questgiver':
+        return NPCType.questGiver;
+      case 'lore':
+        return NPCType.lore;
+      default:
+        return NPCType.generic;
+    }
+  }
+
+  void checkNPCInteraction() {
+    if (state != GameState.exploring) return;
+
+    for (final npcComponent in npcComponents) {
+      if (npcComponent.canInteract()) {
+        // NPC is in range and ready to interact
+        startDialogue(npcComponent.npc.id);
+        return; // Only interact with one NPC at a time
+      }
+    }
+  }
+
+  void startDialogue(String npcId) {
+    final npc = npcs[npcId];
+    if (npc == null) return;
+
+    activeDialogueNPC = npcId;
+    state = GameState.inMenu; // Pause game
+    overlays.add('DialogueUI');
+
+    print('💬 Started dialogue with ${npc.name}');
+  }
+
+  void endDialogue() {
+    if (activeDialogueNPC != null) {
+      print('💬 Ended dialogue with ${npcs[activeDialogueNPC]?.name}');
+    }
+
+    activeDialogueNPC = null;
+    state = GameState.exploring;
+    overlays.remove('DialogueUI');
   }
 }
