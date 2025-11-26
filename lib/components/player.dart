@@ -26,8 +26,17 @@ class Player extends SpriteComponent
   static const double moveCooldownDuration = 0.15; // 150ms entre movimientos
   bool _isMoving = false;
 
+  // NEW: Directional sprites
+  late Sprite spriteUp; // W
+  late Sprite spriteDown; // S
+  late Sprite spriteLeft; // A
+  late Sprite spriteRight; // D
+  String currentDirection = 's'; // Default facing down
+
   Player({required this.gridPosition})
-      : super(size: Vector2(32, 48), anchor: Anchor.bottomCenter);
+      : super(
+            size: Vector2(64, 46),
+            anchor: Anchor(0.5, 1)); // Custom anchor: centered X, 70% down Y
 
   @override
   Future<void> onLoad() async {
@@ -41,10 +50,23 @@ class Player extends SpriteComponent
     stats.player = this;
     addItem(ItemDatabase.rustySword);
     addItem(ItemDatabase.leatherTunic);
-    sprite = await game.loadSprite('characters/player.png');
+
+    // Load all directional sprites
+    spriteUp = await game.loadSprite('characters/player_w.png');
+    spriteDown = await game.loadSprite('characters/player_s.png');
+    spriteLeft = await game.loadSprite('characters/player_a.png');
+    spriteRight = await game.loadSprite('characters/player_d.png');
+
+    // Set default sprite (facing down)
+    sprite = spriteDown;
+
     position = game.gridToScreenPosition(gridPosition);
     priority = 10; // ← Render encima de map layers
-    final hitboxSize = Vector2(24, 12);
+
+    // DEBUG: Show collision hitbox
+    debugMode = true;
+
+    final hitboxSize = Vector2(48, 20); // Scaled proportionally
     add(RectangleHitbox(
       size: hitboxSize,
       position: Vector2((size.x - hitboxSize.x) / 2, size.y - hitboxSize.y),
@@ -137,8 +159,32 @@ class Player extends SpriteComponent
     }
 
     if (!moveDirection.isZero()) {
+      // Update sprite based on movement direction
+      _updateSpriteDirection(moveDirection);
       _move(moveDirection);
       _moveCooldown = moveCooldownDuration; // Set cooldown
+    }
+  }
+
+  /// Update player sprite based on movement direction
+  void _updateSpriteDirection(Vector2 direction) {
+    // Priority: vertical movement over horizontal (matches movement priority)
+    if (direction.y < 0) {
+      // Moving up (W)
+      sprite = spriteUp;
+      currentDirection = 'w';
+    } else if (direction.y > 0) {
+      // Moving down (S)
+      sprite = spriteDown;
+      currentDirection = 's';
+    } else if (direction.x < 0) {
+      // Moving left (A)
+      sprite = spriteLeft;
+      currentDirection = 'a';
+    } else if (direction.x > 0) {
+      // Moving right (D)
+      sprite = spriteRight;
+      currentDirection = 'd';
     }
   }
 

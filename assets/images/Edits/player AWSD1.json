@@ -1,0 +1,52 @@
+{ "frames": {
+   "player AWSD1 0.png": {
+    "frame": { "x": 0, "y": 0, "w": 600, "h": 428 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 600, "h": 428 },
+    "sourceSize": { "w": 600, "h": 428 },
+    "duration": 100
+   },
+   "player AWSD1 1.png": {
+    "frame": { "x": 600, "y": 0, "w": 600, "h": 428 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 600, "h": 428 },
+    "sourceSize": { "w": 600, "h": 428 },
+    "duration": 100
+   },
+   "player AWSD1 2.png": {
+    "frame": { "x": 1200, "y": 0, "w": 600, "h": 428 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 600, "h": 428 },
+    "sourceSize": { "w": 600, "h": 428 },
+    "duration": 100
+   },
+   "player AWSD1 3.png": {
+    "frame": { "x": 1800, "y": 0, "w": 600, "h": 428 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 600, "h": 428 },
+    "sourceSize": { "w": 600, "h": 428 },
+    "duration": 100
+   }
+ },
+ "meta": {
+  "app": "https://github.com/LibreSprite/LibreSprite/",
+  "version": "1.1-dev",
+  "image": "E:\\Clone Juego\\jeugoflutter\\assets\\images\\Edits\\player AWSD1-sheet.png",
+  "format": "RGBA8888",
+  "size": { "w": 2400, "h": 428 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "d", "from": 0, "to": 0, "direction": "forward" },
+   { "name": "s", "from": 1, "to": 1, "direction": "forward" },
+   { "name": "w", "from": 2, "to": 2, "direction": "forward" },
+   { "name": "a", "from": 3, "to": 3, "direction": "forward" }
+  ],
+  "layers": [
+   { "name": "Layer 1", "opacity": 255, "blendMode": "normal" }
+  ]
+ }
+}
