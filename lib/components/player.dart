@@ -66,7 +66,7 @@ class Player extends SpriteComponent
     // DEBUG: Show collision hitbox
     debugMode = true;
 
-    final hitboxSize = Vector2(48, 20); // Scaled proportionally
+    final hitboxSize = Vector2(10, 10); // Scaled proportionally
     add(RectangleHitbox(
       size: hitboxSize,
       position: Vector2((size.x - hitboxSize.x) / 2, size.y - hitboxSize.y),
@@ -203,11 +203,11 @@ class Player extends SpriteComponent
       gridPosition = targetGridPosition;
       final targetScreenPos = game.gridToScreenPosition(gridPosition);
 
-      // Smooth animation with small bounce (Crypt of NecroDancer style)
+      // Smooth horizontal animation (no vertical hop to keep hitbox stable)
       final startPos = position.clone();
       final midPos = Vector2(
         (startPos.x + targetScreenPos.x) / 2,
-        (startPos.y + targetScreenPos.y) / 2 - 4, // Small hop up
+        (startPos.y + targetScreenPos.y) / 2, // NO hop - keep hitbox stable
       );
 
       const animDuration = 0.12; // 120ms animation

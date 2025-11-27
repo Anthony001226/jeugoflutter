@@ -769,7 +769,7 @@ class RenegadeDungeonGame extends FlameGame
 
   final double tileWidth = 32.0;
   final double tileHeight = 16.0;
-  final double cameraZoom = 1.5;
+  final double cameraZoom = 2.0;
 
   bool zoneHasEnemies = false;
   List<String> zoneEnemyTypes = [];
