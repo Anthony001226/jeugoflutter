@@ -151,6 +151,47 @@ class AbilityDatabase {
     animationKey: 'idle',
   );
 
+  // ==================== BOSS1 ABILITIES ====================
+
+  static const CombatAbility boss1BasicAttack = CombatAbility(
+    name: 'Zarpazo',
+    description: 'Ataque con garras afiladas',
+    type: AbilityType.basic,
+    mpCost: 0,
+    effect: AbilityEffect(
+      baseDamage: 15,
+      damageMultiplier: 1.2,
+      targetType: TargetType.singleEnemy,
+    ),
+    animationKey: 'ataque', // Usará animación 'ataque' cuando esté disponible
+  );
+
+  static const CombatAbility boss1HeavyAttack = CombatAbility(
+    name: 'Golpe Devastador',
+    description: 'Un golpe pesado que destruye las defensas',
+    type: AbilityType.strong,
+    mpCost: 20,
+    effect: AbilityEffect(
+      baseDamage: 30,
+      damageMultiplier: 1.5,
+      targetType: TargetType.singleEnemy,
+    ),
+    animationKey: 'pesado', // Usará animación 'pesado' cuando esté disponible
+  );
+
+  static const CombatAbility boss1Ultimate = CombatAbility(
+    name: 'Furia Primordial',
+    description: 'Desata toda su furia en un ataque devastador',
+    type: AbilityType.ultimate,
+    mpCost: 40,
+    effect: AbilityEffect(
+      baseDamage: 60,
+      damageMultiplier: 2.0,
+      targetType: TargetType.singleEnemy,
+    ),
+    animationKey: 'ulti', // Usará animación 'ulti' cuando esté disponible
+  );
+
   // Helper methods para obtener kits completos
   static List<CombatAbility> getPlayerAbilities() {
     return [
@@ -175,6 +216,10 @@ class AbilityDatabase {
 
   static List<CombatAbility> getSkeletonAbilities() {
     return [skeletonBasicAttack, skeletonGuard];
+  }
+
+  static List<CombatAbility> getBoss1Abilities() {
+    return [boss1BasicAttack, boss1HeavyAttack, boss1Ultimate];
   }
 
   // General method to get enemy abilities by type
