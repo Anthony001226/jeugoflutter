@@ -984,21 +984,6 @@ class RenegadeDungeonGame extends FlameGame
     player.stats.currentMp.value = player.stats.maxMp.value;
 
     // Gold and items preserved (no changes needed)
-    print('✨ Revivido con gemas. Oro preservado: ${player.stats.gold.value}');
-
-    // Respawn
-    respawnPlayer();
-
-    // Close dialog and resume game
-    overlays.remove('ReviveDialog');
-    state = GameState.exploring;
-  }
-
-  /// Normal death - loses 50% of gold
-  void handleNormalDeath() {
-    // Lose 50% of gold
-    final goldLost = (player.stats.gold.value * 0.5).floor();
-    player.stats.gold.value -= goldLost;
 
     print(
         '💀 Murió normalmente. Perdiste $goldLost oro (${player.stats.gold.value} restante)');

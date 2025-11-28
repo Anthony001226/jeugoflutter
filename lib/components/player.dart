@@ -24,7 +24,7 @@ class Player extends SpriteComponent
   // NEW: Movement system
   double _moveCooldown = 0.0;
   static const double moveCooldownDuration = 0.15; // 150ms entre movimientos
-  bool _isMoving = false;
+  bool isMoving = false;
   bool isDead = false; // Death/revive system flag
 
   // NEW: Directional sprites
@@ -139,7 +139,7 @@ class Player extends SpriteComponent
     }
 
     // Don't process movement if already animating
-    if (_isMoving) return;
+    if (isMoving) return;
 
     // Get current pressed keys
     final keysPressed = HardwareKeyboard.instance.logicalKeysPressed;
@@ -162,7 +162,7 @@ class Player extends SpriteComponent
     if (!moveDirection.isZero()) {
       // Update sprite based on movement direction
       _updateSpriteDirection(moveDirection);
-      _move(moveDirection);
+      move(moveDirection);
       _moveCooldown = moveCooldownDuration; // Set cooldown
     }
   }
@@ -189,7 +189,7 @@ class Player extends SpriteComponent
     }
   }
 
-  void _move(Vector2 direction) async {
+  void move(Vector2 direction) async {
     final targetGridPosition = gridPosition + direction;
 
     // NEW: Check if blocked by conditional barrier
@@ -198,7 +198,7 @@ class Player extends SpriteComponent
     }
 
     if (!_hasCollision(targetGridPosition)) {
-      _isMoving = true;
+      isMoving = true;
 
       // Update grid position
       gridPosition = targetGridPosition;
@@ -232,7 +232,7 @@ class Player extends SpriteComponent
       }
 
       position = targetScreenPos; // Ensure exact position
-      _isMoving = false;
+      isMoving = false;
 
       // Portal & Zone system
       game.stepsSinceLastBattle++;

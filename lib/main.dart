@@ -17,6 +17,19 @@ import 'package:renegade_dungeon/ui/map_transition_overlay.dart';
 import 'package:renegade_dungeon/ui/barrier_dialog_ui.dart';
 import 'package:renegade_dungeon/ui/dialogue_ui.dart';
 import 'package:renegade_dungeon/ui/revive_dialog.dart';
+import 'package:renegade_dungeon/ui/mobile_controls_overlay.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
+
+// Platform detection
+bool get isMobile {
+  if (kIsWeb) return false;
+  try {
+    return Platform.isAndroid || Platform.isIOS;
+  } catch (e) {
+    return false;
+  }
+}
 
 // El StatefulWidget que creamos está perfecto. No necesita cambios.
 class MyApp extends StatefulWidget {
@@ -82,6 +95,9 @@ class _MyAppState extends State<MyApp> {
                 ),
             'DialogueUI': (context, game) => DialogueUI(game: game),
             'ReviveDialog': (context, game) => ReviveDialog(game: game),
+            if (isMobile)
+              'MobileControls': (context, game) =>
+                  MobileControlsOverlay(game: game),
           },
         ),
       ],
