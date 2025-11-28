@@ -19,6 +19,7 @@ class OfflineStorageService {
   Future<void> init() async {
     await Hive.initFlutter();
     _box = await Hive.openBox(_boxName);
+    print('📦 Hive initialized at: ${_box.path}');
 
     // Start monitoring connectivity
     _monitorConnectivity();
@@ -29,12 +30,13 @@ class OfflineStorageService {
     try {
       final key = 'slot_$slotNumber';
       await _box.put(key, data.toJson());
+      await _box.flush(); // Force write to disk
       _currentSlot = slotNumber;
       print('✅ Saved locally to Slot $slotNumber');
 
-      // Try to sync if online
+      // Try to sync if online (Fire and forget to avoid blocking UI/Autoplay)
       if (_isOnline) {
-        await _syncToCloud(slotNumber, data);
+        _syncToCloud(slotNumber, data);
       }
     } catch (e) {
       print('❌ Error saving locally: $e');

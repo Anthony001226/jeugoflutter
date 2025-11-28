@@ -25,7 +25,7 @@ class Chest extends SpriteComponent {
         (size.x - hitboxSize.x) / 2, // Centrado horizontalmente
         size.y - hitboxSize.y, // Colocado en la base del sprite
       ),
-    )..debugMode = true);
+    )); //..debugMode = true);
     return super.onLoad();
   }
 }

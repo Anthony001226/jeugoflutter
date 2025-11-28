@@ -2,6 +2,7 @@
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
+import 'package:renegade_dungeon/game/menu_route_component.dart';
 import 'package:flame/game.dart';
 import 'package:flame/palette.dart';
 import 'package:flame_tiled/flame_tiled.dart';
@@ -773,6 +774,8 @@ class RenegadeDungeonGame extends FlameGame
   late TiledComponent mapComponent;
   late Player player;
   bool isPlayerReady = false;
+  double accumulatedPlaytime = 0;
+  DateTime? sessionCreatedAt;
   late TileLayer collisionLayer;
 
   final double tileWidth = 32.0;
@@ -786,7 +789,7 @@ class RenegadeDungeonGame extends FlameGame
 
   // ========== PORTAL & ZONE SYSTEM ==========
   final Map<String, PortalData> portals = {};
-  String currentMapName = 'dungeon.tmx';
+  String currentMapName = 'cemetery.tmx';
   static const int MIN_STEPS_BETWEEN_BATTLES = 10;
   int stepsSinceLastBattle = 0;
   final List<Rect> spawnZoneRects = [];
@@ -821,10 +824,11 @@ class RenegadeDungeonGame extends FlameGame
   late OfflineStorageService offlineStorage;
   final CloudSaveService _cloudSaveService = CloudSaveService();
   final AuthService _authService = AuthService();
+  AuthService get authService => _authService;
 
   @override
   Color backgroundColor() => Colors.transparent;
-  // --- Â¡MÃ‰TODO onLoad CORREGIDO Y LIMPIO! ---
+
   @override
   Future<void> onLoad() async {
     // Initialize services
@@ -858,33 +862,24 @@ class RenegadeDungeonGame extends FlameGame
           'splash-screen': Route(SplashScreen.new),
 
           // --- Â¡LÃ“GICA CORREGIDA AQUÃ! ---
-          'main-menu': Route(() {
-            playBackgroundVideo('menu_background.mp4');
+          'main-menu': Route(
+              () => MenuRouteComponent('MainMenu', 'menu_background.mp4')),
+
+          'slot-selection-menu': Route(() =>
+              MenuRouteComponent('SlotSelectionMenu', 'slot_background.mp4')),
+
+          'intro-screen': Route(() {
             return Component(children: [
               TimerComponent(
                 period: 0.001,
                 repeat: false,
                 onTick: () {
                   overlays.clear();
-                  overlays.add('MainMenu');
+                  overlays.add('IntroScreen');
                 },
               ),
             ]);
           }),
-
-          'slot-selection-menu': Route(() {
-            return Component(children: [
-              TimerComponent(
-                period: 0.001,
-                repeat: false,
-                onTick: () {
-                  overlays.clear();
-                  overlays.add('SlotSelectionMenu');
-                },
-              ),
-            ]);
-          }),
-
           'loading-screen': Route(() {
             stopBackgroundVideo();
             return Component(
@@ -895,9 +890,15 @@ class RenegadeDungeonGame extends FlameGame
                   onTick: () async {
                     overlays.add('LoadingUI');
                     try {
-                      await loadGameData();
+                      final isNewGame =
+                          await loadGameData(); // Returns true if new game
                       overlays.remove('LoadingUI');
-                      router.pushReplacementNamed('game-screen');
+
+                      if (isNewGame) {
+                        router.pushReplacementNamed('intro-screen');
+                      } else {
+                        router.pushReplacementNamed('game-screen');
+                      }
                     } catch (e) {
                       print('❌ Error loading game data: $e');
                       overlays.remove('LoadingUI');
@@ -912,40 +913,6 @@ class RenegadeDungeonGame extends FlameGame
         },
       ),
     );
-  }
-
-  Future<void> playBackgroundVideo(String videoName) async {
-    if (videoPlayerControllerNotifier.value?.dataSource ==
-        'assets/videos/$videoName') {
-      return;
-    }
-
-    if (videoPlayerControllerNotifier.value != null) {
-      await stopBackgroundVideo();
-    }
-
-    final controller = VideoPlayerController.asset('assets/videos/$videoName');
-    await controller.initialize();
-    await controller.setLooping(true);
-    await controller.setVolume(0.0);
-
-    videoPlayerControllerNotifier.value = controller;
-
-    await controller.play();
-  }
-
-  // ANTES: Future<void> stopMenuVideo() async { ... }
-  // AHORA: Solo un cambio de nombre por consistencia
-  Future<void> stopBackgroundVideo() async {
-    if (videoPlayerControllerNotifier.value == null) return;
-
-    final controller = videoPlayerControllerNotifier.value!;
-    await controller.dispose();
-
-    videoPlayerControllerNotifier.value = null;
-  }
-
-  void playMenuMusic() {
     // Detiene cualquier mÃºsica que estÃ© sonando antes de empezar la nueva.
     FlameAudio.bgm.stop();
     // Reproduce la mÃºsica del menÃº en un bucle infinito.
@@ -954,7 +921,7 @@ class RenegadeDungeonGame extends FlameGame
 
   void playWorldMusic() {
     FlameAudio.bgm.stop();
-    // Reproduce la mÃºsica de la mazmorra en un bucle.
+    // Reproduce la música de la mazmorra en un bucle.
     FlameAudio.bgm.play('dungeon_music.ogg');
   }
 
@@ -962,10 +929,32 @@ class RenegadeDungeonGame extends FlameGame
     FlameAudio.bgm.stop();
   }
 
-  Future<void> loadGameData() async {
-    // Load map first (needed for collision/zones)
-    mapComponent = await TiledComponent.load(
-        'dungeon.tmx', Vector2(tileWidth, tileHeight));
+  Future<bool> loadGameData() async {
+    // 1. Check for save data FIRST to know which map to load
+    final saveData = offlineStorage.loadLocally(currentSlotIndex);
+
+    String mapToLoad = 'cemetery.tmx'; // Default for new game
+    if (saveData != null) {
+      mapToLoad = saveData.currentMap;
+    }
+
+    // 2. Load the determined map
+    try {
+      // Remove existing map if any
+      if (world.contains(mapComponent)) {
+        world.remove(mapComponent);
+      }
+
+      mapComponent =
+          await TiledComponent.load(mapToLoad, Vector2(tileWidth, tileHeight));
+      currentMapName = mapToLoad;
+    } catch (e) {
+      print('⚠️ Could not load $mapToLoad, falling back to dungeon.tmx');
+      mapComponent = await TiledComponent.load(
+          'dungeon.tmx', Vector2(tileWidth, tileHeight));
+      currentMapName = 'dungeon.tmx';
+    }
+
     loadZoneData();
     collisionLayer = mapComponent.tileMap.getLayer<TileLayer>('Collision')!;
     collisionLayer.visible = false;
@@ -977,35 +966,94 @@ class RenegadeDungeonGame extends FlameGame
     await _loadChests();
     _loadNPCs();
 
-    // Attempt to load save data for current slot
-    final saveData = offlineStorage.loadLocally(currentSlotIndex);
-
     if (saveData != null) {
       print('💾 Loading save from Slot $currentSlotIndex...');
       player = Player(
         gridPosition: Vector2(saveData.gridX, saveData.gridY),
       );
 
-      // Restore stats
-      player.stats.level.value = saveData.level;
-      player.stats.currentHp.value = saveData.currentHp;
-      player.stats.maxHp.value = saveData.maxHp;
-      player.stats.currentMp.value = saveData.currentMp;
-      player.stats.maxMp.value = saveData.maxMp;
-      player.stats.currentXp.value = saveData.experience;
-      player.stats.gold.value = saveData.gold;
-      player.stats.gems.value = saveData.gems;
+      accumulatedPlaytime = saveData.playtimeSeconds.toDouble();
+      sessionCreatedAt = saveData.createdAt;
 
       // Restore progression
       discoveredZones.addAll(saveData.discoveredMaps);
       openedChests.addAll(saveData.openedChests);
-    } else {
-      print('🆕 No save found for Slot $currentSlotIndex. Starting new game.');
-      player = Player(gridPosition: Vector2(5.0, 5.0));
-    }
 
-    isPlayerReady = true;
-    checkZoneTransition(player.position);
+      // Restore Inventory
+      final loadedInventory = <InventorySlot>[];
+      for (final slotData in saveData.inventory) {
+        final item = ItemDatabase.getItemById(slotData.itemId);
+        if (item != null) {
+          loadedInventory
+              .add(InventorySlot(item: item, quantity: slotData.quantity));
+        }
+      }
+      player.inventory.value = loadedInventory;
+
+      // Restore Equipment
+      final loadedEquipment = <EquipmentSlot, EquipmentItem>{};
+      saveData.equipment.forEach((slotName, itemId) {
+        if (itemId != null) {
+          final item = ItemDatabase.getItemById(itemId);
+          if (item is EquipmentItem) {
+            final slot = EquipmentSlot.values
+                .firstWhere((e) => e.name == slotName, orElse: () => item.slot);
+            loadedEquipment[slot] = item;
+          }
+        }
+      });
+      player.stats.loadEquipment(loadedEquipment);
+
+      isPlayerReady = true;
+      checkZoneTransition(player.position);
+      return false; // Not a new game
+    } else {
+      print(
+          '🆕 No save found for Slot $currentSlotIndex. Starting new game in Cemetery.');
+
+      // Find PlayerStart object
+      Vector2 startPos = Vector2(40.0, 42.0); // Fallback
+
+      // Try 'Setup' layer first
+      final objectLayer = mapComponent.tileMap.getLayer<ObjectGroup>('Setup');
+      if (objectLayer != null) {
+        final startObj = objectLayer.objects.firstWhere(
+          (obj) => obj.name == 'PlayerStart',
+          orElse: () => TiledObject(id: -1),
+        );
+
+        if (startObj.id != -1) {
+          // Use screenToGridPosition for correct isometric conversion
+          startPos = screenToGridPosition(Vector2(startObj.x, startObj.y));
+          print(
+              '📍 Found PlayerStart at $startPos (converted from ${startObj.x}, ${startObj.y})');
+        }
+      }
+
+      // Try 'Objects' layer as fallback if not found in Setup
+      if (startPos == Vector2(40.0, 42.0)) {
+        // Check against fallback
+        final altLayer = mapComponent.tileMap.getLayer<ObjectGroup>('Objects');
+        if (altLayer != null) {
+          final startObj = altLayer.objects.firstWhere(
+            (obj) => obj.name == 'PlayerStart',
+            orElse: () => TiledObject(id: -1),
+          );
+          if (startObj.id != -1) {
+            startPos = screenToGridPosition(Vector2(startObj.x, startObj.y));
+            print('📍 Found PlayerStart at $startPos (in Objects layer)');
+          }
+        }
+      }
+
+      print(
+          '🚀 Spawning player at Grid: $startPos (Pixels: ${startPos.x * tileWidth}, ${startPos.y * tileHeight})');
+      player = Player(gridPosition: startPos);
+
+      isPlayerReady = true;
+      checkZoneTransition(player.position);
+      return true; // Is a new game
+    }
   }
 
   Future<void> saveGame() async {
@@ -1020,9 +1068,13 @@ class RenegadeDungeonGame extends FlameGame
       experience: player.stats.currentXp.value,
       attack: player.stats.attack.value,
       defense: player.stats.defense.value,
-      inventory: [], // TODO: Serialize inventory
-      equipment: {}, // TODO: Serialize equipment
-      currentMap: 'dungeon.tmx',
+      inventory: player.inventory.value
+          .map((slot) => InventorySlotData.fromSlot(slot))
+          .toList(),
+      equipment: player.stats.equippedItems.value.map(
+        (slot, item) => MapEntry(slot.name, item.id),
+      ),
+      currentMap: currentMapName,
       gridX: player.gridPosition.x,
       gridY: player.gridPosition.y,
       gold: player.stats.gold.value,
@@ -1033,16 +1085,28 @@ class RenegadeDungeonGame extends FlameGame
       activeQuests: [],
       completedQuests: [],
       lastSaved: DateTime.now(),
-      createdAt: DateTime.now(),
+      createdAt: sessionCreatedAt ?? DateTime.now(),
+      playtimeSeconds: accumulatedPlaytime.toInt(),
     );
 
-    await offlineStorage.saveLocally(currentSlotIndex, data);
-    print('💾 Game saved to Slot $currentSlotIndex');
+    try {
+      await offlineStorage.saveLocally(currentSlotIndex, data);
+      print('💾 Game saved to Slot $currentSlotIndex');
 
-    // Show visual feedback
-    overlays.add('barrier_dialog');
-    _currentBarrierMessage = 'Partida Guardada';
-    _currentBarrierIsBlocked = false; // Green text
+      // Show visual feedback
+      overlays.add('barrier_dialog');
+      _currentBarrierMessage = 'Partida Guardada';
+      _currentBarrierIsBlocked = false; // Green text
+
+      // Hide feedback after 2 seconds
+      Future.delayed(const Duration(seconds: 2), () {
+        if (_currentBarrierMessage == 'Partida Guardada') {
+          overlays.remove('barrier_dialog');
+        }
+      });
+    } catch (e) {
+      print('❌ Error saving game: $e');
+    }
   }
 
   // ===== DEATH/REVIVE SYSTEM =====
@@ -1258,6 +1322,19 @@ class RenegadeDungeonGame extends FlameGame
   @override
   void update(double dt) {
     super.update(dt);
+
+    // Ensure PlayerHud is always on top if game is running
+    if (state == GameState.exploring || state == GameState.inCombat) {
+      if (!overlays.isActive('PlayerHud')) {
+        overlays.add('PlayerHud');
+      }
+    }
+
+    // Track playtime
+    if (state == GameState.exploring || state == GameState.inCombat) {
+      accumulatedPlaytime += dt;
+    }
+
     if (!isPlayerReady) return;
 
     if (state == GameState.exploring) {
@@ -1396,7 +1473,11 @@ class RenegadeDungeonGame extends FlameGame
       }
     } else if (transitionType == 'instant') {
       // Instant transition (no visual effect)
-      await _performMapTransition(mapName, startPos);
+      try {
+        await _performMapTransition(mapName, startPos);
+      } catch (e) {
+        print('❌ Error during instant transition: $e');
+      }
     } else {
       // Default to fade for unknown types
       print('âš ï¸ Unknown transition type "$transitionType", using fade');
@@ -1412,7 +1493,9 @@ class RenegadeDungeonGame extends FlameGame
   Future<void> _performMapTransition(String mapName, Vector2 startPos) async {
     try {
       // CRITICAL: Remove old map components FIRST before loading new map
-      world.remove(mapComponent);
+      if (mapComponent.parent != null) {
+        mapComponent.removeFromParent();
+      }
 
       // Remove all chests and portal visuals from the previous map
       final chests = world.children.whereType<Chest>().toList();
@@ -1570,7 +1653,7 @@ class RenegadeDungeonGame extends FlameGame
 
         if (barrier.requiredBoss != 'none' &&
             !player.stats.hasBossBeenDefeated(barrier.requiredBoss)) {
-          print('ðŸš« Boss ${barrier.requiredBoss} requerido');
+          print('🚫 Boss ${barrier.requiredBoss} requerido');
           overlays.add('barrier_dialog');
           _currentBarrierMessage = barrier.blockedMessage;
           _currentBarrierIsBlocked = true;
@@ -1579,7 +1662,7 @@ class RenegadeDungeonGame extends FlameGame
 
         if (barrier.requiredQuest != 'none' &&
             !player.stats.hasQuestBeenCompleted(barrier.requiredQuest)) {
-          print('ðŸš« Quest ${barrier.requiredQuest} requerida');
+          print('🚫 Quest ${barrier.requiredQuest} requerida');
           overlays.add('barrier_dialog');
           _currentBarrierMessage = barrier.blockedMessage;
           _currentBarrierIsBlocked = true;
@@ -1596,13 +1679,6 @@ class RenegadeDungeonGame extends FlameGame
     }
     return true;
   }
-
-  String _currentBarrierMessage = '';
-  bool _currentBarrierIsBlocked = true;
-
-  // Public getters for overlay access
-  String get currentBarrierMessage => _currentBarrierMessage;
-  bool get currentBarrierIsBlocked => _currentBarrierIsBlocked;
 
   DangerLevel _parseDangerLevel(String? str) {
     if (str == null) return DangerLevel.medium;
@@ -1948,5 +2024,64 @@ class RenegadeDungeonGame extends FlameGame
       updateExploration(player.gridPosition);
     }
     player.move(direction);
+  }
+
+  String _currentBarrierMessage = '';
+  bool _currentBarrierIsBlocked = true;
+
+  // Public getters for overlay access
+  String get currentBarrierMessage => _currentBarrierMessage;
+  bool get currentBarrierIsBlocked => _currentBarrierIsBlocked;
+
+  Future<void> playBackgroundVideo(String asset) async {
+    try {
+      if (videoPlayerControllerNotifier.value?.dataSource ==
+          'assets/videos/$asset') {
+        return;
+      }
+
+      if (videoPlayerControllerNotifier.value != null) {
+        await stopBackgroundVideo();
+      }
+
+      final controller = VideoPlayerController.asset('assets/videos/$asset');
+      await controller.initialize();
+      await controller.setLooping(true);
+      await controller.setVolume(0.0);
+
+      // Await play() to catch Autoplay errors (NotAllowedError)
+      await controller.play();
+
+      videoPlayerControllerNotifier.value = controller;
+    } catch (e) {
+      print('⚠️ Video player error (harmless on web if autoplay blocked): $e');
+      // Ensure we don't leave a broken controller
+      if (videoPlayerControllerNotifier.value != null) {
+        videoPlayerControllerNotifier.value = null;
+      }
+    }
+  }
+
+  Future<void> stopBackgroundVideo() async {
+    try {
+      if (videoPlayerControllerNotifier.value != null) {
+        final controller = videoPlayerControllerNotifier.value!;
+        await controller.pause();
+        await controller.dispose();
+        videoPlayerControllerNotifier.value = null;
+      }
+    } catch (e) {
+      print('⚠️ Error stopping video: $e');
+    }
+  }
+
+  Future<void> playMenuMusic() async {
+    try {
+      FlameAudio.bgm.stop();
+      await FlameAudio.bgm.play('menu_music.ogg');
+    } catch (e) {
+      print(
+          '⚠️ Error playing menu music (harmless on web if autoplay blocked): $e');
+    }
   }
 }

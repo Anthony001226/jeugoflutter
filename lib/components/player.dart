@@ -67,7 +67,7 @@ class Player extends SpriteComponent
     priority = 10; // ← Render encima de map layers
 
     // DEBUG: Show collision hitbox
-    debugMode = true;
+    //debugMode = true;
 
     final hitboxSize = Vector2(10, 10); // Scaled proportionally
     add(RectangleHitbox(

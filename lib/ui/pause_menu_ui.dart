@@ -91,9 +91,10 @@ class PauseMenuUI extends StatelessWidget {
                             ElevatedButton(
                               onPressed: () async {
                                 Navigator.of(context).pop();
+                                // Save game before exiting
+                                await game.saveGame();
                                 game.state = GameState.inMenu;
-                                await Future.delayed(
-                                    const Duration(milliseconds: 100));
+                                // Removed delay to preserve user interaction token for Web Autoplay
                                 game.router.pushReplacementNamed('main-menu');
                               },
                               style: ElevatedButton.styleFrom(

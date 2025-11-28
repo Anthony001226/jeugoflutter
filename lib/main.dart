@@ -20,6 +20,7 @@ import 'package:renegade_dungeon/ui/revive_dialog.dart';
 import 'package:renegade_dungeon/ui/full_map_overlay.dart';
 import 'package:renegade_dungeon/ui/mobile_controls_overlay.dart';
 import 'package:renegade_dungeon/ui/gem_shop_screen.dart';
+import 'package:renegade_dungeon/ui/intro_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 
@@ -103,6 +104,7 @@ class _MyAppState extends State<MyApp> {
             if (isMobile)
               'MobileControls': (context, game) =>
                   MobileControlsOverlay(game: game),
+            'IntroScreen': (context, game) => IntroScreen(game: game),
           },
         ),
       ],

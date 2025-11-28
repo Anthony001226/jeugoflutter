@@ -85,6 +85,7 @@ class FullMapOverlay extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildLegendItem(Colors.greenAccent, 'Player'),
+                  _buildLegendItem(Colors.purpleAccent, 'Portal'),
                   _buildLegendItem(Colors.grey, 'Explored'),
                   _buildLegendItem(Colors.black, 'Unknown', isBorder: true),
                 ],
@@ -171,6 +172,35 @@ class FullMapPainter extends CustomPainter {
     final Paint playerPaint = Paint()..color = Colors.greenAccent;
     // Draw player slightly larger than a tile for visibility
     canvas.drawCircle(Offset(playerPos.x, playerPos.y), 1.5, playerPaint);
+
+    // Draw Portals
+    final Paint portalPaint = Paint()..color = Colors.purpleAccent;
+    for (final portal in game.portals.values) {
+      // Check if portal is in an explored area
+      final portalPoint = math.Point(
+        portal.gridPosition.x.floor(),
+        portal.gridPosition.y.floor(),
+      );
+
+      // Check if the portal's location or any adjacent tile is explored
+      bool isExplored = false;
+      for (int dx = -1; dx <= 1; dx++) {
+        for (int dy = -1; dy <= 1; dy++) {
+          if (game.exploredTiles
+              .contains(math.Point(portalPoint.x + dx, portalPoint.y + dy))) {
+            isExplored = true;
+            break;
+          }
+        }
+        if (isExplored) break;
+      }
+
+      if (isExplored) {
+        // Draw portal center
+        final center = portal.gridPosition + (portal.size / 2);
+        canvas.drawCircle(Offset(center.x, center.y), 1.2, portalPaint);
+      }
+    }
   }
 
   @override

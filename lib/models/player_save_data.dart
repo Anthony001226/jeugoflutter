@@ -32,6 +32,7 @@ class PlayerSaveData {
   // Timestamps
   final DateTime lastSaved;
   final DateTime createdAt;
+  final int playtimeSeconds; // NEW: Track total playtime
 
   PlayerSaveData({
     required this.level,
@@ -56,6 +57,7 @@ class PlayerSaveData {
     required this.completedQuests,
     required this.lastSaved,
     required this.createdAt,
+    this.playtimeSeconds = 0,
   });
 
   // Convert to JSON for Firestore
@@ -83,6 +85,7 @@ class PlayerSaveData {
       'completedQuests': completedQuests,
       'lastSaved': lastSaved.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
+      'playtimeSeconds': playtimeSeconds,
     };
   }
 
@@ -98,7 +101,8 @@ class PlayerSaveData {
       attack: json['attack'] ?? 12,
       defense: json['defense'] ?? 5,
       inventory: (json['inventory'] as List?)
-              ?.map((e) => InventorySlotData.fromJson(e))
+              ?.map((e) =>
+                  InventorySlotData.fromJson(Map<String, dynamic>.from(e)))
               .toList() ??
           [],
       equipment: Map<String, String?>.from(json['equipment'] ?? {}),
@@ -116,6 +120,7 @@ class PlayerSaveData {
           DateTime.parse(json['lastSaved'] ?? DateTime.now().toIso8601String()),
       createdAt:
           DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
+      playtimeSeconds: json['playtimeSeconds'] ?? 0,
     );
   }
 }

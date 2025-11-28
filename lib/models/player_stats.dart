@@ -184,6 +184,12 @@ class PlayerStats {
         'Equipado: ${newItem.name}. Nuevo Ataque: ${attack.value}, Nueva Defensa: ${defense.value}, Nueva Velocidad: ${speed.value}');
   }
 
+  // Load equipment from save without side effects
+  void loadEquipment(Map<EquipmentSlot, EquipmentItem> equipment) {
+    equippedItems.value = Map.from(equipment);
+    _syncCombatStats();
+  }
+
   void unequipItem(EquipmentSlot slot) {
     // 1. Verificamos si realmente hay algo en esa ranura.
     if (!equippedItems.value.containsKey(slot)) {

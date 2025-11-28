@@ -33,11 +33,11 @@ class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
     await game.world.add(game.player);
 
     // --- FASE 3: RESETEAR EL ESTADO DEL JUGADOR ---
-    // AHORA que el jugador está en el mundo y sus 'stats' existen, es seguro resetearlo.
-    game.player.stats.currentHp.value = game.player.stats.maxHp.value;
-    game.player.stats.currentMp.value = game.player.stats.maxMp.value;
-    game.player.gridPosition = Vector2(20.0, 20.0);
-    game.player.position = game.gridToScreenPosition(game.player.gridPosition);
+    // REMOVED: Player state is already set by loadGameData()
+    // game.player.stats.currentHp.value = game.player.stats.maxHp.value;
+    // game.player.stats.currentMp.value = game.player.stats.maxMp.value;
+    // game.player.gridPosition = Vector2(20.0, 20.0);
+    // game.player.position = game.gridToScreenPosition(game.player.gridPosition);
 
     // --- FASE 4: AÑADIR OBJETOS DINÁMICOS ---
     // La carga de cofres ahora se maneja en RenegadeDungeonGame._loadChests()

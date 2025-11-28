@@ -440,6 +440,8 @@ class ItemDatabase {
 
   // ==================== LEGENDARY ARMOR ====================
 
+  // ==================== LEGENDARY ARMOR ====================
+
   static final EquipmentItem armorOfTheAncients = const EquipmentItem(
     id: 'armor_ancient',
     name: 'Armadura de los Ancestros',
@@ -457,4 +459,42 @@ class ItemDatabase {
       UniquePassive.mpRegen5,
     ],
   );
+
+  // --- REGISTRY FOR LOOKUP ---
+  static final List<InventoryItem> allItems = [
+    potion,
+    potionMedium,
+    potionLarge,
+    slimeResidue,
+    rustySword,
+    woodenClub,
+    huntingBow,
+    goblinScimitar,
+    steelSword,
+    battleAxe,
+    vampiricBlade,
+    flameTongue,
+    shadowDagger,
+    reapersScythe,
+    bladeOfEternity,
+    leatherTunic,
+    clothRobe,
+    chainmail,
+    studledLeather,
+    thornmail,
+    dragonscale,
+    monkRobes,
+    archmageVestments,
+    etherealPlate,
+    armorOfTheAncients,
+  ];
+
+  static InventoryItem? getItemById(String id) {
+    try {
+      return allItems.firstWhere((item) => item.id == id);
+    } catch (e) {
+      print('⚠️ Item ID not found: $id');
+      return null;
+    }
+  }
 }
