@@ -97,6 +97,15 @@ class _MobileControlsOverlayState extends State<MobileControlsOverlay> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ActionButton(
+                    icon: Icons.map,
+                    color: Colors.green,
+                    onPressed: () {
+                      widget.game.overlays.add('FullMap');
+                    },
+                    size: 60,
+                  ),
+                  const SizedBox(width: 12),
+                  ActionButton(
                     icon: Icons.chat_bubble_outline,
                     color: Colors.blue,
                     onPressed: _handleInteract,

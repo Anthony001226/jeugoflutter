@@ -11,6 +11,7 @@ import 'package:flutter/widgets.dart' hide Route;
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'dart:math';
+import 'dart:math' as math;
 
 import '../components/battle_scene.dart';
 import '../components/player.dart';
@@ -21,7 +22,7 @@ import 'package:renegade_dungeon/models/inventory_item.dart';
 import '../models/enemy_stats.dart';
 import '../models/combat_ability.dart';
 import '../models/turn_entity.dart';
-import '../models/combat_stats.dart';
+
 import '../models/combat_stats_holder.dart';
 import '../utils/damage_calculator.dart';
 import '../game/enemy_ai.dart';
@@ -41,6 +42,7 @@ import '../effects/screen_fade.dart';
 import 'package:flame_audio/flame_audio.dart';
 import '../models/npc.dart';
 import '../components/npc_component.dart';
+import '../services/iap_service.dart';
 
 // Â¡YA NO NECESITAMOS TANTAS IMPORTACIONES DE COMPONENTES AQUÃ!
 // PORQUE AHORA VIVEN EN GameScreen
@@ -797,6 +799,12 @@ class RenegadeDungeonGame extends FlameGame
   List<NPCComponent> npcComponents = [];
   String? activeDialogueNPC;
 
+  late final IAPService iapService;
+
+  // Fog of War System
+  final Set<math.Point<int>> exploredTiles = {};
+  static const int explorationRadius = 5;
+
   final videoPlayerControllerNotifier =
       ValueNotifier<VideoPlayerController?>(null);
 
@@ -814,6 +822,14 @@ class RenegadeDungeonGame extends FlameGame
     ]);
     //playMenuMusic();
     // 1. Inicializa sistemas globales.
+    iapService = IAPService(onGemsPurchased: (amount) {
+      player.stats.gems.value += amount;
+      print('💎 Added $amount gems. Total: ${player.stats.gems.value}');
+      // Save game after purchase
+      // saveGame(); // Implement if save system is ready
+    });
+    await iapService.initialize();
+
     combatManager = CombatManager(this);
 
     // 2. Carga el router. Su Ãºnica tarea es decidir quÃ© pantalla mostrar.
@@ -1813,6 +1829,31 @@ class RenegadeDungeonGame extends FlameGame
     overlays.remove('DialogueUI');
   }
 
+  void updateExploration(Vector2 playerPos) {
+    final centerX = playerPos.x.round();
+    final centerY = playerPos.y.round();
+
+    for (int x = centerX - explorationRadius;
+        x <= centerX + explorationRadius;
+        x++) {
+      for (int y = centerY - explorationRadius;
+          y <= centerY + explorationRadius;
+          y++) {
+        // Check distance to create circular reveal
+        if (pow(x - centerX, 2) + pow(y - centerY, 2) <=
+            pow(explorationRadius, 2)) {
+          exploredTiles.add(math.Point(x, y));
+        }
+      }
+    }
+  }
+
+  void openGemShop() {
+    if (state == GameState.inMenu) return;
+    state = GameState.inMenu;
+    overlays.add('GemShop');
+  }
+
   // ===== MOBILE CONTROLS =====
 
   void handleMobileInput(int gridX, int gridY) {
@@ -1821,6 +1862,11 @@ class RenegadeDungeonGame extends FlameGame
     if (player.isMoving) return;
 
     final direction = Vector2(gridX.toDouble(), gridY.toDouble());
+
+    // Update Fog of War
+    if (player.isMounted) {
+      updateExploration(player.gridPosition);
+    }
     player.move(direction);
   }
 }

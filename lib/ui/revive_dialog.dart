@@ -53,23 +53,50 @@ class ReviveDialog extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Revive Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  game.handleRevive();
-                },
-                icon: const Icon(Icons.auto_fix_high, size: 20),
-                label: const Text(
-                  'Revivir (5 💎)',
-                  style: TextStyle(fontSize: 18),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple.shade700,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
+            ValueListenableBuilder<int>(
+              valueListenable: game.player.stats.gems,
+              builder: (context, gems, _) {
+                final canAfford = gems >= 5;
+                if (canAfford) {
+                  return SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        game.handleRevive();
+                      },
+                      icon: const Icon(Icons.auto_fix_high, size: 20),
+                      label: const Text(
+                        'Revivir (5 💎)',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.purple.shade700,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
+                  );
+                } else {
+                  return SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        game.openGemShop();
+                      },
+                      icon: const Icon(Icons.shopping_cart, size: 20),
+                      label: Text(
+                        'Comprar Gemas ($gems/5)',
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber.shade800,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
+                  );
+                }
+              },
             ),
 
             const SizedBox(height: 8),

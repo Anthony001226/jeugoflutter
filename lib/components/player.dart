@@ -20,6 +20,7 @@ class Player extends SpriteComponent
   Vector2 gridPosition;
   late final PlayerStats stats;
   final inventory = ValueNotifier<List<InventorySlot>>([]);
+  final positionNotifier = ValueNotifier<Vector2>(Vector2.zero());
 
   // NEW: Movement system
   double _moveCooldown = 0.0;
@@ -62,6 +63,7 @@ class Player extends SpriteComponent
     sprite = spriteDown;
 
     position = game.gridToScreenPosition(gridPosition);
+    positionNotifier.value = gridPosition;
     priority = 10; // ← Render encima de map layers
 
     // DEBUG: Show collision hitbox

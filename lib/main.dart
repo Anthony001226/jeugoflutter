@@ -17,7 +17,9 @@ import 'package:renegade_dungeon/ui/map_transition_overlay.dart';
 import 'package:renegade_dungeon/ui/barrier_dialog_ui.dart';
 import 'package:renegade_dungeon/ui/dialogue_ui.dart';
 import 'package:renegade_dungeon/ui/revive_dialog.dart';
+import 'package:renegade_dungeon/ui/full_map_overlay.dart';
 import 'package:renegade_dungeon/ui/mobile_controls_overlay.dart';
+import 'package:renegade_dungeon/ui/gem_shop_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 
@@ -95,6 +97,10 @@ class _MyAppState extends State<MyApp> {
                 ),
             'DialogueUI': (context, game) => DialogueUI(game: game),
             'ReviveDialog': (context, game) => ReviveDialog(game: game),
+            'GemShop': (context, game) => GemShopScreen(
+                game: game, onClose: () => game.overlays.remove('GemShop')),
+            'FullMap': (context, game) => FullMapOverlay(
+                game: game, onClose: () => game.overlays.remove('FullMap')),
             if (isMobile)
               'MobileControls': (context, game) =>
                   MobileControlsOverlay(game: game),
