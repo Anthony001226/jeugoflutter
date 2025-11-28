@@ -1,4 +1,4 @@
-// lib/game/renegade_dungeon_game.dart
+﻿// lib/game/renegade_dungeon_game.dart
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -42,7 +42,7 @@ import 'package:flame_audio/flame_audio.dart';
 import '../models/npc.dart';
 import '../components/npc_component.dart';
 
-// ¡YA NO NECESITAMOS TANTAS IMPORTACIONES DE COMPONENTES AQUÍ!
+// Â¡YA NO NECESITAMOS TANTAS IMPORTACIONES DE COMPONENTES AQUÃ!
 // PORQUE AHORA VIVEN EN GameScreen
 
 enum GameState {
@@ -100,7 +100,8 @@ class CombatManager {
 
   /// Start combat against multiple enemies with Individual Initiative
   void startNewCombatMulti(List<String> enemyTypes) {
-    print('⚔️ Iniciando combate multi-enemigo: ${enemyTypes.length} enemigos');
+    print(
+        'âš”ï¸ Iniciando combate multi-enemigo: ${enemyTypes.length} enemigos');
 
     // 1. Clear previous state
     currentEnemies.clear();
@@ -166,7 +167,7 @@ class CombatManager {
     // 6. Sort Queue (Higher initiative first)
     turnQueue.sort((a, b) => b.initiative.compareTo(a.initiative));
 
-    print('📜 Orden de Turnos: $turnQueue');
+    print('ðŸ“œ Orden de Turnos: $turnQueue');
 
     // 7. Start First Turn
     nextTurn();
@@ -180,7 +181,7 @@ class CombatManager {
     currentTurnIndex = (currentTurnIndex + 1) % turnQueue.length;
     final currentEntity = turnQueue[currentTurnIndex];
 
-    print('👉 Turno de: $currentEntity');
+    print('ðŸ‘‰ Turno de: $currentEntity');
 
     // NEW: Process status effects at the start of this entity's turn
     if (currentEntity.isPlayer) {
@@ -196,7 +197,7 @@ class CombatManager {
       // Player's Turn
       currentTurn.value = CombatTurn.playerTurn;
       isProcessingAbility = false;
-      print('🎮 Tu turno!');
+      print('ðŸŽ® Tu turno!');
     } else {
       // Enemy's Turn
       currentTurn.value = CombatTurn.enemyTurn;
@@ -232,16 +233,16 @@ class CombatManager {
       // El enemigo ha sido derrotado.
       game.player.stats.gainXp(enemyStats.xpValue);
 
-      // --- ¡LÓGICA DEL DROP DE BOTÍN! ---
+      // --- Â¡LÃ“GICA DEL DROP DE BOTÃN! ---
       // Limpiamos la lista de drops anteriores.
       lastDroppedItems.clear();
       final random = Random();
 
-      // Recorremos la tabla de botín del enemigo.
+      // Recorremos la tabla de botÃ­n del enemigo.
       enemyStats.lootTable.forEach((item, chance) {
         // Lanzamos un "dado" de 0.0 a 1.0.
         if (random.nextDouble() < chance) {
-          // ¡Éxito! Añadimos el objeto al jugador y a nuestra lista de drops.
+          // Â¡Ã‰xito! AÃ±adimos el objeto al jugador y a nuestra lista de drops.
           game.player.addItem(item);
           lastDroppedItems.add(item);
         }
@@ -274,10 +275,10 @@ class CombatManager {
     }
 
     // 2. Le decimos al jugador que use el objeto.
-    // Esto aplicará el efecto y consumirá una unidad del inventario.
+    // Esto aplicarÃ¡ el efecto y consumirÃ¡ una unidad del inventario.
     game.player.useItem(slot);
 
-    // 3. ¡MUY IMPORTANTE! El turno del jugador ha terminado.
+    // 3. Â¡MUY IMPORTANTE! El turno del jugador ha terminado.
     // Le pasamos el control al siguiente turno.
     // currentTurn.value = CombatTurn.enemyTurn; // REMOVED: Managed by nextTurn
 
@@ -301,12 +302,12 @@ class CombatManager {
   void usePlayerAbility(CombatAbility ability) {
     // Prevent double execution
     if (isProcessingAbility) {
-      print('⚠️ Ya procesando habilidad, ignorando clic...');
+      print('âš ï¸ Ya procesando habilidad, ignorando clic...');
       return;
     }
 
     if (currentTurn.value != CombatTurn.playerTurn) {
-      print('⚠️ No es tu turno!');
+      print('âš ï¸ No es tu turno!');
       return;
     }
 
@@ -318,7 +319,7 @@ class CombatManager {
         isMultiEnemy ? currentEnemies[selectedTargetIndex] : currentEnemy;
 
     if (currentTurn.value != CombatTurn.playerTurn || targetEnemy == null) {
-      print('❌ No es turno del jugador o no hay enemigo');
+      print('âŒ No es turno del jugador o no hay enemigo');
       return;
     }
 
@@ -327,15 +328,15 @@ class CombatManager {
     // Verificar si puede usar la habilidad
     if (!ability.canUse(
         playerStats.currentMp.value, playerStats.ultMeter.value)) {
-      print('❌ No se puede usar ${ability.name}: recursos insuficientes');
+      print('âŒ No se puede usar ${ability.name}: recursos insuficientes');
       return;
     }
 
     if (isMultiEnemy) {
       final enemyName = getEnemyName(targetEnemy);
-      print('⚔️ Jugador usa: ${ability.name} contra $enemyName');
+      print('âš”ï¸ Jugador usa: ${ability.name} contra $enemyName');
     } else {
-      print('⚔️ Jugador usa: ${ability.name}');
+      print('âš”ï¸ Jugador usa: ${ability.name}');
     }
 
     // Consumir recursos
@@ -345,17 +346,17 @@ class CombatManager {
       playerStats.spendMp(ability.mpCost);
     }
 
-    // Calcular y aplicar daño
+    // Calcular y aplicar daÃ±o
     final enemyStats = (targetEnemy as dynamic).stats as EnemyStats;
 
-    // NOTA: Pasamos 0 como defensa aquí para obtener el daño BRUTO.
-    // La defensa se restará dentro de takeDamage().
+    // NOTA: Pasamos 0 como defensa aquÃ­ para obtener el daÃ±o BRUTO.
+    // La defensa se restarÃ¡ dentro de takeDamage().
     // Use effectiveAttack to include buffs
     final grossDamage = DamageCalculator.calculateDamage(
       ability: ability,
       attackerAtk:
           playerStats.effectiveAttack, // Changed to use effective stats
-      defenderDef: 0, // 0 aquí porque takeDamage restará la defensa
+      defenderDef: 0, // 0 aquÃ­ porque takeDamage restarÃ¡ la defensa
       critChance: playerStats.critChance.value,
     );
 
@@ -364,19 +365,20 @@ class CombatManager {
 
     enemyStats.takeDamage(grossDamage);
     print(
-        '💥 ${ability.name} hizo $estimatedNetDamage de daño! (Bruto: $grossDamage - Def: $enemyDef)');
-    print('🔍 DEBUG: Enemy HP after damage: ${enemyStats.currentHp.value}');
+        'ðŸ’¥ ${ability.name} hizo $estimatedNetDamage de daÃ±o! (Bruto: $grossDamage - Def: $enemyDef)');
+    print('ðŸ” DEBUG: Enemy HP after damage: ${enemyStats.currentHp.value}');
 
     // Ganar carga de Ultimate
     playerStats.gainUltCharge(ability.effect.ultGain);
 
-    // Verificar si el enemigo murió
+    // Verificar si el enemigo muriÃ³
     if (enemyStats.currentHp.value <= 0) {
-      print('💀 ¡Enemigo derrotado! (HP <= 0 detected)');
+      print('ðŸ’€ Â¡Enemigo derrotado! (HP <= 0 detected)');
 
       // NEW: Accumulate XP instead of giving immediately
       totalXpEarned += enemyStats.xpValue;
-      print('📊 XP acumulado: +${enemyStats.xpValue} (Total: $totalXpEarned)');
+      print(
+          'ðŸ“Š XP acumulado: +${enemyStats.xpValue} (Total: $totalXpEarned)');
 
       // Loot drop - ACCUMULATE items (don't clear the list)
       final random = Random();
@@ -391,10 +393,10 @@ class CombatManager {
       if (isMultiEnemy) {
         // Check if this is the LAST enemy
         if (currentEnemies.length == 1) {
-          print('🎉 ¡Último enemigo derrotado!');
+          print('ðŸŽ‰ Â¡Ãšltimo enemigo derrotado!');
           // NEW: Award all XP at END of battle
           game.player.stats.gainXp(totalXpEarned);
-          print('⭐ XP TOTAL GANADO: $totalXpEarned');
+          print('â­ XP TOTAL GANADO: $totalXpEarned');
           // DO NOT REMOVE. Let UI show victory screen based on HP <= 0.
           // Also ensure we don't call nextTurn().
           return;
@@ -404,15 +406,15 @@ class CombatManager {
 
         // Check if all enemies defeated (Should be covered by above check, but safety first)
         if (currentEnemies.isEmpty) {
-          print('🎉 ¡Todos los enemigos derrotados!');
+          print('ðŸŽ‰ Â¡Todos los enemigos derrotados!');
           // NEW: Award all XP (safety check)
           game.player.stats.gainXp(totalXpEarned);
-          print('⭐ XP TOTAL GANADO: $totalXpEarned');
+          print('â­ XP TOTAL GANADO: $totalXpEarned');
           return; // Combat ends - all enemies dead
         }
 
         // More enemies remain, continue to next turn in queue
-        print('⏳ Enemigo derrotado. Siguiente turno...');
+        print('â³ Enemigo derrotado. Siguiente turno...');
         Future.delayed(const Duration(seconds: 1), () {
           nextTurn();
         });
@@ -422,7 +424,7 @@ class CombatManager {
       // Single enemy mode - end combat
       // NEW: Award XP for single enemy too
       game.player.stats.gainXp(totalXpEarned);
-      print('⭐ XP TOTAL GANADO: $totalXpEarned');
+      print('â­ XP TOTAL GANADO: $totalXpEarned');
       return;
     }
 
@@ -430,7 +432,7 @@ class CombatManager {
       isProcessingAbility = false; // Unlock after brief delay
     });
 
-    print('⏳ Fin del turno del jugador. Siguiente turno...');
+    print('â³ Fin del turno del jugador. Siguiente turno...');
     // End player turn, proceed to next in queue
     Future.delayed(const Duration(seconds: 1), () {
       if (isMultiEnemy) {
@@ -453,7 +455,7 @@ class CombatManager {
 
     // Check if enemy is already dead
     if (enemyStats.currentHp.value <= 0) {
-      print('💀 ¡Enemigo derrotado! (Cancelando turno enemigo)');
+      print('ðŸ’€ Â¡Enemigo derrotado! (Cancelando turno enemigo)');
       return;
     }
 
@@ -464,7 +466,7 @@ class CombatManager {
 
     // Si el enemigo no tiene CombatStats, usar ataque simple
     if (enemyCombatStats == null) {
-      print('🤖 Enemigo usa ataque simple (sin CombatStats)');
+      print('ðŸ¤– Enemigo usa ataque simple (sin CombatStats)');
       game.player.stats.takeDamage(enemyStats.attack);
       if (game.player.stats.currentHp.value == 0) return;
       currentTurn.value = CombatTurn.playerTurn;
@@ -476,7 +478,7 @@ class CombatManager {
     final abilities = AbilityDatabase.getEnemyAbilities(enemyType);
 
     if (abilities.isEmpty) {
-      print('🤖 Enemigo usa ataque simple (sin habilidades)');
+      print('ðŸ¤– Enemigo usa ataque simple (sin habilidades)');
       game.player.stats.takeDamage(enemyStats.attack);
       if (game.player.stats.currentHp.value == 0) return;
       currentTurn.value = CombatTurn.playerTurn;
@@ -489,7 +491,7 @@ class CombatManager {
       stats: enemyCombatStats,
     );
 
-    print('🤖 Enemigo usa: ${chosenAbility.name}');
+    print('ðŸ¤– Enemigo usa: ${chosenAbility.name}');
 
     // Consumir recursos del enemigo
     if (chosenAbility.type == AbilityType.ultimate) {
@@ -498,29 +500,29 @@ class CombatManager {
       enemyCombatStats.spendMp(chosenAbility.mpCost);
     }
 
-    // Calcular daño
-    // NOTA: Pasamos 0 como defensa aquí para obtener el daño BRUTO (Gross Damage).
-    // La defensa se restará dentro de takeDamage().
+    // Calcular daÃ±o
+    // NOTA: Pasamos 0 como defensa aquÃ­ para obtener el daÃ±o BRUTO (Gross Damage).
+    // La defensa se restarÃ¡ dentro de takeDamage().
     // Use effectiveAttack to include enemy buffs
     final grossDamage = DamageCalculator.calculateDamage(
       ability: chosenAbility,
       attackerAtk: enemyCombatStats.effectiveAttack, // Uses buffed attack
-      defenderDef: 0, // 0 aquí porque takeDamage restará la defensa
+      defenderDef: 0, // 0 aquÃ­ porque takeDamage restarÃ¡ la defensa
       critChance: enemyCombatStats.critChance.value,
     );
 
-    // Para el log, calculamos cuánto será el daño NETO aproximado
+    // Para el log, calculamos cuÃ¡nto serÃ¡ el daÃ±o NETO aproximado
     final playerDef = game.player.stats.combatStats.effectiveDefense;
     final estimatedNetDamage = (grossDamage - playerDef).clamp(1, 999);
 
     game.player.stats.takeDamage(grossDamage);
     print(
-        '💥 El enemigo hizo $estimatedNetDamage de daño! (Bruto: $grossDamage - Def: $playerDef)');
+        'ðŸ’¥ El enemigo hizo $estimatedNetDamage de daÃ±o! (Bruto: $grossDamage - Def: $playerDef)');
 
-    // Ganar ULT al recibir daño (ya está en PlayerStats.takeDamage)
+    // Ganar ULT al recibir daÃ±o (ya estÃ¡ en PlayerStats.takeDamage)
 
     if (game.player.stats.currentHp.value == 0) {
-      print('💀 ¡Jugador derrotado!');
+      print('ðŸ’€ Â¡Jugador derrotado!');
       // game.endCombat(); // REMOVED: Let UI handle defeat screen
       return;
     }
@@ -557,7 +559,7 @@ class CombatManager {
 
     final scaleFactor = currentEnemies.length == 2 ? 0.7 : 0.6;
     print(
-        '⚖️ Aplicando balance de grupo (${currentEnemies.length} enemigos): ${(scaleFactor * 100).toInt()}% stats');
+        'âš–ï¸ Aplicando balance de grupo (${currentEnemies.length} enemigos): ${(scaleFactor * 100).toInt()}% stats');
 
     for (final enemy in currentEnemies) {
       final stats = (enemy as dynamic).stats;
@@ -586,7 +588,7 @@ class CombatManager {
     if (index >= 0 && index < currentEnemies.length) {
       final enemyToRemove = currentEnemies[index];
       final enemyName = getEnemyName(enemyToRemove);
-      print('🗑️ Removiendo $enemyName derrotado');
+      print('ðŸ—‘ï¸ Removiendo $enemyName derrotado');
 
       // Remove visual component first
       game._battleScene?.removeEnemy(index);
@@ -630,7 +632,7 @@ class CombatManager {
 
     selectedTargetIndex = (selectedTargetIndex + 1) % currentEnemies.length;
     final targetName = getEnemyName(currentEnemies[selectedTargetIndex]);
-    print('🎯 Target switched to $targetName');
+    print('ðŸŽ¯ Target switched to $targetName');
 
     final temp = currentTurn.value;
     currentTurn.value = temp;
@@ -643,7 +645,7 @@ class CombatManager {
     selectedTargetIndex = (selectedTargetIndex - 1 + currentEnemies.length) %
         currentEnemies.length;
     final targetName = getEnemyName(currentEnemies[selectedTargetIndex]);
-    print('🎯 Target switched to $targetName');
+    print('ðŸŽ¯ Target switched to $targetName');
 
     final temp = currentTurn.value;
     currentTurn.value = temp;
@@ -660,14 +662,14 @@ class CombatManager {
 
     if (!hasCombatStats) {
       // Simple attack for enemies without CombatStats
-      print('🤖 $enemyName usa ataque simple');
+      print('ðŸ¤– $enemyName usa ataque simple');
       final rawDamage = stats.attack;
       final playerDef = game.player.stats.defense.value;
       final estimatedNet = (rawDamage - playerDef).clamp(1, 999);
 
       game.player.stats.takeDamage(rawDamage);
       print(
-          '💥 $enemyName hizo $estimatedNet de daño! (Bruto: $rawDamage - Def: $playerDef)');
+          'ðŸ’¥ $enemyName hizo $estimatedNet de daÃ±o! (Bruto: $rawDamage - Def: $playerDef)');
 
       // Proceed to next turn
       Future.delayed(const Duration(seconds: 1), () {
@@ -682,7 +684,7 @@ class CombatManager {
 
     if (abilities.isEmpty) {
       // Fallback to simple attack
-      print('🤖 $enemyName usa ataque simple (sin habilidades)');
+      print('ðŸ¤– $enemyName usa ataque simple (sin habilidades)');
       game.player.stats.takeDamage(combatStats.attack.value);
       return;
     }
@@ -693,7 +695,7 @@ class CombatManager {
       stats: combatStats,
     );
 
-    print('🤖 $enemyName usa: ${chosenAbility.name}');
+    print('ðŸ¤– $enemyName usa: ${chosenAbility.name}');
 
     // Consume resources
     if (chosenAbility.type == AbilityType.ultimate) {
@@ -706,17 +708,17 @@ class CombatManager {
     // Special handling for Guard ability (const limitations workaround)
     if (chosenAbility.name == 'Guardia') {
       combatStats.applyEffect(StatusEffect.defenseBuffStrong());
-      print('🛡️ $enemyName aplicó Guardia (+50% DEF por 3 turnos)');
+      print('ðŸ›¡ï¸ $enemyName aplicÃ³ Guardia (+50% DEF por 3 turnos)');
     } else if (chosenAbility.effect.statusEffects.isNotEmpty) {
       for (final effect in chosenAbility.effect.statusEffects) {
         if (chosenAbility.effect.targetType == TargetType.self) {
           // Apply to self
           combatStats.applyEffect(effect);
-          print('✨ $enemyName aplicó ${effect.name} a sí mismo');
+          print('âœ¨ $enemyName aplicÃ³ ${effect.name} a sÃ­ mismo');
         } else {
           // Apply to player (debuffs)
           game.player.stats.combatStats.applyEffect(effect);
-          print('⚠️ $enemyName aplicó ${effect.name} al jugador');
+          print('âš ï¸ $enemyName aplicÃ³ ${effect.name} al jugador');
         }
       }
     }
@@ -727,13 +729,13 @@ class CombatManager {
 
     if (isOffensive) {
       // Calculate and apply damage
-      // NOTA: Pasamos 0 como defensa aquí para obtener el daño BRUTO.
-      // La defensa se restará dentro de takeDamage().
+      // NOTA: Pasamos 0 como defensa aquÃ­ para obtener el daÃ±o BRUTO.
+      // La defensa se restarÃ¡ dentro de takeDamage().
       // Use effectiveAttack to include enemy buffs
       final grossDamage = DamageCalculator.calculateDamage(
         ability: chosenAbility,
         attackerAtk: combatStats.effectiveAttack, // Uses buffed attack
-        defenderDef: 0, // 0 aquí porque takeDamage restará la defensa
+        defenderDef: 0, // 0 aquÃ­ porque takeDamage restarÃ¡ la defensa
         critChance: combatStats.critChance.value,
       );
 
@@ -742,10 +744,10 @@ class CombatManager {
 
       game.player.stats.takeDamage(grossDamage);
       print(
-          '💥 $enemyName hizo $estimatedNetDamage de daño! (Bruto: $grossDamage - Def: $playerDef)');
+          'ðŸ’¥ $enemyName hizo $estimatedNetDamage de daÃ±o! (Bruto: $grossDamage - Def: $playerDef)');
     } else {
       // Defensive/buff ability
-      print('🛡️ $enemyName usa una habilidad defensiva (sin daño)');
+      print('ðŸ›¡ï¸ $enemyName usa una habilidad defensiva (sin daÃ±o)');
       // TODO: Apply defense buff when status effect system is implemented
     }
 
@@ -761,7 +763,7 @@ class RenegadeDungeonGame extends FlameGame
   late final RouterComponent router;
   VideoPlayerController? videoPlayerController;
   GameState state = GameState.exploring;
-  // Propiedades globales que GameScreen necesitará
+  // Propiedades globales que GameScreen necesitarÃ¡
   late final CombatManager combatManager;
   late TiledComponent mapComponent;
   late Player player;
@@ -800,7 +802,7 @@ class RenegadeDungeonGame extends FlameGame
 
   @override
   Color backgroundColor() => Colors.transparent;
-  // --- ¡MÉTODO onLoad CORREGIDO Y LIMPIO! ---
+  // --- Â¡MÃ‰TODO onLoad CORREGIDO Y LIMPIO! ---
   @override
   Future<void> onLoad() async {
     camera.viewfinder.zoom = cameraZoom;
@@ -814,28 +816,28 @@ class RenegadeDungeonGame extends FlameGame
     // 1. Inicializa sistemas globales.
     combatManager = CombatManager(this);
 
-    // 2. Carga el router. Su única tarea es decidir qué pantalla mostrar.
+    // 2. Carga el router. Su Ãºnica tarea es decidir quÃ© pantalla mostrar.
     add(
       router = RouterComponent(
         initialRoute: 'splash-screen',
         routes: {
           'splash-screen': Route(SplashScreen.new),
 
-          // --- ¡LÓGICA CORREGIDA AQUÍ! ---
+          // --- Â¡LÃ“GICA CORREGIDA AQUÃ! ---
           'main-menu': Route(() {
             // 1. Inicia el video de fondo.
             playBackgroundVideo('menu_background.mp4');
 
             // 2. Crea un componente que contiene el temporizador.
-            //    Al devolver un Component aquí, reemplazamos el SplashScreen anterior,
+            //    Al devolver un Component aquÃ­, reemplazamos el SplashScreen anterior,
             //    limpiando el escenario y dejando ver el video.
             return Component(children: [
               TimerComponent(
                 period:
-                    0.001, // Un retraso mínimo para asegurar que todo esté listo
+                    0.001, // Un retraso mÃ­nimo para asegurar que todo estÃ© listo
                 repeat: false,
                 onTick: () {
-                  // 3. Limpia cualquier overlay viejo y añade el del menú principal.
+                  // 3. Limpia cualquier overlay viejo y aÃ±ade el del menÃº principal.
                   overlays.clear();
                   overlays.add('MainMenu');
                 },
@@ -843,9 +845,9 @@ class RenegadeDungeonGame extends FlameGame
             ]);
           }),
 
-          // El menú de slots ahora es más simple, no maneja el video.
+          // El menÃº de slots ahora es mÃ¡s simple, no maneja el video.
           'slot-selection-menu': Route(() {
-            // ¡CAMBIO! Llamamos al método general con el video de los slots.
+            // Â¡CAMBIO! Llamamos al mÃ©todo general con el video de los slots.
             playBackgroundVideo('slot_background.mp4');
             return Component(children: [
               TimerComponent(
@@ -858,9 +860,9 @@ class RenegadeDungeonGame extends FlameGame
             ]);
           }),
 
-          // --- Y LÓGICA CORREGIDA AQUÍ TAMBIÉN ---
+          // --- Y LÃ“GICA CORREGIDA AQUÃ TAMBIÃ‰N ---
           'loading-screen': Route(() {
-            // Cuando salimos de CUALQUIER menú para ir al juego, DETENEMOS EL VIDEO.
+            // Cuando salimos de CUALQUIER menÃº para ir al juego, DETENEMOS EL VIDEO.
             stopBackgroundVideo();
             return Component(
               children: [
@@ -884,7 +886,7 @@ class RenegadeDungeonGame extends FlameGame
   }
 
   Future<void> loadGameData() async {
-    // Esto simula una carga más larga, puedes quitarlo después
+    // Esto simula una carga mÃ¡s larga, puedes quitarlo despuÃ©s
     await Future.delayed(const Duration(seconds: 5));
 
     mapComponent = await TiledComponent.load(
@@ -904,7 +906,7 @@ class RenegadeDungeonGame extends FlameGame
     player = Player(gridPosition: Vector2(5.0, 5.0));
   }
 
-  // --- LOS MÉTODOS DE ABAJO SON GLOBALES Y SE QUEDAN AQUÍ ---
+  // --- LOS MÃ‰TODOS DE ABAJO SON GLOBALES Y SE QUEDAN AQUÃ ---
 
   Future<void> playBackgroundVideo(String videoName) async {
     // Si ya estamos reproduciendo el video correcto, no hacemos nada.
@@ -913,7 +915,7 @@ class RenegadeDungeonGame extends FlameGame
       return;
     }
 
-    // Si hay otro video reproduciéndose, lo detenemos primero.
+    // Si hay otro video reproduciÃ©ndose, lo detenemos primero.
     if (videoPlayerControllerNotifier.value != null) {
       await stopBackgroundVideo();
     }
@@ -940,15 +942,15 @@ class RenegadeDungeonGame extends FlameGame
   }
 
   void playMenuMusic() {
-    // Detiene cualquier música que esté sonando antes de empezar la nueva.
+    // Detiene cualquier mÃºsica que estÃ© sonando antes de empezar la nueva.
     FlameAudio.bgm.stop();
-    // Reproduce la música del menú en un bucle infinito.
+    // Reproduce la mÃºsica del menÃº en un bucle infinito.
     FlameAudio.bgm.play('menu_music.ogg');
   }
 
   void playWorldMusic() {
     FlameAudio.bgm.stop();
-    // Reproduce la música de la mazmorra en un bucle.
+    // Reproduce la mÃºsica de la mazmorra en un bucle.
     FlameAudio.bgm.play('dungeon_music.ogg');
   }
 
@@ -967,7 +969,7 @@ class RenegadeDungeonGame extends FlameGame
       // Show revive dialog
       overlays.add('ReviveDialog');
       print(
-          '💀 Murió - Dialog de revive mostrado (${player.stats.gems.value} gemas disponibles)');
+          'ðŸ’€ MuriÃ³ - Dialog de revive mostrado (${player.stats.gems.value} gemas disponibles)');
     } else {
       // Normal death (no gems)
       handleNormalDeath();
@@ -984,6 +986,21 @@ class RenegadeDungeonGame extends FlameGame
     player.stats.currentMp.value = player.stats.maxMp.value;
 
     // Gold and items preserved (no changes needed)
+    print('✨ Revivido con gemas. Oro preservado: ${player.stats.gold.value}');
+
+    // Respawn
+    respawnPlayer();
+
+    // Close dialog and resume game
+    overlays.remove('ReviveDialog');
+    state = GameState.exploring;
+  }
+
+  /// Normal death - loses 50% of gold
+  void handleNormalDeath() {
+    // Lose 50% of gold
+    final goldLost = (player.stats.gold.value * 0.5).floor();
+    player.stats.gold.value -= goldLost;
 
     print(
         '💀 Murió normalmente. Perdiste $goldLost oro (${player.stats.gold.value} restante)');
@@ -1009,7 +1026,7 @@ class RenegadeDungeonGame extends FlameGame
     // Reset death flag
     player.isDead = false;
 
-    print('🏥 Respawneado en $spawnPoint');
+    print('ðŸ¥ Respawneado en $spawnPoint');
   }
 
   void startCombat(String enemyType) async {
@@ -1063,14 +1080,14 @@ class RenegadeDungeonGame extends FlameGame
   }
 
   void endCombat() {
-    // --- ¡NUEVA LÓGICA AÑADIDA! ---
+    // --- Â¡NUEVA LÃ“GICA AÃ‘ADIDA! ---
     // Si el jugador fue derrotado, restauramos su estado.
     if (player.stats.currentHp.value == 0) {
-      print('💀 ¡Has muerto! Reapareciendo en punto seguro...');
+      print('ðŸ’€ Â¡Has muerto! Reapareciendo en punto seguro...');
       player.stats.currentHp.value = player.stats.maxHp.value;
       player.stats.currentMp.value = player.stats.maxMp.value;
 
-      // CRÍTICO: Sincronizar con combatStats para que la UI lo vea
+      // CRÃTICO: Sincronizar con combatStats para que la UI lo vea
       player.stats.combatStats.currentHp.value = player.stats.currentHp.value;
       player.stats.combatStats.currentMp.value = player.stats.currentMp.value;
 
@@ -1079,7 +1096,7 @@ class RenegadeDungeonGame extends FlameGame
 
       // Show respawn message briefly
       Future.delayed(const Duration(milliseconds: 500), () {
-        print('✨ Has reaparecido con salud completa');
+        print('âœ¨ Has reaparecido con salud completa');
       });
     }
     // -----------------------------
@@ -1159,8 +1176,8 @@ class RenegadeDungeonGame extends FlameGame
         }
       }
     }
-    // ¡OJO! Asegúrate de que esta línea esté presente.
-    // Llama al método original para que otras teclas (como el movimiento) sigan funcionando.
+    // Â¡OJO! AsegÃºrate de que esta lÃ­nea estÃ© presente.
+    // Llama al mÃ©todo original para que otras teclas (como el movimiento) sigan funcionando.
     return super.onKeyEvent(event, keysPressed);
   }
 
@@ -1170,7 +1187,7 @@ class RenegadeDungeonGame extends FlameGame
     portals.clear();
     final portalsLayer = mapComponent.tileMap.getLayer<ObjectGroup>('Portals');
     if (portalsLayer == null) {
-      print('⚠️ No Portals layer found');
+      print('âš ï¸ No Portals layer found');
       return;
     }
 
@@ -1184,9 +1201,9 @@ class RenegadeDungeonGame extends FlameGame
       final gridY = (obj.y / 16.0).floor();
 
       print(
-          'ℹ️ Portal ${obj.name}: Calculated grid pos ($gridX, $gridY) from pixels (${obj.x}, ${obj.y})');
+          'â„¹ï¸ Portal ${obj.name}: Calculated grid pos ($gridX, $gridY) from pixels (${obj.x}, ${obj.y})');
 
-      // Extract zone size from Tiled object dimensions (convert pixels → grid units)
+      // Extract zone size from Tiled object dimensions (convert pixels â†’ grid units)
       final zoneWidthGrid = ((obj.width * scaleFactor) / tileWidth).ceil();
       final zoneHeightGrid = ((obj.height * scaleFactor) / tileHeight).ceil();
       final zoneSize = Vector2(
@@ -1230,13 +1247,13 @@ class RenegadeDungeonGame extends FlameGame
         }
 
         print(
-            '✅ Loaded portal ${obj.name} at $gridPos (${zoneSize.x.toInt()}x${zoneSize.y.toInt()}) -> $targetMap ($targetX, $targetY) [$transitionType, ${transitionDuration}ms]');
+            'âœ… Loaded portal ${obj.name} at $gridPos (${zoneSize.x.toInt()}x${zoneSize.y.toInt()}) -> $targetMap ($targetX, $targetY) [$transitionType, ${transitionDuration}ms]');
       } else {
-        print('⚠️ Portal ${obj.name} missing "targetMap" property');
+        print('âš ï¸ Portal ${obj.name} missing "targetMap" property');
       }
     }
 
-    print('✅ Loaded ${portals.length} portals');
+    print('âœ… Loaded ${portals.length} portals');
   }
 
   void checkPortalCollision(Vector2 playerGridPos) {
@@ -1260,7 +1277,8 @@ class RenegadeDungeonGame extends FlameGame
     String transitionType = 'fade',
     int duration = 2000,
   }) async {
-    print('🚪 Transitioning to $mapName using [$transitionType] transition...');
+    print(
+        'ðŸšª Transitioning to $mapName using [$transitionType] transition...');
 
     // Remove HUD during transition
     overlays.remove('PlayerHud');
@@ -1282,7 +1300,7 @@ class RenegadeDungeonGame extends FlameGame
         // Fade in
         await screenFade.fadeIn(duration: fadeOutDuration);
       } catch (e, stackTrace) {
-        print('❌ Error during fade transition: $e');
+        print('âŒ Error during fade transition: $e');
         print(stackTrace);
         // Remove fade on error
         screenFade.removeFromParent();
@@ -1292,7 +1310,7 @@ class RenegadeDungeonGame extends FlameGame
       await _performMapTransition(mapName, startPos);
     } else {
       // Default to fade for unknown types
-      print('⚠️ Unknown transition type "$transitionType", using fade');
+      print('âš ï¸ Unknown transition type "$transitionType", using fade');
       return transitionToMap(mapName, startPos,
           transitionType: 'fade', duration: duration);
     }
@@ -1335,9 +1353,9 @@ class RenegadeDungeonGame extends FlameGame
 
       stepsSinceLastBattle = 0;
 
-      print('✅ Loaded $mapName');
+      print('âœ… Loaded $mapName');
     } catch (e, stackTrace) {
-      print('❌ Error loading map $mapName: $e');
+      print('âŒ Error loading map $mapName: $e');
       print(stackTrace);
       rethrow; // Propagate error to caller
     }
@@ -1352,7 +1370,7 @@ class RenegadeDungeonGame extends FlameGame
 
     final zonesLayer = mapComponent.tileMap.getLayer<ObjectGroup>('SpawnZones');
     if (zonesLayer == null) {
-      print('⚠️ No SpawnZones layer found');
+      print('âš ï¸ No SpawnZones layer found');
       return;
     }
 
@@ -1394,7 +1412,7 @@ class RenegadeDungeonGame extends FlameGame
       zonePropertiesMap[i] = props;
     }
 
-    print('✅ Loaded ${spawnZoneRects.length} spawn zones');
+    print('âœ… Loaded ${spawnZoneRects.length} spawn zones');
   }
 
   /// Load conditional barriers from Tiled map
@@ -1404,7 +1422,7 @@ class RenegadeDungeonGame extends FlameGame
     final barriersLayer =
         mapComponent.tileMap.getLayer<ObjectGroup>('ConditionalBarriers');
     if (barriersLayer == null) {
-      print('ℹ️ No ConditionalBarriers layer found (this is optional)');
+      print('â„¹ï¸ No ConditionalBarriers layer found (this is optional)');
       return;
     }
 
@@ -1423,19 +1441,19 @@ class RenegadeDungeonGame extends FlameGame
           requiredQuest:
               obj.properties.getValue<String>('requiredQuest') ?? 'none',
           blockedMessage: obj.properties.getValue<String>('blockedMessage') ??
-              'No puedes pasar aún.',
+              'No puedes pasar aÃºn.',
           unlockedMessage: obj.properties.getValue<String>('unlockedMessage'),
         );
 
         conditionalBarriers.add(barrier);
         print(
-            '✅ Loaded barrier: ${barrier.id} (Level: ${barrier.requiredLevel}, Boss: ${barrier.requiredBoss})');
+            'âœ… Loaded barrier: ${barrier.id} (Level: ${barrier.requiredLevel}, Boss: ${barrier.requiredBoss})');
       } catch (e) {
-        print('⚠️ Error loading barrier from object ${obj.id}: $e');
+        print('âš ï¸ Error loading barrier from object ${obj.id}: $e');
       }
     }
 
-    print('✅ Loaded ${conditionalBarriers.length} conditional barriers');
+    print('âœ… Loaded ${conditionalBarriers.length} conditional barriers');
   }
 
   /// Check if player can move to target position (barrier check)
@@ -1454,7 +1472,7 @@ class RenegadeDungeonGame extends FlameGame
 
         if (barrier.requiredLevel > 0 &&
             player.stats.level.value < barrier.requiredLevel) {
-          print('🚫 Nivel ${barrier.requiredLevel} requerido');
+          print('ðŸš« Nivel ${barrier.requiredLevel} requerido');
           overlays.add('barrier_dialog');
           _currentBarrierMessage = barrier.blockedMessage;
           _currentBarrierIsBlocked = true;
@@ -1463,7 +1481,7 @@ class RenegadeDungeonGame extends FlameGame
 
         if (barrier.requiredBoss != 'none' &&
             !player.stats.hasBossBeenDefeated(barrier.requiredBoss)) {
-          print('🚫 Boss ${barrier.requiredBoss} requerido');
+          print('ðŸš« Boss ${barrier.requiredBoss} requerido');
           overlays.add('barrier_dialog');
           _currentBarrierMessage = barrier.blockedMessage;
           _currentBarrierIsBlocked = true;
@@ -1472,7 +1490,7 @@ class RenegadeDungeonGame extends FlameGame
 
         if (barrier.requiredQuest != 'none' &&
             !player.stats.hasQuestBeenCompleted(barrier.requiredQuest)) {
-          print('🚫 Quest ${barrier.requiredQuest} requerida');
+          print('ðŸš« Quest ${barrier.requiredQuest} requerida');
           overlays.add('barrier_dialog');
           _currentBarrierMessage = barrier.blockedMessage;
           _currentBarrierIsBlocked = true;
@@ -1572,12 +1590,12 @@ class RenegadeDungeonGame extends FlameGame
     final mapY = gridPos.y *
         tileWidth; // Using tileWidth (32) as scale (assuming square grid basis)
 
-    // print('🔍 DEBUG: Screen=$worldPos -> Grid=$gridPos -> Map=($mapX, $mapY)');
+    // print('ðŸ” DEBUG: Screen=$worldPos -> Grid=$gridPos -> Map=($mapX, $mapY)');
     // TEMPORARY DEBUG: Print every check to see what's happening
     if (stepsSinceLastBattle % 10 == 0) {
       // Just print it.
       print(
-          '🔍 DEBUG: Screen=$worldPos -> Grid=${gridPos.toString()} -> Map=(${mapX.toStringAsFixed(1)}, ${mapY.toStringAsFixed(1)})');
+          'ðŸ” DEBUG: Screen=$worldPos -> Grid=${gridPos.toString()} -> Map=(${mapX.toStringAsFixed(1)}, ${mapY.toStringAsFixed(1)})');
     }
 
     for (int i = 0; i < spawnZoneRects.length; i++) {
@@ -1589,20 +1607,20 @@ class RenegadeDungeonGame extends FlameGame
   }
 
   void checkZoneTransition(Vector2 playerWorldPos) {
-    print('🔍 DEBUG: Player worldPos = $playerWorldPos');
+    print('ðŸ” DEBUG: Player worldPos = $playerWorldPos');
     final newZone = _getZoneAt(playerWorldPos);
 
     if (newZone?.name != currentZone?.name) {
       currentZone = newZone;
 
       if (newZone != null) {
-        print('📍 Entered: ${newZone.name} (${newZone.dangerLevel.name})');
+        print('ðŸ“ Entered: ${newZone.name} (${newZone.dangerLevel.name})');
 
         if (!discoveredZones.contains(newZone.name)) {
           discoveredZones.add(newZone.name);
         }
       } else {
-        print('📍 Entered safe area (no zone)');
+        print('ðŸ“ Entered safe area (no zone)');
       }
     }
   }
@@ -1614,7 +1632,7 @@ class RenegadeDungeonGame extends FlameGame
     if (player.stats.level.value < currentZone!.minLevel) return;
     if (Random().nextDouble() > currentZone!.encounterChance) return;
 
-    print('⚔️ Random encounter after $stepsSinceLastBattle steps!');
+    print('âš”ï¸ Random encounter after $stepsSinceLastBattle steps!');
     stepsSinceLastBattle = 0;
 
     final random = Random();
@@ -1634,7 +1652,7 @@ class RenegadeDungeonGame extends FlameGame
         enemyGroup.add(enemyType);
       }
 
-      print('🎲 Multi-enemy encounter: $enemyGroup');
+      print('ðŸŽ² Multi-enemy encounter: $enemyGroup');
       startCombatMulti(enemyGroup);
     } else {
       // Single enemy (classic)
@@ -1691,7 +1709,7 @@ class RenegadeDungeonGame extends FlameGame
       await world.add(chest);
     }
     print(
-        '✅ Loaded $chestCounter chests (${openedChests.length} already opened)');
+        'âœ… Loaded $chestCounter chests (${openedChests.length} already opened)');
   }
 
   // ========== NPC SYSTEM ==========
@@ -1706,7 +1724,7 @@ class RenegadeDungeonGame extends FlameGame
 
     final npcsLayer = mapComponent.tileMap.getLayer<ObjectGroup>('NPCs');
     if (npcsLayer == null) {
-      print('ℹ️ No NPCs layer found (this is optional)');
+      print('â„¹ï¸ No NPCs layer found (this is optional)');
       return;
     }
 
@@ -1742,10 +1760,10 @@ class RenegadeDungeonGame extends FlameGame
       npcComponents.add(npcComponent);
       world.add(npcComponent);
 
-      print('✅ Loaded NPC: $name ($type) at $gridPos');
+      print('âœ… Loaded NPC: $name ($type) at $gridPos');
     }
 
-    print('✅ Loaded ${npcs.length} NPCs');
+    print('âœ… Loaded ${npcs.length} NPCs');
   }
 
   NPCType _parseNPCType(String typeStr) {
@@ -1782,7 +1800,7 @@ class RenegadeDungeonGame extends FlameGame
     state = GameState.inMenu; // Pause game
     overlays.add('DialogueUI');
 
-    print('💬 Started dialogue with ${npc.name}');
+    print('ðŸ’¬ Started dialogue with ${npc.name}');
   }
 
   void endDialogue() {
@@ -1793,5 +1811,16 @@ class RenegadeDungeonGame extends FlameGame
     activeDialogueNPC = null;
     state = GameState.exploring;
     overlays.remove('DialogueUI');
+  }
+
+  // ===== MOBILE CONTROLS =====
+
+  void handleMobileInput(int gridX, int gridY) {
+    if (state != GameState.exploring) return;
+    if (!player.isMounted) return;
+    if (player.isMoving) return;
+
+    final direction = Vector2(gridX.toDouble(), gridY.toDouble());
+    player.move(direction);
   }
 }
