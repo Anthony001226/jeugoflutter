@@ -1,4 +1,4 @@
-// lib/ui/main_menu.dart
+// lib/ui/slot_selection_menu.dart
 
 import 'package:flutter/material.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
@@ -26,42 +26,46 @@ class SlotSelectionMenu extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 50),
-            
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                 textStyle: const TextStyle(fontSize: 18),
               ),
               onPressed: () {
-                // Le decimos al router que navegue a la pantalla del juego.
+                // Set slot 1
+                game.currentSlotIndex = 1;
                 game.router.pushNamed('loading-screen');
               },
               child: const Text('Slot 1 - Empezar Aventura'),
             ),
             const SizedBox(height: 20),
-
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                 textStyle: const TextStyle(fontSize: 18),
                 backgroundColor: Colors.grey.shade800,
               ),
               onPressed: () {
-                 // Por ahora, también inicia una nueva partida.
-                 game.router.pushNamed('game-screen');
+                // Set slot 2
+                game.currentSlotIndex = 2;
+                game.router.pushNamed('loading-screen');
               },
               child: const Text('Slot 2 - (Vacío)'),
             ),
-             const SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                 textStyle: const TextStyle(fontSize: 18),
                 backgroundColor: Colors.grey.shade800,
               ),
               onPressed: () {
-                 // Por ahora, también inicia una nueva partida.
-                 game.router.pushNamed('game-screen');
+                // Set slot 3
+                game.currentSlotIndex = 3;
+                game.router.pushNamed('loading-screen');
               },
               child: const Text('Slot 3 - (Vacío)'),
             ),

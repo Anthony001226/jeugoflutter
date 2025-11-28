@@ -55,8 +55,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    print(
-        '--- PASO 3: Reconstruyendo UI. Estado del video: ${_game.videoPlayerControllerNotifier.value == null ? "NULL" : "EXISTE Y ESTÁ INICIALIZADO: ${_game.videoPlayerControllerNotifier.value!.value.isInitialized}"} ---');
+    // print('--- PASO 3: Reconstruyendo UI... ---'); // Removed spammy log
     return Stack(
       children: [
         // CAPA 1: El Video de Fondo

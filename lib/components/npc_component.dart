@@ -66,6 +66,8 @@ class NPCComponent extends SpriteComponent
   void update(double dt) {
     super.update(dt);
 
+    if (!game.isPlayerReady) return;
+
     // Check distance to player
     final playerPos = game.player.gridPosition;
     final distance = (npc.gridPosition - playerPos).length;
@@ -88,6 +90,7 @@ class NPCComponent extends SpriteComponent
 
   /// Check if player can interact with this NPC right now
   bool canInteract() {
+    if (!game.isPlayerReady) return false;
     final playerPos = game.player.gridPosition;
     final distance = (npc.gridPosition - playerPos).length;
     return distance <= 1.5 && game.state == GameState.exploring;

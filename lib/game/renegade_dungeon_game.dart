@@ -31,7 +31,6 @@ import '../models/zone_config.dart';
 import '../models/item_rarity.dart';
 import '../components/portal_visual.dart';
 import '../models/conditional_barrier.dart';
-import '../models/combat_stats_holder.dart';
 
 import '../components/enemies/goblin_component.dart';
 import '../components/enemies/slime_component.dart';
@@ -43,6 +42,10 @@ import 'package:flame_audio/flame_audio.dart';
 import '../models/npc.dart';
 import '../components/npc_component.dart';
 import '../services/iap_service.dart';
+import '../services/offline_storage_service.dart';
+import '../services/cloud_save_service.dart';
+import '../services/auth_service.dart';
+import '../models/player_save_data.dart';
 
 // Â¡YA NO NECESITAMOS TANTAS IMPORTACIONES DE COMPONENTES AQUÃ!
 // PORQUE AHORA VIVEN EN GameScreen
@@ -769,6 +772,7 @@ class RenegadeDungeonGame extends FlameGame
   late final CombatManager combatManager;
   late TiledComponent mapComponent;
   late Player player;
+  bool isPlayerReady = false;
   late TileLayer collisionLayer;
 
   final double tileWidth = 32.0;
@@ -803,16 +807,30 @@ class RenegadeDungeonGame extends FlameGame
 
   // Fog of War System
   final Set<math.Point<int>> exploredTiles = {};
+  // HUD Notifiers
+  final ValueNotifier<String> currentZoneNameNotifier =
+      ValueNotifier<String>('Unknown Zone');
+  final ValueNotifier<int> currentDangerLevelNotifier = ValueNotifier<int>(1);
   static const int explorationRadius = 5;
 
   final videoPlayerControllerNotifier =
       ValueNotifier<VideoPlayerController?>(null);
+
+  // Save System
+  int currentSlotIndex = 1;
+  late OfflineStorageService offlineStorage;
+  final CloudSaveService _cloudSaveService = CloudSaveService();
+  final AuthService _authService = AuthService();
 
   @override
   Color backgroundColor() => Colors.transparent;
   // --- Â¡MÃ‰TODO onLoad CORREGIDO Y LIMPIO! ---
   @override
   Future<void> onLoad() async {
+    // Initialize services
+    offlineStorage = OfflineStorageService(_cloudSaveService, _authService);
+    await offlineStorage.init();
+
     camera.viewfinder.zoom = cameraZoom;
     //camera.viewport.transparent = true;
     FlameAudio.bgm.initialize();
@@ -826,7 +844,7 @@ class RenegadeDungeonGame extends FlameGame
       player.stats.gems.value += amount;
       print('💎 Added $amount gems. Total: ${player.stats.gems.value}');
       // Save game after purchase
-      // saveGame(); // Implement if save system is ready
+      saveGame();
     });
     await iapService.initialize();
 
@@ -841,19 +859,12 @@ class RenegadeDungeonGame extends FlameGame
 
           // --- Â¡LÃ“GICA CORREGIDA AQUÃ! ---
           'main-menu': Route(() {
-            // 1. Inicia el video de fondo.
             playBackgroundVideo('menu_background.mp4');
-
-            // 2. Crea un componente que contiene el temporizador.
-            //    Al devolver un Component aquÃ­, reemplazamos el SplashScreen anterior,
-            //    limpiando el escenario y dejando ver el video.
             return Component(children: [
               TimerComponent(
-                period:
-                    0.001, // Un retraso mÃ­nimo para asegurar que todo estÃ© listo
+                period: 0.001,
                 repeat: false,
                 onTick: () {
-                  // 3. Limpia cualquier overlay viejo y aÃ±ade el del menÃº principal.
                   overlays.clear();
                   overlays.add('MainMenu');
                 },
@@ -861,24 +872,20 @@ class RenegadeDungeonGame extends FlameGame
             ]);
           }),
 
-          // El menÃº de slots ahora es mÃ¡s simple, no maneja el video.
           'slot-selection-menu': Route(() {
-            // Â¡CAMBIO! Llamamos al mÃ©todo general con el video de los slots.
-            playBackgroundVideo('slot_background.mp4');
             return Component(children: [
               TimerComponent(
-                  period: 0.001,
-                  repeat: false,
-                  onTick: () {
-                    overlays.clear();
-                    overlays.add('SlotSelectionMenu');
-                  }),
+                period: 0.001,
+                repeat: false,
+                onTick: () {
+                  overlays.clear();
+                  overlays.add('SlotSelectionMenu');
+                },
+              ),
             ]);
           }),
 
-          // --- Y LÃ“GICA CORREGIDA AQUÃ TAMBIÃ‰N ---
           'loading-screen': Route(() {
-            // Cuando salimos de CUALQUIER menÃº para ir al juego, DETENEMOS EL VIDEO.
             stopBackgroundVideo();
             return Component(
               children: [
@@ -887,9 +894,15 @@ class RenegadeDungeonGame extends FlameGame
                   repeat: false,
                   onTick: () async {
                     overlays.add('LoadingUI');
-                    await loadGameData();
-                    overlays.remove('LoadingUI');
-                    router.pushReplacementNamed('game-screen');
+                    try {
+                      await loadGameData();
+                      overlays.remove('LoadingUI');
+                      router.pushReplacementNamed('game-screen');
+                    } catch (e) {
+                      print('❌ Error loading game data: $e');
+                      overlays.remove('LoadingUI');
+                      router.pushReplacementNamed('slot-selection-menu');
+                    }
                   },
                 ),
               ],
@@ -901,37 +914,12 @@ class RenegadeDungeonGame extends FlameGame
     );
   }
 
-  Future<void> loadGameData() async {
-    // Esto simula una carga mÃ¡s larga, puedes quitarlo despuÃ©s
-    await Future.delayed(const Duration(seconds: 5));
-
-    mapComponent = await TiledComponent.load(
-        'dungeon.tmx', Vector2(tileWidth, tileHeight));
-    loadZoneData();
-    collisionLayer = mapComponent.tileMap.getLayer<TileLayer>('Collision')!;
-    collisionLayer.visible = false;
-
-    // Load portals and zones for initial map
-    // Load portals and zones for initial map
-    _loadPortals();
-    _loadSpawnZones();
-    _loadConditionalBarriers();
-    await _loadChests();
-    _loadNPCs(); // Load NPCs for initial map
-
-    player = Player(gridPosition: Vector2(5.0, 5.0));
-  }
-
-  // --- LOS MÃ‰TODOS DE ABAJO SON GLOBALES Y SE QUEDAN AQUÃ ---
-
   Future<void> playBackgroundVideo(String videoName) async {
-    // Si ya estamos reproduciendo el video correcto, no hacemos nada.
     if (videoPlayerControllerNotifier.value?.dataSource ==
         'assets/videos/$videoName') {
       return;
     }
 
-    // Si hay otro video reproduciÃ©ndose, lo detenemos primero.
     if (videoPlayerControllerNotifier.value != null) {
       await stopBackgroundVideo();
     }
@@ -974,27 +962,95 @@ class RenegadeDungeonGame extends FlameGame
     FlameAudio.bgm.stop();
   }
 
-  // ===== DEATH/REVIVE SYSTEM =====
+  Future<void> loadGameData() async {
+    // Load map first (needed for collision/zones)
+    mapComponent = await TiledComponent.load(
+        'dungeon.tmx', Vector2(tileWidth, tileHeight));
+    loadZoneData();
+    collisionLayer = mapComponent.tileMap.getLayer<TileLayer>('Collision')!;
+    collisionLayer.visible = false;
 
-  /// Called when player HP reaches 0
-  void onPlayerDeath() {
-    state = GameState.inMenu;
+    // Load static map elements
+    _loadPortals();
+    _loadSpawnZones();
+    _loadConditionalBarriers();
+    await _loadChests();
+    _loadNPCs();
 
-    // Check if player has gems for revival
-    if (player.stats.gems.value >= 5) {
-      // Show revive dialog
-      overlays.add('ReviveDialog');
-      print(
-          'ðŸ’€ MuriÃ³ - Dialog de revive mostrado (${player.stats.gems.value} gemas disponibles)');
+    // Attempt to load save data for current slot
+    final saveData = offlineStorage.loadLocally(currentSlotIndex);
+
+    if (saveData != null) {
+      print('💾 Loading save from Slot $currentSlotIndex...');
+      player = Player(
+        gridPosition: Vector2(saveData.gridX, saveData.gridY),
+      );
+
+      // Restore stats
+      player.stats.level.value = saveData.level;
+      player.stats.currentHp.value = saveData.currentHp;
+      player.stats.maxHp.value = saveData.maxHp;
+      player.stats.currentMp.value = saveData.currentMp;
+      player.stats.maxMp.value = saveData.maxMp;
+      player.stats.currentXp.value = saveData.experience;
+      player.stats.gold.value = saveData.gold;
+      player.stats.gems.value = saveData.gems;
+
+      // Restore progression
+      discoveredZones.addAll(saveData.discoveredMaps);
+      openedChests.addAll(saveData.openedChests);
     } else {
-      // Normal death (no gems)
-      handleNormalDeath();
+      print('🆕 No save found for Slot $currentSlotIndex. Starting new game.');
+      player = Player(gridPosition: Vector2(5.0, 5.0));
     }
+
+    isPlayerReady = true;
+    checkZoneTransition(player.position);
   }
 
-  /// Revive with gems - preserves ALL gold and items
+  Future<void> saveGame() async {
+    if (!isPlayerReady) return;
+
+    final data = PlayerSaveData(
+      level: player.stats.level.value,
+      currentHp: player.stats.currentHp.value,
+      maxHp: player.stats.maxHp.value,
+      currentMp: player.stats.currentMp.value,
+      maxMp: player.stats.maxMp.value,
+      experience: player.stats.currentXp.value,
+      attack: player.stats.attack.value,
+      defense: player.stats.defense.value,
+      inventory: [], // TODO: Serialize inventory
+      equipment: {}, // TODO: Serialize equipment
+      currentMap: 'dungeon.tmx',
+      gridX: player.gridPosition.x,
+      gridY: player.gridPosition.y,
+      gold: player.stats.gold.value,
+      gems: player.stats.gems.value,
+      discoveredMaps: discoveredZones.toList(),
+      openedChests: openedChests.toList(),
+      defeatedBosses: [],
+      activeQuests: [],
+      completedQuests: [],
+      lastSaved: DateTime.now(),
+      createdAt: DateTime.now(),
+    );
+
+    await offlineStorage.saveLocally(currentSlotIndex, data);
+    print('💾 Game saved to Slot $currentSlotIndex');
+
+    // Show visual feedback
+    overlays.add('barrier_dialog');
+    _currentBarrierMessage = 'Partida Guardada';
+    _currentBarrierIsBlocked = false; // Green text
+  }
+
+  // ===== DEATH/REVIVE SYSTEM =====
+
+  /// Handle revive with gems
   void handleRevive() {
-    // Spend gems
+    if (player.stats.gems.value < 5) return;
+
     player.stats.gems.value -= 5;
 
     // Restore HP/MP
@@ -1010,6 +1066,7 @@ class RenegadeDungeonGame extends FlameGame
     // Close dialog and resume game
     overlays.remove('ReviveDialog');
     state = GameState.exploring;
+    saveGame();
   }
 
   /// Normal death - loses 50% of gold
@@ -1026,6 +1083,7 @@ class RenegadeDungeonGame extends FlameGame
 
     // Resume game
     state = GameState.exploring;
+    saveGame();
   }
 
   /// Respawn player at last checkpoint or spawn point
@@ -1195,6 +1253,21 @@ class RenegadeDungeonGame extends FlameGame
     // Â¡OJO! AsegÃºrate de que esta lÃ­nea estÃ© presente.
     // Llama al mÃ©todo original para que otras teclas (como el movimiento) sigan funcionando.
     return super.onKeyEvent(event, keysPressed);
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (!isPlayerReady) return;
+
+    if (state == GameState.exploring) {
+      // Update Fog of War
+      if (player.isMounted) {
+        updateExploration(player.position);
+        checkZoneTransition(player.position);
+        checkRandomEncounter();
+      }
+    }
   }
 
   // ========== PORTAL SYSTEM ==========
@@ -1605,15 +1678,7 @@ class RenegadeDungeonGame extends FlameGame
     final mapX = gridPos.x * tileWidth; // Using tileWidth (32) as scale
     final mapY = gridPos.y *
         tileWidth; // Using tileWidth (32) as scale (assuming square grid basis)
-
-    // print('ðŸ” DEBUG: Screen=$worldPos -> Grid=$gridPos -> Map=($mapX, $mapY)');
-    // TEMPORARY DEBUG: Print every check to see what's happening
-    if (stepsSinceLastBattle % 10 == 0) {
-      // Just print it.
-      print(
-          'ðŸ” DEBUG: Screen=$worldPos -> Grid=${gridPos.toString()} -> Map=(${mapX.toStringAsFixed(1)}, ${mapY.toStringAsFixed(1)})');
-    }
-
+    // Check all spawn zones
     for (int i = 0; i < spawnZoneRects.length; i++) {
       if (spawnZoneRects[i].contains(Offset(mapX, mapY))) {
         return zonePropertiesMap[i];
@@ -1623,20 +1688,34 @@ class RenegadeDungeonGame extends FlameGame
   }
 
   void checkZoneTransition(Vector2 playerWorldPos) {
-    print('ðŸ” DEBUG: Player worldPos = $playerWorldPos');
+    // print('🔍 DEBUG: Player worldPos = $playerWorldPos');
     final newZone = _getZoneAt(playerWorldPos);
 
     if (newZone?.name != currentZone?.name) {
       currentZone = newZone;
 
       if (newZone != null) {
-        print('ðŸ“ Entered: ${newZone.name} (${newZone.dangerLevel.name})');
+        print('📍 Entered: ${newZone.name} (${newZone.dangerLevel.name})');
 
         if (!discoveredZones.contains(newZone.name)) {
           discoveredZones.add(newZone.name);
         }
+
+        // Update HUD Notifiers
+        // CRITICAL: Update Danger Level FIRST, then Zone Name.
+        currentDangerLevelNotifier.value = newZone.dangerLevel.index;
+        currentZoneNameNotifier.value = newZone.name;
+
+        // Auto-save on zone entry
+        saveGame();
       } else {
-        print('ðŸ“ Entered safe area (no zone)');
+        print('📍 Entered safe area (no zone)');
+        // Update HUD Notifiers
+        currentDangerLevelNotifier.value = 0; // DangerLevel.safe.index
+        currentZoneNameNotifier.value = 'Safe Area';
+
+        // Auto-save on safe area entry
+        saveGame();
       }
     }
   }
@@ -1849,7 +1928,7 @@ class RenegadeDungeonGame extends FlameGame
   }
 
   void openGemShop() {
-    if (state == GameState.inMenu) return;
+    // Allow opening shop even if already in menu (e.g. from ReviveDialog)
     state = GameState.inMenu;
     overlays.add('GemShop');
   }
@@ -1857,6 +1936,7 @@ class RenegadeDungeonGame extends FlameGame
   // ===== MOBILE CONTROLS =====
 
   void handleMobileInput(int gridX, int gridY) {
+    if (!isPlayerReady) return;
     if (state != GameState.exploring) return;
     if (!player.isMounted) return;
     if (player.isMoving) return;

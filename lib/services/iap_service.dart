@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 class IAPService {
-  final InAppPurchase _iap = InAppPurchase.instance;
+  InAppPurchase? _iap;
 
   // Product IDs - Must match Google Play Console
   static const String gemPack10 = 'gem_pack_10';
@@ -32,25 +33,42 @@ class IAPService {
   List<ProductDetails> get products => _products;
 
   Future<void> initialize() async {
-    _isAvailable = await _iap.isAvailable();
+    // Check if platform is supported
+    if (kIsWeb ||
+        (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      print('⚠️ In-App Purchases not supported on this platform');
+      _isAvailable = false;
+      return;
+    }
 
-    if (_isAvailable) {
-      final Stream<List<PurchaseDetails>> purchaseUpdated = _iap.purchaseStream;
-      _subscription = purchaseUpdated.listen(_onPurchaseUpdate, onDone: () {
-        _subscription?.cancel();
-      }, onError: (error) {
-        print('⚠️ IAP Error: $error');
-      });
+    try {
+      _iap = InAppPurchase.instance;
+      _isAvailable = await _iap!.isAvailable();
 
-      await _loadProducts();
-    } else {
-      print('⚠️ Store not available');
+      if (_isAvailable) {
+        final Stream<List<PurchaseDetails>> purchaseUpdated =
+            _iap!.purchaseStream;
+        _subscription = purchaseUpdated.listen(_onPurchaseUpdate, onDone: () {
+          _subscription?.cancel();
+        }, onError: (error) {
+          print('⚠️ IAP Error: $error');
+        });
+
+        await _loadProducts();
+      } else {
+        print('⚠️ Store not available');
+      }
+    } catch (e) {
+      print('⚠️ Error initializing IAP: $e');
+      _isAvailable = false;
     }
   }
 
   Future<void> _loadProducts() async {
+    if (_iap == null) return;
+
     final ProductDetailsResponse response =
-        await _iap.queryProductDetails(_kIds);
+        await _iap!.queryProductDetails(_kIds);
 
     if (response.notFoundIDs.isNotEmpty) {
       print('⚠️ Products not found: ${response.notFoundIDs}');
@@ -64,13 +82,15 @@ class IAPService {
   }
 
   void buyProduct(ProductDetails product) {
+    if (_iap == null) return;
+
     final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
 
     if (Platform.isAndroid) {
       // Consumable (can be bought multiple times)
-      _iap.buyConsumable(purchaseParam: purchaseParam);
+      _iap!.buyConsumable(purchaseParam: purchaseParam);
     } else {
-      _iap.buyConsumable(purchaseParam: purchaseParam);
+      _iap!.buyConsumable(purchaseParam: purchaseParam);
     }
   }
 
@@ -93,7 +113,7 @@ class IAPService {
         }
 
         if (purchaseDetails.pendingCompletePurchase) {
-          await _iap.completePurchase(purchaseDetails);
+          await _iap!.completePurchase(purchaseDetails);
         }
       }
     });
