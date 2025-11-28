@@ -114,56 +114,51 @@ class _ZoneNotificationWidgetState extends State<ZoneNotificationWidget>
           return const SizedBox.shrink();
         }
 
-        return Positioned(
-          top: 100, // Below HUD
-          left: 0,
-          right: 0,
-          child: Opacity(
-            opacity: _opacityAnimation.value,
-            child: SlideTransition(
-              position: _slideAnimation,
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _zoneName,
-                      style: const TextStyle(
+        return Opacity(
+          opacity: _opacityAnimation.value,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _zoneName,
+                    style: const TextStyle(
+                      fontFamily: 'PixelFont',
+                      fontSize: 32,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          blurRadius: 10.0,
+                          color: Colors.black,
+                          offset: Offset(2.0, 2.0),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color: _getDangerColor(_dangerLevel).withOpacity(0.5),
+                      ),
+                    ),
+                    child: Text(
+                      _getDangerText(_dangerLevel),
+                      style: TextStyle(
                         fontFamily: 'PixelFont',
-                        fontSize: 32,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 10.0,
-                            color: Colors.black,
-                            offset: Offset(2.0, 2.0),
-                          ),
-                        ],
+                        fontSize: 14,
+                        color: _getDangerColor(_dangerLevel),
+                        letterSpacing: 2.0,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.black54,
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: _getDangerColor(_dangerLevel).withOpacity(0.5),
-                        ),
-                      ),
-                      child: Text(
-                        _getDangerText(_dangerLevel),
-                        style: TextStyle(
-                          fontFamily: 'PixelFont',
-                          fontSize: 14,
-                          color: _getDangerColor(_dangerLevel),
-                          letterSpacing: 2.0,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

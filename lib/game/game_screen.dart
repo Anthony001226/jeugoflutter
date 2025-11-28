@@ -2,17 +2,23 @@
 
 import 'package:flame/components.dart';
 import 'package:flame/palette.dart';
-import 'package:renegade_dungeon/components/player.dart';
+
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 
 class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
   @override
   Future<void> onLoad() async {
     // --- FASE 1: PREPARACIÓN GENERAL ---
-    game.state = GameState.exploring;
-    game.playWorldMusic();
+    // game.state = GameState.exploring; // MOVED to end
+    await game.playWorldMusic();
     game.overlays.clear();
     game.camera.viewfinder.anchor = Anchor.center;
+
+    // Ensure world is mounted
+    if (!game.world.isMounted) {
+      game.add(game.world);
+      print('🌍 World re-mounted in GameScreen');
+    }
 
     // --- FASE 2: CONSTRUIR EL MUNDO VISUAL ---
     // Añadimos los componentes al 'world' de ESTA pantalla.
@@ -46,6 +52,13 @@ class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
     // --- FASE 5: CONFIGURACIÓN FINAL DE LA UI ---
     game.camera.follow(game.player);
     game.overlays.add('PlayerHud');
+
+    // Notify HUD that player is ready (triggers rebuild)
+    // This MUST happen after player is added to world so isMounted is true
+    game.isPlayerReadyNotifier.value = true;
+
+    // Enable game logic only after everything is ready
+    game.state = GameState.exploring;
   }
 
   @override
@@ -56,6 +69,9 @@ class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
     // Remueve los overlays del juego
     game.overlays.remove('PlayerHud');
     game.overlays.remove('PauseMenuUI');
+
+    // Reset HUD ready state so it rebuilds correctly next time
+    game.isPlayerReadyNotifier.value = false;
 
     super.onRemove();
   }

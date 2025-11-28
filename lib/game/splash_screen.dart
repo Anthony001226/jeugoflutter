@@ -8,31 +8,42 @@ import 'dart:math' as math;
 
 class SplashScreen extends Component
     with HasGameReference<RenegadeDungeonGame>, TapCallbacks, KeyboardHandler {
+  SpriteComponent? _background;
+  SpriteComponent? _logo;
+  late TextComponent _prompt;
+
   @override
   Future<void> onLoad() async {
+    print('🎨 SplashScreen.onLoad() started');
     // 1. Fondo
-    add(
-      SpriteComponent(
+    try {
+      _background = SpriteComponent(
         sprite: await game.loadSprite('backgrounds/splash_screen.png'),
-        size: game.size,
-      )..size = game.size,
-    );
+        anchor: Anchor.center,
+      );
+      add(_background!);
+      print('✅ Background sprite loaded');
+    } catch (e) {
+      print('❌ Error loading background sprite: $e');
+    }
 
     // 2. Logo
-    const double margin = 20.0;
-    final logo = SpriteComponent(
-      sprite: await game.loadSprite('ui/logo.png'),
-      anchor: Anchor.bottomRight,
-      position: Vector2(game.size.x - margin, game.size.y - margin),
-      size: Vector2(125, 125),
-    );
-    add(logo);
+    try {
+      _logo = SpriteComponent(
+        sprite: await game.loadSprite('ui/logo.png'),
+        anchor: Anchor.bottomRight,
+        size: Vector2(125, 125),
+      );
+      add(_logo!);
+      print('✅ Logo sprite loaded');
+    } catch (e) {
+      print('❌ Error loading logo sprite: $e');
+    }
 
     // 3. Texto que vamos a animar
-    final prompt = TextComponent(
+    _prompt = TextComponent(
       text: 'Presiona cualquier tecla para continuar',
       anchor: Anchor.center,
-      position: Vector2(game.size.x / 2, game.size.y * 0.85),
       textRenderer: TextPaint(
         style: GoogleFonts.cinzel(
           color: Colors.white,
@@ -45,7 +56,7 @@ class SplashScreen extends Component
         ),
       ),
     );
-    add(prompt);
+    add(_prompt);
 
     // 4. Efecto de pulso suave (Manual)
     double time = 0;
@@ -57,8 +68,8 @@ class SplashScreen extends Component
           time += 0.05;
           final alpha = (155 + 100 * math.sin(time)).toInt().clamp(0, 255);
 
-          final currentStyle = (prompt.textRenderer as TextPaint).style;
-          prompt.textRenderer = TextPaint(
+          final currentStyle = (_prompt.textRenderer as TextPaint).style;
+          _prompt.textRenderer = TextPaint(
             style: currentStyle.copyWith(
               color: currentStyle.color!.withAlpha(alpha),
             ),
@@ -66,6 +77,45 @@ class SplashScreen extends Component
         },
       ),
     );
+
+    // 5. Preload menu video to avoid Autoplay errors
+    game.preloadBackgroundVideo('menu_background.mp4');
+
+    // Initial resize
+    _resizeComponents(game.size);
+    print('🎨 SplashScreen.onLoad() completed');
+  }
+
+  @override
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    // Check if components are initialized before resizing
+    if (isLoaded) {
+      _resizeComponents(size);
+    }
+  }
+
+  void _resizeComponents(Vector2 size) {
+    print('📏 Resizing SplashScreen to $size');
+    // Background: BoxFit.cover logic
+    if (_background?.sprite != null) {
+      final spriteSize = _background!.sprite!.originalSize;
+      final scaleX = size.x / spriteSize.x;
+      final scaleY = size.y / spriteSize.y;
+      final scale = math.max(scaleX, scaleY);
+
+      _background!.scale = Vector2.all(scale);
+      _background!.position = size / 2;
+    }
+
+    // Logo: Bottom Right with margin
+    const double margin = 20.0;
+    if (_logo != null) {
+      _logo!.position = Vector2(size.x - margin, size.y - margin);
+    }
+
+    // Prompt: Bottom Center
+    _prompt.position = Vector2(size.x / 2, size.y * 0.85);
   }
 
   @override

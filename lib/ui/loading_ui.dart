@@ -1,5 +1,3 @@
-// lib/ui/loading_ui.dart
-
 import 'package:flutter/material.dart';
 
 class LoadingUI extends StatelessWidget {
@@ -13,11 +11,14 @@ class LoadingUI extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(color: Colors.white),
+            CircularProgressIndicator(color: Colors.amber),
             SizedBox(height: 20),
             Text(
-              'Cargando...',
-              style: TextStyle(color: Colors.white, fontSize: 20),
+              'Loading World...',
+              style: TextStyle(
+                  color: Colors.amber,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold),
             ),
           ],
         ),

@@ -68,6 +68,30 @@ class PauseMenuUI extends StatelessWidget {
 
                   const SizedBox(width: 16),
 
+                  // Botón Guardar Partida
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      await game.saveGame();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Partida Guardada Exitosamente'),
+                          backgroundColor: Colors.green,
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.save),
+                    label: const Text('Guardar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2196F3),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                    ),
+                  ),
+
+                  const SizedBox(width: 16),
+
                   // Botón Volver al Menú Principal
                   ElevatedButton.icon(
                     onPressed: () {
@@ -93,6 +117,10 @@ class PauseMenuUI extends StatelessWidget {
                                 Navigator.of(context).pop();
                                 // Save game before exiting
                                 await game.saveGame();
+
+                                // Reset game state to ensure clean slate for next session
+                                game.reset();
+
                                 game.state = GameState.inMenu;
                                 // Removed delay to preserve user interaction token for Web Autoplay
                                 game.router.pushReplacementNamed('main-menu');

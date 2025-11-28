@@ -3,6 +3,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:renegade_dungeon/game/menu_route_component.dart';
+import 'package:renegade_dungeon/game/loading_route_component.dart';
 import 'package:flame/game.dart';
 import 'package:flame/palette.dart';
 import 'package:flame_tiled/flame_tiled.dart';
@@ -13,6 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'dart:math';
 import 'dart:math' as math;
+import 'dart:async';
 
 import '../components/battle_scene.dart';
 import '../components/player.dart';
@@ -44,7 +46,7 @@ import '../models/npc.dart';
 import '../components/npc_component.dart';
 import '../services/iap_service.dart';
 import '../services/offline_storage_service.dart';
-import '../services/cloud_save_service.dart';
+
 import '../services/auth_service.dart';
 import '../models/player_save_data.dart';
 
@@ -434,10 +436,6 @@ class CombatManager {
       return;
     }
 
-    Future.delayed(const Duration(milliseconds: 1), () {
-      isProcessingAbility = false; // Unlock after brief delay
-    });
-
     print('â³ Fin del turno del jugador. Siguiente turno...');
     // End player turn, proceed to next in queue
     Future.delayed(const Duration(seconds: 1), () {
@@ -663,19 +661,48 @@ class CombatManager {
     final enemyType = _getEnemyTypeForComponent(enemy);
     final enemyName = getEnemyName(enemy);
 
+    // Check if enemy is already dead
+    final currentHp = (stats is CombatStatsHolder)
+        ? stats.combatStats.currentHp.value
+        : (stats is EnemyStats ? stats.currentHp.value : 0);
+
+    if (currentHp <= 0) {
+      print('💀 Enemy $enemyName is dead, skipping turn.');
+
+      // Check if ALL enemies are dead
+      final allDead = currentEnemies.every((e) {
+        final s = (e as dynamic).stats;
+        final hp = (s is CombatStatsHolder)
+            ? s.combatStats.currentHp.value
+            : (s is EnemyStats ? s.currentHp.value : 0);
+        return hp <= 0;
+      });
+
+      if (allDead) {
+        print('🎉 All enemies dead (detected in turn loop). Ending combat.');
+        return;
+      }
+
+      // Skip to next turn
+      Future.delayed(const Duration(milliseconds: 500), () {
+        nextTurn();
+      });
+      return;
+    }
+
     // Check if enemy has CombatStats
     final hasCombatStats = stats is CombatStatsHolder;
 
     if (!hasCombatStats) {
       // Simple attack for enemies without CombatStats
-      print('ðŸ¤– $enemyName usa ataque simple');
+      print('🤖 $enemyName usa ataque simple');
       final rawDamage = stats.attack;
       final playerDef = game.player.stats.defense.value;
       final estimatedNet = (rawDamage - playerDef).clamp(1, 999);
 
       game.player.stats.takeDamage(rawDamage);
       print(
-          'ðŸ’¥ $enemyName hizo $estimatedNet de daÃ±o! (Bruto: $rawDamage - Def: $playerDef)');
+          '💥 $enemyName hizo $estimatedNet de daño! (Bruto: $rawDamage - Def: $playerDef)');
 
       // Proceed to next turn
       Future.delayed(const Duration(seconds: 1), () {
@@ -683,8 +710,6 @@ class CombatManager {
       });
       return;
     }
-
-    // Get enemy abilities
     final combatStats = (stats as CombatStatsHolder).combatStats;
     final abilities = AbilityDatabase.getEnemyAbilities(enemyType);
 
@@ -774,6 +799,7 @@ class RenegadeDungeonGame extends FlameGame
   late TiledComponent mapComponent;
   late Player player;
   bool isPlayerReady = false;
+  final ValueNotifier<bool> isPlayerReadyNotifier = ValueNotifier<bool>(false);
   double accumulatedPlaytime = 0;
   DateTime? sessionCreatedAt;
   late TileLayer collisionLayer;
@@ -821,10 +847,12 @@ class RenegadeDungeonGame extends FlameGame
 
   // Save System
   int currentSlotIndex = 1;
-  late OfflineStorageService offlineStorage;
-  final CloudSaveService _cloudSaveService = CloudSaveService();
+  final OfflineStorageService offlineStorage;
+
   final AuthService _authService = AuthService();
   AuthService get authService => _authService;
+
+  RenegadeDungeonGame({required this.offlineStorage});
 
   @override
   Color backgroundColor() => Colors.transparent;
@@ -832,8 +860,6 @@ class RenegadeDungeonGame extends FlameGame
   @override
   Future<void> onLoad() async {
     // Initialize services
-    offlineStorage = OfflineStorageService(_cloudSaveService, _authService);
-    await offlineStorage.init();
 
     camera.viewfinder.zoom = cameraZoom;
     //camera.viewport.transparent = true;
@@ -850,24 +876,25 @@ class RenegadeDungeonGame extends FlameGame
       // Save game after purchase
       saveGame();
     });
-    await iapService.initialize();
+
+    try {
+      await iapService.initialize();
+    } catch (e) {
+      print('⚠️ Failed to initialize IAP (continuing anyway): $e');
+    }
 
     combatManager = CombatManager(this);
 
-    // 2. Carga el router. Su Ãºnica tarea es decidir quÃ© pantalla mostrar.
+    // 2. Carga el router. Su única tarea es decidir qué pantalla mostrar.
     add(
       router = RouterComponent(
         initialRoute: 'splash-screen',
         routes: {
           'splash-screen': Route(SplashScreen.new),
-
-          // --- Â¡LÃ“GICA CORREGIDA AQUÃ! ---
           'main-menu': Route(
               () => MenuRouteComponent('MainMenu', 'menu_background.mp4')),
-
           'slot-selection-menu': Route(() =>
               MenuRouteComponent('SlotSelectionMenu', 'slot_background.mp4')),
-
           'intro-screen': Route(() {
             return Component(children: [
               TimerComponent(
@@ -880,53 +907,42 @@ class RenegadeDungeonGame extends FlameGame
               ),
             ]);
           }),
-          'loading-screen': Route(() {
-            stopBackgroundVideo();
-            return Component(
-              children: [
-                TimerComponent(
-                  period: 0.01,
-                  repeat: false,
-                  onTick: () async {
-                    overlays.add('LoadingUI');
-                    try {
-                      final isNewGame =
-                          await loadGameData(); // Returns true if new game
-                      overlays.remove('LoadingUI');
-
-                      if (isNewGame) {
-                        router.pushReplacementNamed('intro-screen');
-                      } else {
-                        router.pushReplacementNamed('game-screen');
-                      }
-                    } catch (e) {
-                      print('❌ Error loading game data: $e');
-                      overlays.remove('LoadingUI');
-                      router.pushReplacementNamed('slot-selection-menu');
-                    }
-                  },
-                ),
-              ],
-            );
-          }),
+          'loading-screen': Route(LoadingRouteComponent.new),
           'game-screen': Route(GameScreen.new),
         },
       ),
     );
-    // Detiene cualquier mÃºsica que estÃ© sonando antes de empezar la nueva.
-    FlameAudio.bgm.stop();
-    // Reproduce la mÃºsica del menÃº en un bucle infinito.
-    FlameAudio.bgm.play('menu_music.ogg');
+
+    // Reproduce la música del menú
+    playMenuMusic();
   }
 
-  void playWorldMusic() {
-    FlameAudio.bgm.stop();
-    // Reproduce la música de la mazmorra en un bucle.
-    FlameAudio.bgm.play('dungeon_music.ogg');
+  Future<void> playMenuMusic() async {
+    try {
+      if (!FlameAudio.bgm.isPlaying) {
+        FlameAudio.bgm.stop();
+        await FlameAudio.bgm.play('menu_music.ogg');
+      }
+    } catch (e) {
+      print('⚠️ Error playing menu music: $e');
+    }
+  }
+
+  Future<void> playWorldMusic() async {
+    try {
+      FlameAudio.bgm.stop();
+      await FlameAudio.bgm.play('dungeon_music.ogg');
+    } catch (e) {
+      print('⚠️ Error playing world music: $e');
+    }
   }
 
   void stopMusic() {
-    FlameAudio.bgm.stop();
+    try {
+      FlameAudio.bgm.stop();
+    } catch (e) {
+      print('⚠️ Error stopping music: $e');
+    }
   }
 
   Future<bool> loadGameData() async {
@@ -1005,6 +1021,7 @@ class RenegadeDungeonGame extends FlameGame
       player.stats.loadEquipment(loadedEquipment);
 
       isPlayerReady = true;
+      isPlayerReadyNotifier.value = true;
       checkZoneTransition(player.position);
       return false; // Not a new game
     } else {
@@ -1051,6 +1068,7 @@ class RenegadeDungeonGame extends FlameGame
       player = Player(gridPosition: startPos);
 
       isPlayerReady = true;
+      isPlayerReadyNotifier.value = true;
       checkZoneTransition(player.position);
       return true; // Is a new game
     }
@@ -2075,13 +2093,18 @@ class RenegadeDungeonGame extends FlameGame
     }
   }
 
-  Future<void> playMenuMusic() async {
-    try {
-      FlameAudio.bgm.stop();
-      await FlameAudio.bgm.play('menu_music.ogg');
-    } catch (e) {
-      print(
-          '⚠️ Error playing menu music (harmless on web if autoplay blocked): $e');
-    }
+  void reset() {
+    stopMusic();
+    world.removeAll(world.children);
+    isPlayerReady = false;
+    isPlayerReadyNotifier.value = false;
+    overlays.clear();
+    currentZone = null;
+    playMenuMusic();
+  }
+
+  Future<void> preloadBackgroundVideo(String asset) async {
+    print('🎥 Preloading video: $asset');
+    // Optional: Pre-initialize controller if needed for smoother transition
   }
 }

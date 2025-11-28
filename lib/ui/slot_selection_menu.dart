@@ -97,7 +97,10 @@ class _SlotSelectionMenuState extends State<SlotSelectionMenu> {
                           return SlotCard(
                             slotNumber: slotIndex,
                             saveData: data,
-                            onTap: () => _onSlotSelected(slotIndex, data),
+                            onTap: () {
+                              print('👆 Tapped Slot $slotIndex');
+                              _onSlotSelected(slotIndex, data);
+                            },
                             onDelete: data != null
                                 ? () => _onDeleteSlot(slotIndex)
                                 : null,
@@ -111,11 +114,6 @@ class _SlotSelectionMenuState extends State<SlotSelectionMenu> {
                     print('🔙 Back button pressed');
                     // Swap to Main Menu
                     widget.game.router.pushReplacementNamed('main-menu');
-
-                    // Manual visual update (since MainMenu route is not rebuilt)
-                    widget.game.overlays.clear();
-                    widget.game.overlays.add('MainMenu');
-                    widget.game.playBackgroundVideo('menu_background.mp4');
                   },
                   icon: const Icon(Icons.arrow_back, color: Colors.white70),
                   label: Text(
@@ -132,8 +130,11 @@ class _SlotSelectionMenuState extends State<SlotSelectionMenu> {
   }
 
   void _onSlotSelected(int slotIndex, PlayerSaveData? data) {
+    print(
+        '👉 Slot $slotIndex selected. Data: ${data != null ? "Found" : "Empty"}');
     widget.game.currentSlotIndex = slotIndex;
-    widget.game.router.pushNamed('loading-screen');
+    print('🚀 Pushing loading-screen route...');
+    widget.game.router.pushReplacementNamed('loading-screen');
   }
 
   Future<void> _onDeleteSlot(int slotIndex) async {

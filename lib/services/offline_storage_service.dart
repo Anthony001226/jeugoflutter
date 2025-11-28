@@ -4,6 +4,8 @@ import '../models/player_save_data.dart';
 import 'cloud_save_service.dart';
 import 'auth_service.dart';
 
+import 'package:path_provider/path_provider.dart';
+
 class OfflineStorageService {
   static const String _boxName = 'game_saves';
   final CloudSaveService _cloudService;
@@ -17,9 +19,13 @@ class OfflineStorageService {
 
   // Initialize Hive
   Future<void> init() async {
-    await Hive.initFlutter();
+    // Explicitly set path for Windows persistence
+    final appDocumentDir = await getApplicationDocumentsDirectory();
+    Hive.init(appDocumentDir.path);
+
     _box = await Hive.openBox(_boxName);
-    print('📦 Hive initialized at: ${_box.path}');
+    print('📦 Hive initialized at: ${appDocumentDir.path}');
+    print('📦 Box path: ${_box.path}');
 
     // Start monitoring connectivity
     _monitorConnectivity();
@@ -96,10 +102,28 @@ class OfflineStorageService {
       final cloudData = await _cloudService.loadPlayerData(userId, slotNumber);
 
       if (cloudData != null) {
-        // Save to local
-        await saveLocally(slotNumber, cloudData);
-        print('⬇️ Downloaded Slot $slotNumber from cloud');
-        return cloudData;
+        // Check local data first
+        final localData = loadLocally(slotNumber);
+
+        if (localData != null) {
+          // Resolve conflict
+          if (cloudData.lastSaved.isAfter(localData.lastSaved)) {
+            print('☁️ Cloud save is newer. Overwriting local.');
+            await saveLocally(slotNumber, cloudData);
+            return cloudData;
+          } else {
+            print(
+                '💾 Local save is newer (or same). Keeping local and syncing up.');
+            // Upload local to cloud to ensure consistency
+            await _syncToCloud(slotNumber, localData);
+            return localData;
+          }
+        } else {
+          // No local data, safe to download
+          await saveLocally(slotNumber, cloudData);
+          print('⬇️ Downloaded Slot $slotNumber from cloud (new install)');
+          return cloudData;
+        }
       }
 
       return null;

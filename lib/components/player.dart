@@ -36,12 +36,7 @@ class Player extends SpriteComponent
   String currentDirection = 's'; // Default facing down
 
   Player({required this.gridPosition})
-      : super(
-            size: Vector2(64, 46),
-            anchor: Anchor(0.5, 1)); // Custom anchor: centered X, 70% down Y
-
-  @override
-  Future<void> onLoad() async {
+      : super(size: Vector2(64, 46), anchor: Anchor(0.5, 1)) {
     stats = PlayerStats(
       initialLevel: 1,
       initialMaxHp: 20,
@@ -50,6 +45,10 @@ class Player extends SpriteComponent
       initialDefense: 5,
     );
     stats.player = this;
+  }
+
+  @override
+  Future<void> onLoad() async {
     addItem(ItemDatabase.rustySword);
     addItem(ItemDatabase.leatherTunic);
 

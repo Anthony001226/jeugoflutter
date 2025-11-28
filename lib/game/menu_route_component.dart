@@ -20,4 +20,11 @@ class MenuRouteComponent extends Component
     game.overlays.add(overlayName);
     game.playBackgroundVideo(videoName);
   }
+
+  @override
+  void onRemove() {
+    print('🚩 Removing $overlayName route');
+    game.overlays.remove(overlayName);
+    super.onRemove();
+  }
 }

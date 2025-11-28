@@ -11,6 +11,9 @@ import 'package:renegade_dungeon/ui/main_menu.dart';
 import 'package:renegade_dungeon/ui/player_hud.dart';
 import 'package:renegade_dungeon/ui/slot_selection_menu.dart';
 import 'game/renegade_dungeon_game.dart';
+import 'services/auth_service.dart';
+import 'services/cloud_save_service.dart';
+import 'services/offline_storage_service.dart';
 import 'package:renegade_dungeon/ui/pause_menu_ui.dart';
 import 'package:renegade_dungeon/ui/combat_inventory_ui.dart';
 import 'package:renegade_dungeon/ui/map_transition_overlay.dart';
@@ -36,7 +39,8 @@ bool get isMobile {
 
 // El StatefulWidget que creamos está perfecto. No necesita cambios.
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final OfflineStorageService offlineStorage;
+  const MyApp({super.key, required this.offlineStorage});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -48,7 +52,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _game = RenegadeDungeonGame();
+    _game = RenegadeDungeonGame(offlineStorage: widget.offlineStorage);
     _game.videoPlayerControllerNotifier.addListener(() {
       setState(() {});
     });
@@ -56,9 +60,14 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    // print('--- PASO 3: Reconstruyendo UI... ---'); // Removed spammy log
+    // print('--- PASO 3: Reconstruyendo UI... ---');
+    print(
+        '🎨 Building UI. Video Controller: ${_game.videoPlayerControllerNotifier.value != null ? "Present" : "NULL"} | Initialized: ${_game.videoPlayerControllerNotifier.value?.value.isInitialized ?? false}');
     return Stack(
       children: [
+        // CAPA 0: Fondo Negro (Para rellenar letterboxing en Splash Screen)
+        Container(color: Colors.black),
+
         // CAPA 1: El Video de Fondo
         if (_game.videoPlayerControllerNotifier.value != null &&
             _game.videoPlayerControllerNotifier.value!.value.isInitialized)
@@ -125,14 +134,20 @@ void main() async {
     print('❌ Firebase initialization failed: $e');
   }
 
+  // Initialize Services
+  final authService = AuthService();
+  final cloudService = CloudSaveService();
+  final offlineStorage = OfflineStorageService(cloudService, authService);
+  await offlineStorage.init();
+
   // --- ¡AQUÍ ESTÁ LA SOLUCIÓN! ---
   // Envolvemos nuestro widget MyApp dentro de un MaterialApp.
   runApp(
-    const MaterialApp(
+    MaterialApp(
       // Esto quita la cinta de "Debug" de la esquina superior derecha.
       debugShowCheckedModeBanner: false,
       // Le decimos que nuestra página de inicio es el widget que ya creamos.
-      home: MyApp(),
+      home: MyApp(offlineStorage: offlineStorage),
     ),
   );
 }
