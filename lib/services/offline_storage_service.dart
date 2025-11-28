@@ -3,7 +3,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import '../models/player_save_data.dart';
 import 'cloud_save_service.dart';
 import 'auth_service.dart';
-
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path_provider/path_provider.dart';
 
 class OfflineStorageService {
@@ -19,13 +19,19 @@ class OfflineStorageService {
 
   // Initialize Hive
   Future<void> init() async {
-    // Explicitly set path for Windows persistence
-    final appDocumentDir = await getApplicationDocumentsDirectory();
-    Hive.init(appDocumentDir.path);
+    if (kIsWeb) {
+      // Web uses IndexedDB, no path needed
+      await Hive.initFlutter();
+      print('📦 Hive initialized for Web (IndexedDB)');
+    } else {
+      // Explicitly set path for Windows/Mobile persistence
+      final appDocumentDir = await getApplicationDocumentsDirectory();
+      await Hive.initFlutter(appDocumentDir.path);
+      print('📦 Hive initialized at: ${appDocumentDir.path}');
+    }
 
     _box = await Hive.openBox(_boxName);
-    print('📦 Hive initialized at: ${appDocumentDir.path}');
-    print('📦 Box path: ${_box.path}');
+    print('📦 Box opened: ${_box.name}');
 
     // Start monitoring connectivity
     _monitorConnectivity();

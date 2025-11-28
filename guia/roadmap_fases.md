@@ -55,10 +55,21 @@ El juego tiene un **Core Loop** funcional (Exploración -> Combate -> Loot -> Pr
 - [x] Intro y Spawn en Cementerio (ver que aparezca correctamente)
 - [x] Transiciones de Mapa
 
-### 🛠️ Fase 6: Pulido y Bugfix (Recién Terminado)
-- [x] Arreglo de HUD desaparecido. (ver que no desaparezca)
-- [x] Arreglo de carga de datos (Inventario/Equipo). (solo falta que detecte y guarde en disco y probar en nube)
-- [x] Optimización de salida en Web. (solo falta que detecte y guarde en disco y probar en nube)
+### 🛠️ Fase 6: Estabilización y Corrección de Errores (Completado)
+- [x] **Lógica de Combate:**
+    - Se arregló que enemigos muertos siguieran atacando.
+    - Se arregló el "doble ataque" del jugador (spam de habilidades).
+    - Se corrigió la finalización del combate al morir el último enemigo.
+- [x] **Persistencia Robusta (Save/Load):**
+    - **Web:** Implementado soporte para IndexedDB (sin path_provider).
+    - **Windows:** Implementado guardado en `Documents` para evitar pérdida de datos al reiniciar.
+    - **UI:** Añadido botón manual de "Guardar" en el menú de pausa.
+- [x] **Estabilidad de Carga:**
+    - **Web Freeze:** Se arregló la pantalla negra al cargar (la música ya no bloquea la carga).
+    - **Loading UI:** Se mejoró el feedback visual ("Loading World..." en ámbar).
+- [x] **Estructura del Código:**
+    - Restaurada la integridad de `RenegadeDungeonGame.dart`.
+    - Corregidos errores críticos de linter (`isPlayerReadyNotifier`).
 
 ---
 

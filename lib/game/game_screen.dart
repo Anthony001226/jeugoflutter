@@ -10,7 +10,8 @@ class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
   Future<void> onLoad() async {
     // --- FASE 1: PREPARACIÓN GENERAL ---
     // game.state = GameState.exploring; // MOVED to end
-    await game.playWorldMusic();
+    // Fire and forget music to prevent Web hang
+    game.playWorldMusic();
     game.overlays.clear();
     game.camera.viewfinder.anchor = Anchor.center;
 
