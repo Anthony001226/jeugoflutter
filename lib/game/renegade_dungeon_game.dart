@@ -956,6 +956,77 @@ class RenegadeDungeonGame extends FlameGame
     FlameAudio.bgm.stop();
   }
 
+  // ===== DEATH/REVIVE SYSTEM =====
+
+  /// Called when player HP reaches 0
+  void onPlayerDeath() {
+    state = GameState.inMenu;
+
+    // Check if player has gems for revival
+    if (player.stats.gems.value >= 5) {
+      // Show revive dialog
+      overlays.add('ReviveDialog');
+      print(
+          '💀 Murió - Dialog de revive mostrado (${player.stats.gems.value} gemas disponibles)');
+    } else {
+      // Normal death (no gems)
+      handleNormalDeath();
+    }
+  }
+
+  /// Revive with gems - preserves ALL gold and items
+  void handleRevive() {
+    // Spend gems
+    player.stats.gems.value -= 5;
+
+    // Restore HP/MP
+    player.stats.currentHp.value = player.stats.maxHp.value;
+    player.stats.currentMp.value = player.stats.maxMp.value;
+
+    // Gold and items preserved (no changes needed)
+    print('✨ Revivido con gemas. Oro preservado: ${player.stats.gold.value}');
+
+    // Respawn
+    respawnPlayer();
+
+    // Close dialog and resume game
+    overlays.remove('ReviveDialog');
+    state = GameState.exploring;
+  }
+
+  /// Normal death - loses 50% of gold
+  void handleNormalDeath() {
+    // Lose 50% of gold
+    final goldLost = (player.stats.gold.value * 0.5).floor();
+    player.stats.gold.value -= goldLost;
+
+    print(
+        '💀 Murió normalmente. Perdiste $goldLost oro (${player.stats.gold.value} restante)');
+
+    // Respawn at checkpoint
+    respawnPlayer();
+
+    // Resume game
+    state = GameState.exploring;
+  }
+
+  /// Respawn player at last checkpoint or spawn point
+  void respawnPlayer() {
+    // Teleport to spawn point (5, 5) - TODO: use last checkpoint
+    final spawnPoint = Vector2(5, 5);
+    player.gridPosition = spawnPoint;
+    player.position = gridToScreenPosition(spawnPoint);
+
+    // Reset HP/MP
+    player.stats.currentHp.value = player.stats.maxHp.value;
+    player.stats.currentMp.value = player.stats.maxMp.value;
+
+    // Reset death flag
+    player.isDead = false;
+
+    print('🏥 Respawneado en $spawnPoint');
+  }
+
   void startCombat(String enemyType) async {
     state = GameState.inCombat;
     player.showSurpriseEmote();

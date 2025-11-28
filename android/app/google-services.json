@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "684085714964",
+    "project_id": "renegade-dungeon",
+    "storage_bucket": "renegade-dungeon.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:684085714964:android:736adacc0362da80464701",
+        "android_client_info": {
+          "package_name": "com.example.renegade_dungeon"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCc4dm31FEkjZ8by0IT4a330l5eoEpAPAI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

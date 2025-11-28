@@ -57,6 +57,13 @@ class PlayerStats {
   /// List of quest IDs that have been completed (future use)
   final Set<String> completedQuests = {};
 
+  // ===== NEW: Currency for Death/Revive System =====
+  /// Gold/money - lost 50% on normal death
+  final ValueNotifier<int> gold = ValueNotifier(0);
+
+  /// Gems - used for revival (5 gems to revive and keep all gold)
+  final ValueNotifier<int> gems = ValueNotifier(0);
+
   PlayerStats({
     required int initialLevel,
     required int initialMaxHp,

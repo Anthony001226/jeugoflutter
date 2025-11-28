@@ -3,6 +3,8 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:renegade_dungeon/ui/combat_ui.dart';
 import 'package:renegade_dungeon/ui/loading_ui.dart';
 import 'package:renegade_dungeon/ui/main_menu.dart';
@@ -14,6 +16,7 @@ import 'package:renegade_dungeon/ui/combat_inventory_ui.dart';
 import 'package:renegade_dungeon/ui/map_transition_overlay.dart';
 import 'package:renegade_dungeon/ui/barrier_dialog_ui.dart';
 import 'package:renegade_dungeon/ui/dialogue_ui.dart';
+import 'package:renegade_dungeon/ui/revive_dialog.dart';
 
 // El StatefulWidget que creamos está perfecto. No necesita cambios.
 class MyApp extends StatefulWidget {
@@ -78,6 +81,7 @@ class _MyAppState extends State<MyApp> {
                   isBlocked: game.currentBarrierIsBlocked,
                 ),
             'DialogueUI': (context, game) => DialogueUI(game: game),
+            'ReviveDialog': (context, game) => ReviveDialog(game: game),
           },
         ),
       ],
@@ -85,8 +89,18 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('✅ Firebase initialized');
+  } catch (e) {
+    print('❌ Firebase initialization failed: $e');
+  }
 
   // --- ¡AQUÍ ESTÁ LA SOLUCIÓN! ---
   // Envolvemos nuestro widget MyApp dentro de un MaterialApp.

@@ -25,6 +25,7 @@ class Player extends SpriteComponent
   double _moveCooldown = 0.0;
   static const double moveCooldownDuration = 0.15; // 150ms entre movimientos
   bool _isMoving = false;
+  bool isDead = false; // Death/revive system flag
 
   // NEW: Directional sprites
   late Sprite spriteUp; // W
