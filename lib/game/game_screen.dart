@@ -8,72 +8,81 @@ import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
   @override
   Future<void> onLoad() async {
-    // --- FASE 1: PREPARACIÓN GENERAL ---
-    // game.state = GameState.exploring; // MOVED to end
-    // Fire and forget music to prevent Web hang
-    game.playWorldMusic();
-    game.overlays.clear();
-    game.camera.viewfinder.anchor = Anchor.center;
+    print('🎮 GameScreen.onLoad() started');
 
-    // Ensure world is mounted
-    if (!game.world.isMounted) {
-      game.add(game.world);
-      print('🌍 World re-mounted in GameScreen');
+    try {
+      // Play world music
+      game.playWorldMusic();
+      game.overlays.clear();
+      game.camera.viewfinder.anchor = Anchor.center;
+
+      // Ensure world is mounted
+      if (!game.world.isMounted) {
+        game.add(game.world);
+        print('🌍 World re-mounted');
+      }
+
+      // Add background
+      print('📐 Adding background...');
+      final mapSize = game.mapComponent.size;
+      await game.world.add(
+        RectangleComponent(
+          size: mapSize,
+          paint: BasicPalette.black.paint(),
+          priority: -1,
+        ),
+      );
+
+      // Add map if not already added
+      if (!game.world.contains(game.mapComponent)) {
+        print('🗺️ Adding mapComponent to world');
+        await game.world.add(game.mapComponent);
+      } else {
+        print('⚠️ mapComponent already in world');
+      }
+
+      // Add player if not already added
+      if (!game.world.contains(game.player)) {
+        print('🧍 Adding player to world');
+        await game.world.add(game.player);
+      } else {
+        print('⚠️ player already in world');
+      }
+
+      // Setup camera and UI
+      print('📷 Setting up camera and UI');
+      game.camera.follow(game.player);
+
+      // Force camera to snap to player position immediately
+      print('📷 Snapping camera to player at ${game.player.position}');
+      game.camera.viewfinder.position = game.player.position.clone();
+
+      // Small delay to ensure camera updates
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Set player ready FIRST (so HUD builder knows player is ready)
+      game.isPlayerReadyNotifier.value = true;
+
+      // THEN add HUD overlay
+      game.overlays.add('PlayerHud');
+
+      // Set game state
+      game.state = GameState.exploring;
+
+      print('✅ GameScreen.onLoad() completed successfully');
+    } catch (e, stack) {
+      print('❌ ERROR in GameScreen.onLoad(): $e');
+      print('Stack trace: $stack');
+      rethrow;
     }
-
-    // --- FASE 2: CONSTRUIR EL MUNDO VISUAL ---
-    // Añadimos los componentes al 'world' de ESTA pantalla.
-
-    // Primero, el fondo negro, usando el tamaño del mapa que ya fue cargado.
-    await game.world.add(
-      RectangleComponent(
-        size: game.mapComponent.size,
-        paint: BasicPalette.black.paint(),
-        priority: -1,
-      ),
-    );
-
-    // Segundo, el mapa.
-    await game.world.add(game.mapComponent);
-
-    // Tercero, el jugador. 'await' asegura que su propio onLoad() se complete.
-    await game.world.add(game.player);
-
-    // --- FASE 3: RESETEAR EL ESTADO DEL JUGADOR ---
-    // REMOVED: Player state is already set by loadGameData()
-    // game.player.stats.currentHp.value = game.player.stats.maxHp.value;
-    // game.player.stats.currentMp.value = game.player.stats.maxMp.value;
-    // game.player.gridPosition = Vector2(20.0, 20.0);
-    // game.player.position = game.gridToScreenPosition(game.player.gridPosition);
-
-    // --- FASE 4: AÑADIR OBJETOS DINÁMICOS ---
-    // La carga de cofres ahora se maneja en RenegadeDungeonGame._loadChests()
-    // para soportar múltiples mapas y transiciones.
-
-    // --- FASE 5: CONFIGURACIÓN FINAL DE LA UI ---
-    game.camera.follow(game.player);
-    game.overlays.add('PlayerHud');
-
-    // Notify HUD that player is ready (triggers rebuild)
-    // This MUST happen after player is added to world so isMounted is true
-    game.isPlayerReadyNotifier.value = true;
-
-    // Enable game logic only after everything is ready
-    game.state = GameState.exploring;
   }
 
   @override
   void onRemove() {
-    // Detiene la música
     game.stopMusic();
-
-    // Remueve los overlays del juego
     game.overlays.remove('PlayerHud');
     game.overlays.remove('PauseMenuUI');
-
-    // Reset HUD ready state so it rebuilds correctly next time
     game.isPlayerReadyNotifier.value = false;
-
     super.onRemove();
   }
 }

@@ -106,6 +106,15 @@ class CombatManager {
     startNewCombatMulti([enemyType]);
   }
 
+  // NEW: Boss Combat Support
+  String? currentBossId;
+
+  void startBossCombat(String bossId, String enemyType) {
+    print('⚔️ Iniciando BOSS FIGHT: $bossId ($enemyType)');
+    startNewCombatMulti([enemyType]);
+    currentBossId = bossId; // Set AFTER clearing state
+  }
+
   /// Start combat against multiple enemies with Individual Initiative
   void startNewCombatMulti(List<String> enemyTypes) {
     print(
@@ -119,7 +128,9 @@ class CombatManager {
     currentEnemy = null;
     selectedTargetIndex = 0;
     turnQueue.clear();
+    turnQueue.clear();
     currentTurnIndex = -1;
+    currentBossId = null; // Clear boss state for normal fights
 
     // 2. Create enemies
     for (int i = 0; i < enemyTypes.length; i++) {
@@ -401,7 +412,14 @@ class CombatManager {
       if (isMultiEnemy) {
         // Check if this is the LAST enemy
         if (currentEnemies.length == 1) {
-          print('ðŸŽ‰ Â¡Ãšltimo enemigo derrotado!');
+          print('🎉 ¡Último enemigo derrotado!');
+
+          // NEW: Boss Persistence
+          if (currentBossId != null) {
+            game.player.stats.defeatBoss(currentBossId!);
+            print('🏆 Boss Persistence: Saved kill for $currentBossId');
+          }
+
           // NEW: Award all XP at END of battle
           game.player.stats.gainXp(totalXpEarned);
           print('â­ XP TOTAL GANADO: $totalXpEarned');
@@ -412,17 +430,6 @@ class CombatManager {
 
         _removeDefeatedEnemy(selectedTargetIndex);
 
-        // Check if all enemies defeated (Should be covered by above check, but safety first)
-        if (currentEnemies.isEmpty) {
-          print('ðŸŽ‰ Â¡Todos los enemigos derrotados!');
-          // NEW: Award all XP (safety check)
-          game.player.stats.gainXp(totalXpEarned);
-          print('â­ XP TOTAL GANADO: $totalXpEarned');
-          return; // Combat ends - all enemies dead
-        }
-
-        // More enemies remain, continue to next turn in queue
-        print('â³ Enemigo derrotado. Siguiente turno...');
         Future.delayed(const Duration(seconds: 1), () {
           nextTurn();
         });
@@ -847,6 +854,8 @@ class RenegadeDungeonGame extends FlameGame
 
   // Save System
   int currentSlotIndex = 1;
+  bool isNewGameFlag = true; // Track if current game is new or loaded
+  int introNavigationCount = 0; // Force IntroScreen recreation
   final OfflineStorageService offlineStorage;
 
   final AuthService _authService = AuthService();
@@ -902,6 +911,8 @@ class RenegadeDungeonGame extends FlameGame
                 repeat: false,
                 onTick: () {
                   overlays.clear();
+                  // Force removal before adding to ensure recreation
+                  overlays.remove('IntroScreen');
                   overlays.add('IntroScreen');
                 },
               ),
@@ -957,15 +968,26 @@ class RenegadeDungeonGame extends FlameGame
     // 2. Load the determined map
     try {
       // Remove existing map if any
-      if (world.contains(mapComponent)) {
-        world.remove(mapComponent);
+      try {
+        if (world.contains(mapComponent)) {
+          world.remove(mapComponent);
+        }
+      } catch (e) {
+        // mapComponent not initialized yet, nothing to remove
       }
 
+      print('🗺️ Attempting to load map: $mapToLoad');
       mapComponent =
           await TiledComponent.load(mapToLoad, Vector2(tileWidth, tileHeight));
       currentMapName = mapToLoad;
-    } catch (e) {
+
+      print('✅ Map loaded: $mapToLoad');
+      print(
+          '   Layers found: ${mapComponent.tileMap.renderableLayers.map((l) => l.layer.name).join(', ')}');
+    } catch (e, stack) {
       print('⚠️ Could not load $mapToLoad, falling back to dungeon.tmx');
+      print('Error details: $e');
+      print('Stack trace: $stack');
       mapComponent = await TiledComponent.load(
           'dungeon.tmx', Vector2(tileWidth, tileHeight));
       currentMapName = 'dungeon.tmx';
@@ -994,6 +1016,7 @@ class RenegadeDungeonGame extends FlameGame
       // Restore progression
       discoveredZones.addAll(saveData.discoveredMaps);
       openedChests.addAll(saveData.openedChests);
+      player.stats.defeatedBosses.addAll(saveData.defeatedBosses);
 
       // Restore Inventory
       final loadedInventory = <InventorySlot>[];
@@ -1067,6 +1090,10 @@ class RenegadeDungeonGame extends FlameGame
           '🚀 Spawning player at Grid: $startPos (Pixels: ${startPos.x * tileWidth}, ${startPos.y * tileHeight})');
       player = Player(gridPosition: startPos);
 
+      // Add default items for new game ONLY
+      player.addItem(ItemDatabase.rustySword);
+      player.addItem(ItemDatabase.leatherTunic);
+
       isPlayerReady = true;
       isPlayerReadyNotifier.value = true;
       checkZoneTransition(player.position);
@@ -1099,7 +1126,7 @@ class RenegadeDungeonGame extends FlameGame
       gems: player.stats.gems.value,
       discoveredMaps: discoveredZones.toList(),
       openedChests: openedChests.toList(),
-      defeatedBosses: [],
+      defeatedBosses: player.stats.defeatedBosses.toList(),
       activeQuests: [],
       completedQuests: [],
       lastSaved: DateTime.now(),
@@ -2091,6 +2118,67 @@ class RenegadeDungeonGame extends FlameGame
     } catch (e) {
       print('⚠️ Error stopping video: $e');
     }
+  }
+
+  /// Clear all game components from the world (for clean save loading)
+  /// Unlike reset(), this doesn't play menu music or clear overlays
+  void clearWorld() {
+    print('🧹 Clearing world components...');
+
+    // Remove map component if exists (handle late initialization)
+    try {
+      if (world.contains(mapComponent)) {
+        mapComponent.removeFromParent();
+        print('  - Removed mapComponent');
+      }
+    } catch (e) {
+      // mapComponent not initialized yet (first load), skip
+      print('  - mapComponent not initialized, skipping');
+    }
+
+    // Remove player if exists and mounted (handle late initialization)
+    try {
+      if (isPlayerReady && world.contains(player)) {
+        player.removeFromParent();
+        print('  - Removed player');
+      }
+    } catch (e) {
+      // player not initialized yet (first load), skip
+      print('  - player not initialized, skipping');
+    }
+
+    // Remove all chests
+    final chests = world.children.whereType<Chest>().toList();
+    for (final chest in chests) {
+      chest.removeFromParent();
+    }
+    if (chests.isNotEmpty) print('  - Removed ${chests.length} chests');
+
+    // Remove all NPCs
+    for (final npc in npcComponents) {
+      npc.removeFromParent();
+    }
+    if (npcComponents.isNotEmpty)
+      print('  - Removed ${npcComponents.length} NPCs');
+    npcComponents.clear();
+    npcs.clear();
+
+    // Remove all portal visuals
+    final portals = world.children.whereType<PortalVisual>().toList();
+    for (final portal in portals) {
+      portal.removeFromParent();
+    }
+    if (portals.isNotEmpty)
+      print('  - Removed ${portals.length} portal visuals');
+
+    // Reset player ready state
+    isPlayerReady = false;
+    isPlayerReadyNotifier.value = false;
+
+    // Reset zone state
+    currentZone = null;
+
+    print('✅ World cleared successfully');
   }
 
   void reset() {

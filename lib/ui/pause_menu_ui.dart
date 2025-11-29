@@ -68,30 +68,6 @@ class PauseMenuUI extends StatelessWidget {
 
                   const SizedBox(width: 16),
 
-                  // Botón Guardar Partida
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      await game.saveGame();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Partida Guardada Exitosamente'),
-                          backgroundColor: Colors.green,
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.save),
-                    label: const Text('Guardar'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2196F3),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                    ),
-                  ),
-
-                  const SizedBox(width: 16),
-
                   // Botón Volver al Menú Principal
                   ElevatedButton.icon(
                     onPressed: () {
@@ -104,7 +80,7 @@ class PauseMenuUI extends StatelessWidget {
                             style: TextStyle(color: Colors.white),
                           ),
                           content: const Text(
-                            '¿Estás seguro de que quieres volver al menú?\nTodo el progreso no guardado se perderá.',
+                            '¿Estás seguro de que quieres volver al menú?\nTu progreso se guardará automáticamente.',
                             style: TextStyle(color: Colors.white70),
                           ),
                           actions: [

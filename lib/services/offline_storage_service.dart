@@ -41,8 +41,19 @@ class OfflineStorageService {
   Future<void> saveLocally(int slotNumber, PlayerSaveData data) async {
     try {
       final key = 'slot_$slotNumber';
+      print('💾 Saving to $key...');
       await _box.put(key, data.toJson());
       await _box.flush(); // Force write to disk
+      print('💾 Flushed to disk');
+
+      // Verify save was successful
+      final verification = _box.get(key);
+      if (verification == null) {
+        print('❌ Verification failed: data not found after save!');
+      } else {
+        print('✅ Save verified: data exists in box');
+      }
+
       _currentSlot = slotNumber;
       print('✅ Saved locally to Slot $slotNumber');
 
@@ -59,6 +70,7 @@ class OfflineStorageService {
   PlayerSaveData? loadLocally(int slotNumber) {
     try {
       final key = 'slot_$slotNumber';
+      print('📂 Loading from $key...');
       final data = _box.get(key);
 
       if (data == null) {
@@ -67,6 +79,7 @@ class OfflineStorageService {
       }
 
       print('✅ Loaded from local storage (Slot $slotNumber)');
+      print('   Level: ${data['level']}, Map: ${data['currentMap']}');
       return PlayerSaveData.fromJson(Map<String, dynamic>.from(data));
     } catch (e) {
       print('❌ Error loading locally: $e');
