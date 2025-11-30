@@ -81,9 +81,19 @@ El juego tiene un **Core Loop** funcional (Exploración -> Combate -> Loot -> Pr
 
 ## 🔮 Pasos Siguientes (Para continuar en la escuela)
 
-### Próxima Sesión: Contenido de Jefe
-- [ ] **Diseño de Nivel:** Crear área específica para el Jefe en Tiled (`boss_area.tmx`).
-- [ ] **Scripting:** Configurar el trigger de inicio de combate (`startBossCombat`).
+### Próxima Sesión: Contenido de Jefe (Para hacer en la escuela)
+- [ ] **Diseño de Nivel (Tiled):**
+    - Crear nuevo mapa: `boss_area.tmx` (30x30 tiles).
+    - **Capas necesarias:** `Ground`, `Walls`, `Decorations`.
+    - **Capa de Objetos (`Objects`):**
+        - `Spawn`: Punto de entrada del jugador.
+        - `BossTrigger`: Objeto rectangular para iniciar combate.
+            - Propiedad custom: `bossId` (String) = "minotaur_boss"
+            - Propiedad custom: `enemyType` (String) = "minotaur"
+    - **Capa de Portales (`Portals`):**
+        - Portal de salida de vuelta al `dungeon.tmx`.
+- [ ] **Scripting (Código):**
+    - Configurar el trigger en `RenegadeDungeonGame.dart` para llamar a `startBossCombat`.
 
 ### Fase 7: Audio y Atmósfera (Prioridad Media)
 - [ ] **Sistema de Música Dinámica:** Cambiar música suavemente entre Exploración y Combate.
