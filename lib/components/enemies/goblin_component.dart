@@ -1,6 +1,7 @@
 // lib/components/goblin_component.dart
 
 import 'package:flame/components.dart';
+import 'package:flame/events.dart'; // Import for TapCallbacks
 import 'package:renegade_dungeon/models/enemy_stats.dart';
 import 'package:renegade_dungeon/models/inventory_item.dart';
 import 'package:renegade_dungeon/models/combat_stats.dart';
@@ -52,7 +53,8 @@ class GoblinStats extends EnemyStats implements CombatStatsHolder {
 }
 
 // Lo convertimos en SpriteAnimationComponent para que sea del mismo tipo que el Slime
-class GoblinComponent extends SpriteAnimationComponent {
+class GoblinComponent extends SpriteAnimationComponent
+    with HasGameReference<RenegadeDungeonGame>, TapCallbacks {
   late final GoblinStats stats;
 
   GoblinComponent() : super(size: Vector2.all(128)) {
@@ -81,5 +83,11 @@ class GoblinComponent extends SpriteAnimationComponent {
         textureSize: sprite.srcSize,
       ),
     );
+  }
+
+  @override
+  void onTapDown(TapDownEvent event) {
+    game.combatManager.selectTarget(this);
+    super.onTapDown(event);
   }
 }

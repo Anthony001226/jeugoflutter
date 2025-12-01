@@ -191,6 +191,9 @@ class Player extends SpriteComponent
   }
 
   void move(Vector2 direction) async {
+    // Update sprite direction based on movement
+    _updateSpriteDirection(direction);
+
     final targetGridPosition = gridPosition + direction;
 
     // NEW: Check if blocked by conditional barrier

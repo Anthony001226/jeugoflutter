@@ -83,7 +83,7 @@ class _MobileControlsOverlayState extends State<MobileControlsOverlay> {
           bottom: 20,
           child: VirtualJoystick(
             onDirectionChanged: _handleJoystickMove,
-            size: 130,
+            size: 90,
           ),
         ),
         Positioned(
@@ -102,21 +102,21 @@ class _MobileControlsOverlayState extends State<MobileControlsOverlay> {
                     onPressed: () {
                       widget.game.overlays.add('FullMap');
                     },
-                    size: 60,
+                    size: 45,
                   ),
                   const SizedBox(width: 12),
                   ActionButton(
                     icon: Icons.chat_bubble_outline,
                     color: Colors.blue,
                     onPressed: _handleInteract,
-                    size: 60,
+                    size: 45,
                   ),
                   const SizedBox(width: 12),
                   ActionButton(
                     icon: Icons.menu,
                     color: Colors.purple,
                     onPressed: _handleMenu,
-                    size: 60,
+                    size: 45,
                   ),
                 ],
               ),
@@ -125,7 +125,7 @@ class _MobileControlsOverlayState extends State<MobileControlsOverlay> {
                 icon: Icons.flash_on,
                 color: Colors.red.shade700,
                 onPressed: _handleAttack,
-                size: 75,
+                size: 55,
               ),
             ],
           ),

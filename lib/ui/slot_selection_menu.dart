@@ -44,96 +44,107 @@ class _SlotSelectionMenuState extends State<SlotSelectionMenu> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isSmallScreen = size.width < 800;
+
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.black.withOpacity(0.6),
-              Colors.black.withOpacity(0.9),
-            ],
-          ),
-        ),
-        child: Center(
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 800),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 50),
-                FutureBuilder<List<PlayerSaveData?>>(
-                  future: _slotsFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      );
-                    }
-
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          'Error loading saves',
-                          style: GoogleFonts.cinzel(color: Colors.red),
-                        ),
-                      );
-                    }
-
-                    final slots = snapshot.data ?? [null, null, null];
-
-                    return ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: 3,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: 20),
-                        itemBuilder: (context, index) {
-                          final slotIndex = index + 1;
-                          final data = slots[index];
-                          return SlotCard(
-                            slotNumber: slotIndex,
-                            saveData: data,
-                            onTap: () {
-                              print('👆 Tapped Slot $slotIndex');
-                              _onSlotSelected(slotIndex, data);
-                            },
-                            onDelete: data != null
-                                ? () => _onDeleteSlot(slotIndex)
-                                : null,
-                          );
-                        });
-                  },
-                ),
-                const SizedBox(height: 20),
-                TextButton.icon(
-                  onPressed: () {
-                    print('🔙 Back button pressed');
-                    // Swap to Main Menu
-                    widget.game.router.pushReplacementNamed('main-menu');
-                  },
-                  icon: const Icon(Icons.arrow_back, color: Colors.white70),
-                  label: Text(
-                    'BACK',
-                    style: GoogleFonts.cinzel(color: Colors.white70),
-                  ),
-                ),
+        backgroundColor: Colors.transparent,
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withOpacity(0.6),
+                Colors.black.withOpacity(0.9),
               ],
             ),
           ),
-        ),
-      ),
-    );
+          child: SafeArea(
+            child: SingleChildScrollView(
+              child: Center(
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxWidth: isSmallScreen ? size.width * 0.95 : 800,
+                  ),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: isSmallScreen ? 10 : 20,
+                      vertical: isSmallScreen ? 5 : 10),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(height: isSmallScreen ? 5 : 10),
+                      FutureBuilder<List<PlayerSaveData?>>(
+                        future: _slotsFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.white),
+                            );
+                          }
+
+                          if (snapshot.hasError) {
+                            return Center(
+                              child: Text(
+                                'Error loading saves',
+                                style: GoogleFonts.cinzel(color: Colors.red),
+                              ),
+                            );
+                          }
+
+                          final slots = snapshot.data ?? [null, null, null];
+
+                          return ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: 3,
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 10),
+                              itemBuilder: (context, index) {
+                                final slotIndex = index + 1;
+                                final data = slots[index];
+                                return SlotCard(
+                                  slotNumber: slotIndex,
+                                  saveData: data,
+                                  onTap: () {
+                                    print('👆 Tapped Slot $slotIndex');
+                                    _onSlotSelected(slotIndex, data);
+                                  },
+                                  onDelete: data != null
+                                      ? () => _onDeleteSlot(slotIndex)
+                                      : null,
+                                );
+                              });
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      TextButton.icon(
+                        onPressed: () {
+                          print('🔙 Back button pressed');
+                          // Swap to Main Menu
+                          widget.game.router.pushReplacementNamed('main-menu');
+                        },
+                        icon:
+                            const Icon(Icons.arrow_back, color: Colors.white70),
+                        label: Text(
+                          'BACK',
+                          style: GoogleFonts.cinzel(color: Colors.white70),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ));
   }
 
   void _onSlotSelected(int slotIndex, PlayerSaveData? data) {
-    print(
-        '👉 Slot $slotIndex selected. Data: ${data != null ? "Found" : "Empty"}');
     widget.game.currentSlotIndex = slotIndex;
-    print('🚀 Pushing loading-screen route...');
     widget.game.router.pushReplacementNamed('loading-screen');
   }
 
@@ -211,7 +222,7 @@ class _SlotCardState extends State<SlotCard> {
         child: AnimatedContainer(
           transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
           duration: const Duration(milliseconds: 200),
-          height: 100,
+          height: 70, // Reduced from 100 for mobile
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: _isHovered
@@ -251,12 +262,12 @@ class _SlotCardState extends State<SlotCard> {
             children: [
               // Slot Number
               Container(
-                width: 80,
+                width: 60,
                 alignment: Alignment.center,
                 child: Text(
                   '${widget.slotNumber}',
                   style: GoogleFonts.cinzel(
-                    fontSize: 48,
+                    fontSize: 36,
                     color: Colors.white.withOpacity(0.2),
                     fontWeight: FontWeight.bold,
                   ),
@@ -282,16 +293,16 @@ class _SlotCardState extends State<SlotCard> {
                           children: [
                             // Character Icon / Class Icon (Placeholder)
                             Container(
-                              width: 60,
-                              height: 60,
+                              width: 40,
+                              height: 40,
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.05),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(Icons.person,
-                                  color: Colors.white54, size: 30),
+                                  color: Colors.white54, size: 20),
                             ),
-                            const SizedBox(width: 20),
+                            const SizedBox(width: 10),
 
                             // Stats
                             Expanded(
@@ -303,18 +314,18 @@ class _SlotCardState extends State<SlotCard> {
                                     'Level ${widget.saveData!.level}',
                                     style: GoogleFonts.cinzel(
                                       color: Colors.white,
-                                      fontSize: 18,
+                                      fontSize: 14,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  const SizedBox(height: 5),
+                                  const SizedBox(height: 2),
                                   Text(
                                     widget.saveData!.currentMap
                                         .replaceAll('.tmx', '')
                                         .toUpperCase(),
                                     style: GoogleFonts.cinzel(
                                       color: Colors.white70,
-                                      fontSize: 14,
+                                      fontSize: 10,
                                     ),
                                   ),
                                 ],

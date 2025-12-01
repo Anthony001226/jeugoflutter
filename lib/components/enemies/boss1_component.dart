@@ -1,12 +1,14 @@
 // lib/components/enemies/boss1_component.dart
 
 import 'package:flame/components.dart';
+import 'package:flame/events.dart';
 import 'package:renegade_dungeon/models/combat_stats.dart';
 import 'package:renegade_dungeon/models/combat_stats_holder.dart';
 import 'package:renegade_dungeon/models/combat_ability.dart';
 import 'package:renegade_dungeon/models/ability_database.dart';
 import 'package:renegade_dungeon/models/inventory_item.dart';
 import 'package:renegade_dungeon/models/enemy_stats.dart';
+import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 
 // Boss1 Stats - Implementa CombatStatsHolder para el sistema de combate
 class Boss1Stats extends EnemyStats implements CombatStatsHolder {
@@ -41,7 +43,8 @@ class Boss1Stats extends EnemyStats implements CombatStatsHolder {
   }
 }
 
-class Boss1Component extends SpriteAnimationComponent with HasGameReference {
+class Boss1Component extends SpriteAnimationComponent
+    with HasGameReference<RenegadeDungeonGame>, TapCallbacks {
   late final Boss1Stats stats;
   late final List<CombatAbility> abilities;
 
@@ -86,12 +89,6 @@ class Boss1Component extends SpriteAnimationComponent with HasGameReference {
     // IDLE1 - La única animación que tienes actualmente
     // Como no hay frameTags en el JSON, cargamos todos los frames como idle1
     _animations['idle1'] = await asepriteData.getAllFramesAnimation(image);
-
-    // TODO: Agregar más adelante cuando tengas los sprites
-    // _animations['idle2'] = await asepriteData.getAnimation('idle2', image);
-    // _animations['ataque'] = await asepriteData.getAnimation('ataque', image);
-    // _animations['pesado'] = await asepriteData.getAnimation('pesado', image);
-    // _animations['ulti'] = await asepriteData.getAnimation('ulti', image);
   }
 
   /// Cambia la animación actual
@@ -104,6 +101,12 @@ class Boss1Component extends SpriteAnimationComponent with HasGameReference {
 
   /// Obtiene la animación actual
   String get currentAnimation => _currentAnimationKey;
+
+  @override
+  void onTapDown(TapDownEvent event) {
+    game.combatManager.selectTarget(this);
+    super.onTapDown(event);
+  }
 }
 
 // Clase helper para parsear los datos de Aseprite

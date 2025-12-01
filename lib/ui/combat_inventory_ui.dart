@@ -17,46 +17,86 @@ class CombatInventoryUI extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.black.withOpacity(0.7),
-      body: Center(
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: const Color(0xFF111111),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white54),
-          ),
-          constraints: const BoxConstraints(maxWidth: 400),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Usar Objeto', style: TextStyle(color: Colors.white, fontSize: 24)),
-              const SizedBox(height: 16),
-              
-              // Si no hay objetos usables, mostramos un mensaje.
-              if (usableItems.isEmpty)
-                const Text('No tienes objetos usables.', style: TextStyle(color: Colors.grey)),
-              
-              // Creamos una lista de objetos.
-              ...usableItems.map((slot) => ListTile(
-                    title: Text(slot.item.name, style: const TextStyle(color: Colors.white)),
-                    trailing: Text('x${slot.quantity}', style: const TextStyle(color: Colors.white)),
-                    onTap: () {
-                      game.combatManager.playerUseItem(slot);
-                      // En el siguiente paso, esto usará el objeto y pasará el turno.
-                      print('¡Usar ${slot.item.name}!');
-                      game.overlays.remove('CombatInventoryUI'); // Cierra este menú
-                    },
-                  )),
-              
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  // Cierra el menú de objetos sin hacer nada.
-                  game.overlays.remove('CombatInventoryUI');
-                },
-                child: const Text('Cancelar'),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF111111),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white54),
               ),
-            ],
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Usar Objeto',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+
+                  // Si no hay objetos usables, mostramos un mensaje.
+                  if (usableItems.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Text('No tienes objetos usables.',
+                          style: TextStyle(color: Colors.grey)),
+                    ),
+
+                  // Creamos una lista de objetos.
+                  if (usableItems.isNotEmpty)
+                    Container(
+                      constraints: const BoxConstraints(maxHeight: 300),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: usableItems.length,
+                        separatorBuilder: (context, index) =>
+                            const Divider(color: Colors.white24, height: 1),
+                        itemBuilder: (context, index) {
+                          final slot = usableItems[index];
+                          return ListTile(
+                            contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 8),
+                            dense: true,
+                            title: Text(slot.item.name,
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 14)),
+                            trailing: Text('x${slot.quantity}',
+                                style: const TextStyle(
+                                    color: Colors.white70, fontSize: 12)),
+                            onTap: () {
+                              game.combatManager.playerUseItem(slot);
+                              print('¡Usar ${slot.item.name}!');
+                              game.overlays.remove(
+                                  'CombatInventoryUI'); // Cierra este menú
+                            },
+                          );
+                        },
+                      ),
+                    ),
+
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade900,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: () {
+                        game.overlays.remove('CombatInventoryUI');
+                      },
+                      child: const Text('Cancelar',
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

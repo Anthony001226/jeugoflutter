@@ -172,20 +172,6 @@ class _GemShopScreenState extends State<GemShopScreen> {
               'Make sure you are connected to the internet',
               style: TextStyle(color: Colors.white54, fontSize: 14),
             ),
-            // Mock button for testing without store connection
-            const SizedBox(height: 24),
-            ElevatedButton(
-              style:
-                  ElevatedButton.styleFrom(backgroundColor: Colors.grey[800]),
-              onPressed: () {
-                // Mock purchase for 10 gems
-                widget.game.iapService.onGemsPurchased(10);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Mock purchase: +10 Gems')),
-                );
-              },
-              child: const Text('TEST: Add 10 Gems (Free)'),
-            ),
           ],
         ),
       );
