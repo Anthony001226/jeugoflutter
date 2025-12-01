@@ -1,10 +1,13 @@
-// lib/components/slime_component.dart
+// lib/components/enemies/slime_component.dart
 
 import 'package:flame/components.dart';
+import 'package:flame/events.dart';
 import 'package:renegade_dungeon/models/enemy_stats.dart';
 import 'package:renegade_dungeon/models/inventory_item.dart';
+import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 
-class SlimeComponent extends SpriteAnimationComponent with HasGameReference {
+class SlimeComponent extends SpriteAnimationComponent
+    with HasGameReference<RenegadeDungeonGame>, TapCallbacks {
   late final EnemyStats stats;
 
   final Map<String, SpriteAnimation> _animations = {};
@@ -18,7 +21,7 @@ class SlimeComponent extends SpriteAnimationComponent with HasGameReference {
       speed: 6, // Slightly faster than average
       xpValue: 35,
       lootTable: {
-        ItemDatabase.potion: 0.30, // 30% drop (was slimeResidue 75%)
+        ItemDatabase.potion: 0.30, // 30% drop
       },
     );
   }
@@ -32,13 +35,18 @@ class SlimeComponent extends SpriteAnimationComponent with HasGameReference {
   Future<void> _loadAnimations() async {
     final jsonData = await game.assets.readJson('images/enemies/slime.json');
 
-    // --- CORRECCIÓN DEL NOMBRE DEL ARCHIVO ---
     // Usamos el nombre exacto que tienes en tu carpeta de assets.
     final image = await game.images.load('enemies/slime-sheet.png');
 
     final asepriteData = AsepriteData.fromJson(jsonData);
 
     _animations['idle'] = await asepriteData.getAnimation('idle', image);
+  }
+
+  @override
+  void onTapDown(TapDownEvent event) {
+    game.combatManager.selectTarget(this);
+    super.onTapDown(event);
   }
 }
 

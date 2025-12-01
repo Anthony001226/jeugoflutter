@@ -32,7 +32,7 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
 
     // 2. Load player
     _playerSprite = SpriteComponent(
-      sprite: await game.loadSprite('characters/player_battle.png'),
+      sprite: await game.loadSprite('characters/player_s.png'),
       size: Vector2.all(200),
       anchor: Anchor.center,
       priority: 10, // Render above background

@@ -128,6 +128,16 @@ class _MainMenuState extends State<MainMenu>
     return StreamBuilder(
       stream: widget.game.authService.authStateChanges,
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          );
+        }
         final user = snapshot.data;
         if (user == null) {
           return FantasyButton(

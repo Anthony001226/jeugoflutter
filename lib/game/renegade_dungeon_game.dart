@@ -5,7 +5,7 @@ import 'package:flame/events.dart';
 import 'package:renegade_dungeon/game/menu_route_component.dart';
 import 'package:renegade_dungeon/game/loading_route_component.dart';
 import 'package:flame/game.dart';
-import 'package:flame/palette.dart';
+
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Route;
@@ -39,6 +39,7 @@ import '../components/enemies/goblin_component.dart';
 import '../components/enemies/slime_component.dart';
 import '../components/enemies/bat_component.dart';
 import '../components/enemies/skeleton_component.dart';
+import '../components/enemies/boss1_component.dart';
 import 'package:flame/effects.dart';
 import '../effects/screen_fade.dart';
 import 'package:flame_audio/flame_audio.dart';
@@ -101,6 +102,16 @@ class CombatManager {
     currentTurn = ValueNotifier(CombatTurn.playerTurn);
   }
 
+  void selectTarget(SpriteAnimationComponent target) {
+    if (!currentEnemies.contains(target)) return;
+
+    selectedTargetIndex = currentEnemies.indexOf(target);
+    // Update currentEnemy for UI compatibility
+    currentEnemy = target;
+
+    print('🎯 Target selected: ${enemyNames[target]}');
+  }
+
   /// Start combat against a single enemy (Legacy wrapper)
   void startNewCombat(String enemyType) {
     startNewCombatMulti([enemyType]);
@@ -148,6 +159,9 @@ class CombatManager {
           break;
         case 'skeleton':
           enemy = SkeletonComponent();
+          break;
+        case 'boss1':
+          enemy = Boss1Component();
           break;
         default:
           enemy = SlimeComponent();
@@ -282,6 +296,7 @@ class CombatManager {
     final enemyStats = (currentEnemy as dynamic).stats;
     game.player.stats.takeDamage(enemyStats.attack);
     if (game.player.stats.currentHp.value == 0) {
+      game.onPlayerDeath();
       return;
     }
     currentTurn.value = CombatTurn.playerTurn;
@@ -797,7 +812,10 @@ class CombatManager {
 }
 
 class RenegadeDungeonGame extends FlameGame
-    with HasKeyboardHandlerComponents, HasCollisionDetection {
+    with
+        HasKeyboardHandlerComponents,
+        HasCollisionDetection,
+        WidgetsBindingObserver {
   late final RouterComponent router;
   VideoPlayerController? videoPlayerController;
   GameState state = GameState.exploring;
@@ -833,6 +851,7 @@ class RenegadeDungeonGame extends FlameGame
   final List<ConditionalBarrier> conditionalBarriers = [];
   // Track opened chests to prevent regeneration
   final Set<String> openedChests = {};
+  final List<BossTriggerData> bossTriggers = [];
 
   // ========== NPC SYSTEM ==========
   final Map<String, NPC> npcs = {};
@@ -864,15 +883,10 @@ class RenegadeDungeonGame extends FlameGame
   RenegadeDungeonGame({required this.offlineStorage});
 
   @override
-  Color backgroundColor() => Colors.transparent;
-
-  @override
   Future<void> onLoad() async {
-    // Initialize services
+    super.onLoad();
+    WidgetsBinding.instance.addObserver(this);
 
-    camera.viewfinder.zoom = cameraZoom;
-    //camera.viewport.transparent = true;
-    FlameAudio.bgm.initialize();
     await FlameAudio.audioCache.loadAll([
       'menu_music.ogg',
       'dungeon_music.ogg',
@@ -1001,6 +1015,7 @@ class RenegadeDungeonGame extends FlameGame
     _loadPortals();
     _loadSpawnZones();
     _loadConditionalBarriers();
+    _loadBossTriggers();
     await _loadChests();
     _loadNPCs();
 
@@ -1094,10 +1109,55 @@ class RenegadeDungeonGame extends FlameGame
       player.addItem(ItemDatabase.rustySword);
       player.addItem(ItemDatabase.leatherTunic);
 
-      isPlayerReady = true;
-      isPlayerReadyNotifier.value = true;
-      checkZoneTransition(player.position);
-      return true; // Is a new game
+      final data = PlayerSaveData(
+        level: player.stats.level.value,
+        currentHp: player.stats.currentHp.value,
+        maxHp: player.stats.maxHp.value,
+        currentMp: player.stats.currentMp.value,
+        maxMp: player.stats.maxMp.value,
+        experience: player.stats.currentXp.value,
+        attack: player.stats.attack.value,
+        defense: player.stats.defense.value,
+        inventory: player.inventory.value
+            .map((slot) => InventorySlotData.fromSlot(slot))
+            .toList(),
+        equipment: player.stats.equippedItems.value.map(
+          (slot, item) => MapEntry(slot.name, item.id),
+        ),
+        currentMap: currentMapName,
+        gridX: player.gridPosition.x,
+        gridY: player.gridPosition.y,
+        gold: player.stats.gold.value,
+        gems: player.stats.gems.value,
+        discoveredMaps: discoveredZones.toList(),
+        openedChests: openedChests.toList(),
+        defeatedBosses: player.stats.defeatedBosses.toList(),
+        activeQuests: [],
+        completedQuests: [],
+        lastSaved: DateTime.now(),
+        createdAt: sessionCreatedAt ?? DateTime.now(),
+        playtimeSeconds: accumulatedPlaytime.toInt(),
+      );
+
+      try {
+        await offlineStorage.saveLocally(currentSlotIndex, data);
+        print('💾 Game saved to Slot $currentSlotIndex');
+
+        // Show visual feedback
+        overlays.add('barrier_dialog');
+        _currentBarrierMessage = 'Partida Guardada';
+        _currentBarrierIsBlocked = false; // Green text
+
+        // Hide feedback after 2 seconds
+        Future.delayed(const Duration(seconds: 2), () {
+          if (_currentBarrierMessage == 'Partida Guardada') {
+            overlays.remove('barrier_dialog');
+          }
+        });
+      } catch (e) {
+        print('❌ Error saving game: $e');
+      }
+      return true;
     }
   }
 
@@ -1137,79 +1197,9 @@ class RenegadeDungeonGame extends FlameGame
     try {
       await offlineStorage.saveLocally(currentSlotIndex, data);
       print('💾 Game saved to Slot $currentSlotIndex');
-
-      // Show visual feedback
-      overlays.add('barrier_dialog');
-      _currentBarrierMessage = 'Partida Guardada';
-      _currentBarrierIsBlocked = false; // Green text
-
-      // Hide feedback after 2 seconds
-      Future.delayed(const Duration(seconds: 2), () {
-        if (_currentBarrierMessage == 'Partida Guardada') {
-          overlays.remove('barrier_dialog');
-        }
-      });
     } catch (e) {
       print('❌ Error saving game: $e');
     }
-  }
-
-  // ===== DEATH/REVIVE SYSTEM =====
-
-  /// Handle revive with gems
-  void handleRevive() {
-    if (player.stats.gems.value < 5) return;
-
-    player.stats.gems.value -= 5;
-
-    // Restore HP/MP
-    player.stats.currentHp.value = player.stats.maxHp.value;
-    player.stats.currentMp.value = player.stats.maxMp.value;
-
-    // Gold and items preserved (no changes needed)
-    print('✨ Revivido con gemas. Oro preservado: ${player.stats.gold.value}');
-
-    // Respawn
-    respawnPlayer();
-
-    // Close dialog and resume game
-    overlays.remove('ReviveDialog');
-    state = GameState.exploring;
-    saveGame();
-  }
-
-  /// Normal death - loses 50% of gold
-  void handleNormalDeath() {
-    // Lose 50% of gold
-    final goldLost = (player.stats.gold.value * 0.5).floor();
-    player.stats.gold.value -= goldLost;
-
-    print(
-        '💀 Murió normalmente. Perdiste $goldLost oro (${player.stats.gold.value} restante)');
-
-    // Respawn at checkpoint
-    respawnPlayer();
-
-    // Resume game
-    state = GameState.exploring;
-    saveGame();
-  }
-
-  /// Respawn player at last checkpoint or spawn point
-  void respawnPlayer() {
-    // Teleport to spawn point (5, 5) - TODO: use last checkpoint
-    final spawnPoint = Vector2(5, 5);
-    player.gridPosition = spawnPoint;
-    player.position = gridToScreenPosition(spawnPoint);
-
-    // Reset HP/MP
-    player.stats.currentHp.value = player.stats.maxHp.value;
-    player.stats.currentMp.value = player.stats.maxMp.value;
-
-    // Reset death flag
-    player.isDead = false;
-
-    print('ðŸ¥ Respawneado en $spawnPoint');
   }
 
   void startCombat(String enemyType) async {
@@ -1283,7 +1273,12 @@ class RenegadeDungeonGame extends FlameGame
       });
     }
     // -----------------------------
-
+    if (combatManager.currentBossId != null &&
+        player.stats.currentHp.value > 0) {
+      player.stats.defeatBoss(combatManager.currentBossId!);
+      print('✅ Boss ${combatManager.currentBossId} defeated and marked!');
+      saveGame();
+    }
     if (combatManager.currentEnemy != null) {
       combatManager.currentEnemy = null;
     }
@@ -1388,6 +1383,7 @@ class RenegadeDungeonGame extends FlameGame
         updateExploration(player.position);
         checkZoneTransition(player.position);
         checkRandomEncounter();
+        checkBossTriggerCollision(player.gridPosition);
       }
     }
   }
@@ -1563,6 +1559,7 @@ class RenegadeDungeonGame extends FlameGame
       _loadPortals();
       _loadSpawnZones();
       _loadConditionalBarriers();
+      _loadBossTriggers();
       await _loadChests();
 
       player.gridPosition = startPos;
@@ -1570,9 +1567,14 @@ class RenegadeDungeonGame extends FlameGame
 
       stepsSinceLastBattle = 0;
 
-      print('âœ… Loaded $mapName');
+      // Clear Fog of War for new map
+      exploredTiles.clear();
+      // Re-explore around player
+      updateExploration(player.gridPosition);
+
+      print('✅ Loaded $mapName');
     } catch (e, stackTrace) {
-      print('âŒ Error loading map $mapName: $e');
+      print('❌ Error loading map $mapName: $e');
       print(stackTrace);
       rethrow; // Propagate error to caller
     }
@@ -1671,6 +1673,61 @@ class RenegadeDungeonGame extends FlameGame
     }
 
     print('âœ… Loaded ${conditionalBarriers.length} conditional barriers');
+  }
+
+  void _loadBossTriggers() {
+    bossTriggers.clear();
+    final objectsLayer = mapComponent.tileMap.getLayer<ObjectGroup>('Objects');
+    if (objectsLayer == null) {
+      print('ℹ️ No Objects layer found for boss triggers');
+      return;
+    }
+    const double scaleFactor = 2.0;
+    for (final obj in objectsLayer.objects) {
+      if (obj.name == 'BossTrigger') {
+        final rect = Rect.fromLTWH(
+          obj.x * scaleFactor,
+          obj.y * scaleFactor,
+          obj.width * scaleFactor,
+          obj.height * scaleFactor,
+        );
+        final bossId = obj.properties.getValue<String>('bossId') ?? 'unknown';
+        final enemyType =
+            obj.properties.getValue<String>('enemyType') ?? 'boss1';
+        bossTriggers.add(BossTriggerData(
+          rect: rect,
+          bossId: bossId,
+          enemyType: enemyType,
+          triggered: false,
+        ));
+        print('✅ Loaded boss trigger: $bossId ($enemyType)');
+      }
+    }
+    print('✅ Loaded ${bossTriggers.length} boss triggers');
+  }
+
+  void checkBossTriggerCollision(Vector2 playerGridPos) {
+    final playerScreenPos = gridToScreenPosition(playerGridPos);
+    for (int i = 0; i < bossTriggers.length; i++) {
+      final trigger = bossTriggers[i];
+      // Skip if already triggered
+      if (trigger.triggered) continue;
+      // Check if player is in trigger area
+      if (trigger.rect.contains(playerScreenPos.toOffset())) {
+        // Check if boss is already defeated
+        if (player.stats.defeatedBosses.contains(trigger.bossId)) {
+          print('ℹ️ Boss ${trigger.bossId} already defeated, skipping trigger');
+          trigger.triggered = true;
+          continue;
+        }
+        print('⚔️ Boss trigger activated: ${trigger.bossId}');
+        trigger.triggered = true;
+        // Start boss combat
+        combatManager.startBossCombat(trigger.bossId, trigger.enemyType);
+        startCombat(trigger.enemyType);
+        break;
+      }
+    }
   }
 
   /// Check if player can move to target position (barrier check)
@@ -2048,12 +2105,6 @@ class RenegadeDungeonGame extends FlameGame
     }
   }
 
-  void openGemShop() {
-    // Allow opening shop even if already in menu (e.g. from ReviveDialog)
-    state = GameState.inMenu;
-    overlays.add('GemShop');
-  }
-
   // ===== MOBILE CONTROLS =====
 
   void handleMobileInput(int gridX, int gridY) {
@@ -2195,4 +2246,45 @@ class RenegadeDungeonGame extends FlameGame
     print('🎥 Preloading video: $asset');
     // Optional: Pre-initialize controller if needed for smoother transition
   }
+
+  void openGemShop() {
+    // Allow opening shop even if already in menu (e.g. from ReviveDialog)
+    state = GameState.inMenu;
+    overlays.add('GemShop');
+  }
+
+  void onPlayerDeath() {
+    print('💀 Player died! Showing ReviveDialog...');
+    overlays.add('ReviveDialog');
+  }
+
+  void handleRevive() {
+    if (player.stats.gems.value >= 5) {
+      player.stats.gems.value -= 5;
+      player.stats.currentHp.value = player.stats.maxHp.value; // Full heal
+      overlays.remove('ReviveDialog');
+      print('✨ Player revived with gems!');
+    }
+  }
+
+  void handleNormalDeath() {
+    player.stats.gold.value = (player.stats.gold.value / 2).floor();
+    player.stats.currentHp.value =
+        player.stats.maxHp.value; // Full heal for respawn
+    endCombat();
+    print('⚰️ Player accepted normal death.');
+  }
+}
+
+class BossTriggerData {
+  final Rect rect;
+  final String bossId;
+  final String enemyType;
+  bool triggered;
+  BossTriggerData({
+    required this.rect,
+    required this.bossId,
+    required this.enemyType,
+    this.triggered = false,
+  });
 }

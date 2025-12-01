@@ -81,6 +81,18 @@ class SplashScreen extends Component
     // 5. Preload menu video to avoid Autoplay errors
     game.preloadBackgroundVideo('menu_background.mp4');
 
+    // 6. Auto-advance after 3 seconds (fallback for mobile)
+    add(
+      TimerComponent(
+        period: 3.0,
+        repeat: false,
+        onTick: () {
+          print('⏰ Auto-advancing from splash screen');
+          _startGame();
+        },
+      ),
+    );
+
     // Initial resize
     _resizeComponents(game.size);
     print('🎨 SplashScreen.onLoad() completed');

@@ -1,6 +1,7 @@
 // lib/components/enemies/bat_component.dart
 
 import 'package:flame/components.dart';
+import 'package:flame/events.dart';
 import 'package:renegade_dungeon/models/combat_stats.dart';
 import 'package:renegade_dungeon/models/combat_stats_holder.dart';
 import 'package:renegade_dungeon/models/combat_ability.dart';
@@ -38,7 +39,8 @@ class BatStats extends EnemyStats implements CombatStatsHolder {
   }
 }
 
-class BatComponent extends SpriteAnimationComponent {
+class BatComponent extends SpriteAnimationComponent
+    with HasGameReference<RenegadeDungeonGame>, TapCallbacks {
   late final BatStats stats;
   late final List<CombatAbility> abilities;
 
@@ -73,6 +75,12 @@ class BatComponent extends SpriteAnimationComponent {
         textureSize: sprite.srcSize,
       ),
     );
+  }
+
+  @override
+  void onTapDown(TapDownEvent event) {
+    game.combatManager.selectTarget(this);
+    super.onTapDown(event);
   }
 
   // Loot table

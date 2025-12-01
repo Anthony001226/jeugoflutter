@@ -17,18 +17,18 @@ class CombatUI extends StatelessWidget {
 
   @override
   @override
+  @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isMobile = size.width < 800;
+
     return ValueListenableBuilder<SpriteAnimationComponent?>(
       valueListenable: game.combatManager.currentEnemyNotifier,
       builder: (context, enemy, child) {
         if (enemy == null) {
-          // If no enemy is selected, check if we won (all enemies dead)
           if (game.combatManager.currentEnemies.isEmpty &&
               game.combatManager.lastDroppedItems.isNotEmpty) {
-            // We can't easily get stats here if enemy is null, but we can show a generic victory or use the last known stats if we stored them.
-            // For now, let's assume if enemy is null and we are in combat, it might be an error OR victory transition.
-            // But usually _removeDefeatedEnemy sets currentEnemy to null ONLY if all are dead.
-            return const SizedBox(); // Wait for state change or show nothing
+            return const SizedBox();
           }
           return const Center(
               child: Text('Error: No se encontró el enemigo.',
@@ -39,38 +39,43 @@ class CombatUI extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: Colors.transparent,
-          body: Center(
-            child: Column(
-              children: [
-                const Spacer(),
-                // Enemy Info
-                ValueListenableBuilder<int>(
-                  valueListenable: game.player.stats.currentHp,
-                  builder: (context, playerHp, child) {
-                    if (playerHp == 0) {
-                      return _buildDefeatScreen();
-                    }
-
-                    return ValueListenableBuilder<int>(
-                      valueListenable: enemyStats.currentHp,
-                      builder: (context, enemyHp, child) {
-                        // Only show victory if HP is 0 AND it's the last enemy
-                        if (enemyHp <= 0) {
-                          final isLastEnemy =
-                              game.combatManager.currentEnemies.length <= 1;
-                          if (isLastEnemy) {
-                            return _buildVictoryScreen(enemyStats);
-                          }
-                          // If not last enemy, just show combat screen (it will switch soon)
-                          return _buildCombatScreen(0, enemyStats);
+          body: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Enemy Info
+                    ValueListenableBuilder<int>(
+                      valueListenable: game.player.stats.currentHp,
+                      builder: (context, playerHp, child) {
+                        if (playerHp == 0) {
+                          // If ReviveDialog is active, we might not want to show this,
+                          // but for now let's keep it as a background state
+                          return _buildDefeatScreen();
                         }
-                        return _buildCombatScreen(enemyHp, enemyStats);
+
+                        return ValueListenableBuilder<int>(
+                          valueListenable: enemyStats.currentHp,
+                          builder: (context, enemyHp, child) {
+                            if (enemyHp <= 0) {
+                              final isLastEnemy =
+                                  game.combatManager.currentEnemies.length <= 1;
+                              if (isLastEnemy) {
+                                return _buildVictoryScreen(enemyStats);
+                              }
+                              return _buildCombatScreen(
+                                  0, enemyStats, isMobile);
+                            }
+                            return _buildCombatScreen(
+                                enemyHp, enemyStats, isMobile);
+                          },
+                        );
                       },
-                    );
-                  },
+                    ),
+                  ],
                 ),
-                const Spacer(),
-              ],
+              ),
             ),
           ),
         );
@@ -78,22 +83,11 @@ class CombatUI extends StatelessWidget {
     );
   }
 
-  Widget _buildCombatScreen(int enemyHp, EnemyStats enemyStats) {
+  Widget _buildCombatScreen(int enemyHp, EnemyStats enemyStats, bool isMobile) {
     String enemyName = 'Enemigo';
     final enemy = game.combatManager.currentEnemy;
     if (enemy != null) {
       enemyName = game.combatManager.getEnemyName(enemy);
-
-      // Append type if needed, or just use the name which already has #ID
-      // e.g. "Enemigo #2"
-      // If we want "Goblin #2", we need to store that in the map or construct it.
-      // Currently getEnemyName returns "Enemigo #X".
-      // Let's improve getEnemyName to include type if possible, or just use what we have.
-
-      // Actually, let's check if we can make it more descriptive in CombatManager later.
-      // For now, "Enemigo #X" is consistent with logs.
-
-      // If we want to show type:
       if (enemy is GoblinComponent)
         enemyName = enemyName.replaceFirst('Enemigo', 'Goblin');
       else if (enemy is SlimeComponent)
@@ -108,14 +102,14 @@ class CombatUI extends StatelessWidget {
       children: [
         // Enemy HP
         Text('$enemyName HP: $enemyHp / ${enemyStats.maxHp}',
-            style: const TextStyle(
+            style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 20)),
+                fontSize: isMobile ? 16 : 20)),
         const SizedBox(height: 8),
         Container(
-          width: 250,
-          height: 20,
+          width: isMobile ? 200 : 250,
+          height: isMobile ? 15 : 20,
           decoration: BoxDecoration(
               color: Colors.grey.shade800,
               borderRadius: BorderRadius.circular(10)),
@@ -129,7 +123,7 @@ class CombatUI extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 40),
+        SizedBox(height: isMobile ? 20 : 40),
 
         // Player Stats
         ValueListenableBuilder<int>(
@@ -139,6 +133,7 @@ class CombatUI extends StatelessWidget {
             hp,
             game.player.stats.combatStats.maxHp.value,
             Colors.red,
+            isMobile,
           ),
         ),
         const SizedBox(height: 8),
@@ -149,6 +144,7 @@ class CombatUI extends StatelessWidget {
             mp,
             game.player.stats.combatStats.maxMp.value,
             Colors.blue,
+            isMobile,
           ),
         ),
         const SizedBox(height: 8),
@@ -159,9 +155,10 @@ class CombatUI extends StatelessWidget {
             ult,
             100,
             Colors.purple,
+            isMobile,
           ),
         ),
-        // NEW: Status Effects Display
+        // Status Effects
         ValueListenableBuilder<int>(
           valueListenable: game.player.stats.combatStats.effectsVersion,
           builder: (context, _, __) {
@@ -169,7 +166,8 @@ class CombatUI extends StatelessWidget {
             if (effects.isEmpty) return const SizedBox.shrink();
 
             return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 20 : 40, vertical: 8),
               child: Wrap(
                 spacing: 6,
                 runSpacing: 4,
@@ -209,7 +207,7 @@ class CombatUI extends StatelessWidget {
             );
           },
         ),
-        const SizedBox(height: 40),
+        SizedBox(height: isMobile ? 20 : 40),
 
         // Turn Indicator
         ValueListenableBuilder<CombatTurn>(
@@ -222,7 +220,7 @@ class CombatUI extends StatelessWidget {
                   isPlayerTurn ? 'TU TURNO' : 'TURNO ENEMIGO',
                   style: TextStyle(
                     color: isPlayerTurn ? Colors.green : Colors.orange,
-                    fontSize: 18,
+                    fontSize: isMobile ? 16 : 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -230,14 +228,14 @@ class CombatUI extends StatelessWidget {
 
                 // Ability Buttons
                 if (isPlayerTurn) ...[
-                  _buildAbilityButtons(),
+                  _buildAbilityButtons(isMobile),
                   const SizedBox(height: 15),
                   // Items Button
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green.shade700,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 40, vertical: 15),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: isMobile ? 20 : 40, vertical: 15),
                     ),
                     onPressed: () => game.overlays.add('CombatInventoryUI'),
                     child:
@@ -253,21 +251,23 @@ class CombatUI extends StatelessWidget {
     );
   }
 
-  Widget _buildStatBar(String label, int current, int max, Color color) {
+  Widget _buildStatBar(
+      String label, int current, int max, Color color, bool isMobile) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
+      padding: EdgeInsets.symmetric(horizontal: isMobile ? 20 : 40),
       child: Row(
         children: [
           SizedBox(
-            width: 50,
+            width: isMobile ? 35 : 50,
             child: Text(
               label,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
+              style:
+                  TextStyle(color: Colors.white, fontSize: isMobile ? 12 : 14),
             ),
           ),
           Expanded(
             child: Container(
-              height: 18,
+              height: isMobile ? 14 : 18,
               decoration: BoxDecoration(
                 color: Colors.grey.shade800,
                 borderRadius: BorderRadius.circular(9),
@@ -285,10 +285,11 @@ class CombatUI extends StatelessWidget {
             ),
           ),
           SizedBox(
-            width: 70,
+            width: isMobile ? 60 : 70,
             child: Text(
               ' $current/$max',
-              style: const TextStyle(color: Colors.white, fontSize: 14),
+              style:
+                  TextStyle(color: Colors.white, fontSize: isMobile ? 12 : 14),
               textAlign: TextAlign.right,
             ),
           ),
@@ -297,19 +298,18 @@ class CombatUI extends StatelessWidget {
     );
   }
 
-    Widget _buildAbilityButtons() {
+  Widget _buildAbilityButtons(bool isMobile) {
     final abilities = game.player.stats.abilities;
     final playerStats = game.player.stats.combatStats;
 
-    // NEW: Wrap with turn listener for instant button disable
     return ValueListenableBuilder<CombatTurn>(
       valueListenable: game.combatManager.currentTurn,
       builder: (context, currentTurn, _) {
         final isPlayerTurn = currentTurn == CombatTurn.playerTurn;
-        
+
         return Wrap(
-          spacing: 10,
-          runSpacing: 10,
+          spacing: isMobile ? 6 : 10,
+          runSpacing: isMobile ? 6 : 10,
           alignment: WrapAlignment.center,
           children: abilities.map((ability) {
             return ValueListenableBuilder<int>(
@@ -327,8 +327,9 @@ class CombatUI extends StatelessWidget {
                     backgroundColor: (canUse && isPlayerTurn)
                         ? _getAbilityColor(ability.type)
                         : Colors.grey.shade800,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 12 : 20,
+                        vertical: isMobile ? 8 : 12),
                   ),
                   onPressed: (canUse && isPlayerTurn)
                       ? () => game.combatManager.usePlayerAbility(ability)
@@ -338,12 +339,13 @@ class CombatUI extends StatelessWidget {
                     children: [
                       Text(
                         ability.name,
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: isMobile ? 12 : 14,
+                            fontWeight: FontWeight.bold),
                       ),
                       Text(
                         ability.getCostText(),
-                        style: const TextStyle(fontSize: 11),
+                        style: TextStyle(fontSize: isMobile ? 10 : 11),
                       ),
                     ],
                   ),

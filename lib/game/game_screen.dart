@@ -2,8 +2,19 @@
 
 import 'package:flame/components.dart';
 import 'package:flame/palette.dart';
-
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
+
+// Platform detection
+bool get isMobile {
+  if (kIsWeb) return false;
+  try {
+    return Platform.isAndroid || Platform.isIOS;
+  } catch (e) {
+    return false;
+  }
+}
 
 class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
   @override
@@ -65,6 +76,12 @@ class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
 
       // THEN add HUD overlay
       game.overlays.add('PlayerHud');
+
+      // Add mobile controls if on mobile
+      if (isMobile) {
+        game.overlays.add('MobileControls');
+        print('📱 Mobile controls added');
+      }
 
       // Set game state
       game.state = GameState.exploring;

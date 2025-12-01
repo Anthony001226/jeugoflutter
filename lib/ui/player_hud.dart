@@ -12,30 +12,32 @@ class PlayerHud extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Responsive layout calculations
+    final size = MediaQuery.of(context).size;
+    final isSmallScreen = size.width < 800;
+    final double barWidth = isSmallScreen ? 120 : 180;
+    final double barHeight = isSmallScreen ? 14 : 20;
+    final double iconSize = isSmallScreen ? 24 : 32;
+    final double iconInnerSize = isSmallScreen ? 16 : 20;
+    final double fontSize = isSmallScreen ? 10 : 12;
+    final double padding = isSmallScreen ? 10 : 20;
+
     // Listen to isPlayerReadyNotifier to rebuild when player is ready
     return ValueListenableBuilder<bool>(
       valueListenable: game.isPlayerReadyNotifier,
       builder: (context, isReady, _) {
         // Also check if player is loaded and mounted
-        // Note: isMounted might still be false for one frame after isReady becomes true,
-        // but typically they happen close together.
         if (!isReady || !game.player.isLoaded || !game.player.isMounted) {
-          // If not ready, we still want to show the ZoneNotificationWidget if possible?
-          // No, ZoneNotificationWidget depends on game.currentZoneNameNotifier which is updated in update()
-          // which runs only if player.isMounted.
-          // print('PlayerHud: Not ready (Ready: $isReady, Loaded: ${game.player.isLoaded}, Mounted: ${game.player.isMounted})');
           return const SizedBox.shrink();
         }
-
-        // print('PlayerHud: Building HUD');
 
         return SizedBox.expand(
           child: Stack(
             children: [
               // Top Left: Stats Bars (HP, MP, XP)
               Positioned(
-                top: 20,
-                left: 20,
+                top: padding,
+                left: padding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -49,10 +51,15 @@ class PlayerHud extends StatelessWidget {
                           max: game.player.stats.maxHp.value,
                           color: const Color(0xFFE74C3C), // Red
                           icon: Icons.favorite,
+                          barWidth: barWidth,
+                          barHeight: barHeight,
+                          iconSize: iconSize,
+                          iconInnerSize: iconInnerSize,
+                          fontSize: fontSize,
                         );
                       },
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: isSmallScreen ? 4 : 8),
 
                     // MP Bar
                     ValueListenableBuilder<int>(
@@ -64,10 +71,15 @@ class PlayerHud extends StatelessWidget {
                           max: game.player.stats.maxMp.value,
                           color: const Color(0xFF3498DB), // Blue
                           icon: Icons.bolt,
+                          barWidth: barWidth,
+                          barHeight: barHeight,
+                          iconSize: iconSize,
+                          iconInnerSize: iconInnerSize,
+                          fontSize: fontSize,
                         );
                       },
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: isSmallScreen ? 4 : 8),
 
                     // XP Bar
                     ValueListenableBuilder<int>(
@@ -79,6 +91,11 @@ class PlayerHud extends StatelessWidget {
                           max: game.player.stats.xpToNextLevel.value,
                           color: const Color(0xFFF1C40F), // Yellow/Gold
                           icon: Icons.star,
+                          barWidth: barWidth,
+                          barHeight: barHeight,
+                          iconSize: iconSize,
+                          iconInnerSize: iconInnerSize,
+                          fontSize: fontSize,
                         );
                       },
                     ),
@@ -97,20 +114,20 @@ class PlayerHud extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           // Gold
-                          const Icon(Icons.monetization_on,
-                              color: Colors.amber, size: 20),
+                          Icon(Icons.monetization_on,
+                              color: Colors.amber, size: iconInnerSize),
                           const SizedBox(width: 6),
                           ValueListenableBuilder<int>(
                             valueListenable: game.player.stats.gold,
                             builder: (context, gold, _) {
                               return Text(
                                 '$gold',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.amber,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: isSmallScreen ? 14 : 16,
                                   fontFamily: 'monospace',
-                                  shadows: [
+                                  shadows: const [
                                     Shadow(
                                         color: Colors.black,
                                         blurRadius: 2,
@@ -122,20 +139,20 @@ class PlayerHud extends StatelessWidget {
                           ),
                           const SizedBox(width: 16),
                           // Gems
-                          const Icon(Icons.diamond,
-                              color: Colors.cyan, size: 20),
+                          Icon(Icons.diamond,
+                              color: Colors.cyan, size: iconInnerSize),
                           const SizedBox(width: 6),
                           ValueListenableBuilder<int>(
                             valueListenable: game.player.stats.gems,
                             builder: (context, gems, _) {
                               return Text(
                                 '$gems',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.cyan,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: isSmallScreen ? 14 : 16,
                                   fontFamily: 'monospace',
-                                  shadows: [
+                                  shadows: const [
                                     Shadow(
                                         color: Colors.black,
                                         blurRadius: 2,
@@ -154,14 +171,14 @@ class PlayerHud extends StatelessWidget {
 
               // Minimap (Top Right)
               Positioned(
-                top: 20,
-                right: 20,
+                top: padding,
+                right: padding,
                 child: MinimapWidget(game: game),
               ),
 
               // Zone Notification (Centered Top)
               Positioned(
-                top: 100,
+                top: isSmallScreen ? 60 : 100,
                 left: 0,
                 right: 0,
                 child: ZoneNotificationWidget(game: game),
@@ -179,9 +196,12 @@ class PlayerHud extends StatelessWidget {
     required int max,
     required Color color,
     required IconData icon,
+    required double barWidth,
+    required double barHeight,
+    required double iconSize,
+    required double iconInnerSize,
+    required double fontSize,
   }) {
-    const double barWidth = 180;
-    const double barHeight = 20;
     final double percentage = max == 0 ? 0 : (current / max).clamp(0.0, 1.0);
 
     return Row(
@@ -189,14 +209,14 @@ class PlayerHud extends StatelessWidget {
       children: [
         // Icon Container
         Container(
-          width: 32,
-          height: 32,
+          width: iconSize,
+          height: iconSize,
           decoration: BoxDecoration(
             color: Colors.black.withOpacity(0.8),
             border: Border.all(color: Colors.white54, width: 2),
             borderRadius: BorderRadius.circular(4),
           ),
-          child: Icon(icon, color: color, size: 20),
+          child: Icon(icon, color: color, size: iconInnerSize),
         ),
         const SizedBox(width: 8),
 
@@ -250,12 +270,12 @@ class PlayerHud extends StatelessWidget {
                   Center(
                     child: Text(
                       '$current / $max',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
-                        fontSize: 12,
+                        fontSize: fontSize,
                         fontWeight: FontWeight.bold,
                         fontFamily: 'monospace',
-                        shadows: [
+                        shadows: const [
                           Shadow(
                               color: Colors.black,
                               blurRadius: 2,

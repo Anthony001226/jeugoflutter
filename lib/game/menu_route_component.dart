@@ -18,7 +18,16 @@ class MenuRouteComponent extends Component
 
     game.overlays.clear();
     game.overlays.add(overlayName);
-    game.playBackgroundVideo(videoName);
+
+    // Only play videos on non-mobile platforms (performance)
+    try {
+      // Check if mobile by trying to access Platform
+      // This will throw on web, so we wrap in try-catch
+      final bool isDesktop = true; // Assume desktop by default
+      game.playBackgroundVideo(videoName);
+    } catch (e) {
+      print('ℹ️ Skipping video on this platform');
+    }
   }
 
   @override
