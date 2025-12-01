@@ -49,8 +49,8 @@ class Player extends SpriteComponent
 
   @override
   Future<void> onLoad() async {
-    addItem(ItemDatabase.rustySword);
-    addItem(ItemDatabase.leatherTunic);
+    // Default items should be added by the game logic (e.g. new game setup),
+    // NOT here, because this runs every time the player is created (including load game).
 
     // Load all directional sprites
     spriteUp = await game.loadSprite('characters/player_w.png');

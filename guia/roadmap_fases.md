@@ -70,10 +70,30 @@ El juego tiene un **Core Loop** funcional (Exploración -> Combate -> Loot -> Pr
 - [x] **Estructura del Código:**
     - Restaurada la integridad de `RenegadeDungeonGame.dart`.
     - Corregidos errores críticos de linter (`isPlayerReadyNotifier`).
+- [x] **Correcciones de Carga y Navegación (Noviembre 2025):**
+    - **Map Loading:** Solucionado el bug donde `zone_test.tmx` fallaba al cargar y hacía fallback a `dungeon.tmx` (LateInitializationError).
+    - **Item Duplication:** Arreglado el problema de duplicación de items iniciales al cargar partida.
+    - **Intro Screen:** Implementado auto-skip inteligente para partidas cargadas, evitando que la intro se repita.
+    - **Router:** Solucionado el problema de navegación en cargas consecutivas (pantalla negra/congelada).
+    - **Boss Persistence:** Implementado guardado de jefes derrotados para desbloquear barreras permanentemente.
 
 ---
 
 ## 🔮 Pasos Siguientes (Para continuar en la escuela)
+
+### Próxima Sesión: Contenido de Jefe (Para hacer en la escuela)
+- [ ] **Diseño de Nivel (Tiled):**
+    - Crear nuevo mapa: `boss_area.tmx` (30x30 tiles).
+    - **Capas necesarias:** `Ground`, `Walls`, `Decorations`.
+    - **Capa de Objetos (`Objects`):**
+        - `Spawn`: Punto de entrada del jugador.
+        - `BossTrigger`: Objeto rectangular para iniciar combate.
+            - Propiedad custom: `bossId` (String) = "minotaur_boss"
+            - Propiedad custom: `enemyType` (String) = "minotaur"
+    - **Capa de Portales (`Portals`):**
+        - Portal de salida de vuelta al `dungeon.tmx`.
+- [ ] **Scripting (Código):**
+    - Configurar el trigger en `RenegadeDungeonGame.dart` para llamar a `startBossCombat`.
 
 ### Fase 7: Audio y Atmósfera (Prioridad Media)
 - [ ] **Sistema de Música Dinámica:** Cambiar música suavemente entre Exploración y Combate.
@@ -81,7 +101,6 @@ El juego tiene un **Core Loop** funcional (Exploración -> Combate -> Loot -> Pr
 
 ### Fase 8: Narrativa y Misiones (Prioridad Alta)
 - [ ] **Sistema de Quests:** Crear estructura para misiones (Matar X enemigos, Encontrar objeto Y).
-- [ ] **Diálogos Avanzados:** Mejorar la UI de diálogo para soportar opciones (Sí/No).
 
 ### Fase 9: Optimización (Prioridad Baja)
 - [ ] **Sprite Atlases:** Unificar imágenes para mejorar rendimiento.

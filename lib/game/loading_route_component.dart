@@ -25,19 +25,29 @@ class LoadingRouteComponent extends Component
     // 3. Show Loading UI
     game.overlays.add('LoadingUI');
 
-    // 4. Load Data
+    // 4. Clear previous game state (CRITICAL for preventing black screen)
+    print('🧹 Clearing previous game state...');
+    game.clearWorld();
+
+    // 5. Load Data
     try {
       print('📂 Calling loadGameData()...');
       final isNewGame = await game.loadGameData();
       game.overlays.remove('LoadingUI');
 
-      if (isNewGame) {
-        print('🆕 New game detected, going to intro-screen');
-        game.router.pushReplacementNamed('intro-screen');
-      } else {
-        print('🔙 Existing game detected, going to game-screen');
-        game.router.pushReplacementNamed('game-screen');
-      }
+      // WORKAROUND: Always go through intro-screen to avoid Flame router bug
+      // IntroScreen will detect if it's a loaded game and skip instantly
+      print(isNewGame ? '🆕 New game detected' : '🔙 Existing game detected');
+
+      // Set flag so IntroScreen knows whether to skip
+      game.isNewGameFlag = isNewGame;
+
+      // Increment navigation counter to force IntroScreen recreation
+      game.introNavigationCount++;
+      print('📊 Intro navigation count: ${game.introNavigationCount}');
+
+      print('📺 Navigating to intro-screen (required for router)');
+      game.router.pushReplacementNamed('intro-screen');
     } catch (e, stack) {
       print('❌ Error loading game data: $e');
       print(stack);
