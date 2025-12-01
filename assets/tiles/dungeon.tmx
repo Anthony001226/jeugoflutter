@@ -311,6 +311,44 @@
    </properties>
   </object>
  </objectgroup>
+ <objectgroup id="9" name="Pickups">
+  <object id="53" gid="29" x="22.3953" y="37.4377" width="32" height="32">
+   <properties>
+    <property name="gridX" type="int" value="18"/>
+    <property name="gridY" type="int" value="31"/>
+   </properties>
+  </object>
+  <object id="54" gid="29" x="237.208" y="871.625" width="32" height="32">
+   <properties>
+    <property name="gridX" type="int" value="27"/>
+    <property name="gridY" type="int" value="33"/>
+   </properties>
+  </object>
+  <object id="55" gid="29" x="577.646" y="510.271" width="32" height="32">
+   <properties>
+    <property name="gridX" type="int" value="33"/>
+    <property name="gridY" type="int" value="30"/>
+   </properties>
+  </object>
+  <object id="56" gid="29" x="674.079" y="108.981" width="32" height="32">
+   <properties>
+    <property name="gridX" type="int" value="41"/>
+    <property name="gridY" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="59" gid="29" x="1250" y="1248.15" width="32" height="32">
+   <properties>
+    <property name="gridX" type="int" value="27"/>
+    <property name="gridY" type="int" value="22"/>
+   </properties>
+  </object>
+  <object id="258" gid="29" x="1105" y="113" width="32" height="32">
+   <properties>
+    <property name="gridX" type="int" value="68"/>
+    <property name="gridY" type="int" value="6"/>
+   </properties>
+  </object>
+ </objectgroup>
  <layer id="14" name="Details" width="80" height="80">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -395,42 +433,4 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="9" name="Pickups">
-  <object id="53" gid="29" x="22.3953" y="37.4377" width="32" height="32">
-   <properties>
-    <property name="gridX" type="int" value="18"/>
-    <property name="gridY" type="int" value="31"/>
-   </properties>
-  </object>
-  <object id="54" gid="29" x="237.208" y="871.625" width="32" height="32">
-   <properties>
-    <property name="gridX" type="int" value="27"/>
-    <property name="gridY" type="int" value="33"/>
-   </properties>
-  </object>
-  <object id="55" gid="29" x="577.646" y="510.271" width="32" height="32">
-   <properties>
-    <property name="gridX" type="int" value="33"/>
-    <property name="gridY" type="int" value="30"/>
-   </properties>
-  </object>
-  <object id="56" gid="29" x="674.079" y="108.981" width="32" height="32">
-   <properties>
-    <property name="gridX" type="int" value="41"/>
-    <property name="gridY" type="int" value="6"/>
-   </properties>
-  </object>
-  <object id="59" gid="29" x="1250" y="1248.15" width="32" height="32">
-   <properties>
-    <property name="gridX" type="int" value="27"/>
-    <property name="gridY" type="int" value="22"/>
-   </properties>
-  </object>
-  <object id="258" gid="29" x="1105" y="113" width="32" height="32">
-   <properties>
-    <property name="gridX" type="int" value="68"/>
-    <property name="gridY" type="int" value="6"/>
-   </properties>
-  </object>
- </objectgroup>
 </map>
