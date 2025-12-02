@@ -131,7 +131,7 @@ class ReviveDialog extends StatelessWidget {
             const SizedBox(height: 8),
 
             Text(
-              '❌ Pierdes 50% de tu oro',
+              '❌ Pierdes 75% de tu oro',
               style: TextStyle(color: Colors.red.shade300, fontSize: 12),
             ),
           ],

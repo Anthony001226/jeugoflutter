@@ -78,6 +78,7 @@ class PlayerStats {
         baseAttack = ValueNotifier(initialAttack),
         baseDefense = ValueNotifier(initialDefense),
         baseSpeed = ValueNotifier(initialSpeed) {
+    print('📊 PlayerStats created. Level: $initialLevel');
     // ← AGREGADO
     currentHp = ValueNotifier(maxHp.value);
     currentMp = ValueNotifier(maxMp.value);

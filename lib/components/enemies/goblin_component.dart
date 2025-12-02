@@ -18,6 +18,7 @@ class GoblinStats extends EnemyStats implements CombatStatsHolder {
     required int attack,
     required int defense,
     required int xpValue,
+    required int goldDrop, // NEW
     required Map<InventoryItem, double> lootTable,
   })  : combatStats = CombatStats(
           initialHp: maxHp,
@@ -34,6 +35,7 @@ class GoblinStats extends EnemyStats implements CombatStatsHolder {
           defense: defense,
           speed: 5, // Use speed from combatStats
           xpValue: xpValue,
+          goldDrop: goldDrop, // NEW
           lootTable: lootTable,
         ) {
     // Sincronizar valores iniciales
@@ -64,6 +66,7 @@ class GoblinComponent extends SpriteAnimationComponent
       attack: 8,
       defense: 2,
       xpValue: 45,
+      goldDrop: 15, // NEW
       lootTable: {
         ItemDatabase.potion: 0.50, // 50% drop (antes 10%)
         ItemDatabase.goblinScimitar: 0.30, // 30% drop (antes 5%)

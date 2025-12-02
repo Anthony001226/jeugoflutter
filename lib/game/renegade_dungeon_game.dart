@@ -15,6 +15,7 @@ import 'package:video_player/video_player.dart';
 import 'dart:math';
 import 'dart:math' as math;
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import '../components/battle_scene.dart';
 import '../components/player.dart';
@@ -97,6 +98,7 @@ class CombatManager {
   late final ValueNotifier<CombatTurn> currentTurn;
   List<InventoryItem> lastDroppedItems = [];
   int totalXpEarned = 0; // NEW: Accumulate XP to award at end
+  int totalGoldEarned = 0; // NEW: Accumulate Gold to award at end
 
   CombatManager(this.game) {
     currentTurn = ValueNotifier(CombatTurn.playerTurn);
@@ -136,6 +138,7 @@ class CombatManager {
     enemyNames.clear();
     lastDroppedItems.clear(); // Clear loot from previous battle
     totalXpEarned = 0; // Reset XP counter
+    totalGoldEarned = 0; // Reset Gold counter
     currentEnemy = null;
     selectedTargetIndex = 0;
     turnQueue.clear();
@@ -411,8 +414,9 @@ class CombatManager {
 
       // NEW: Accumulate XP instead of giving immediately
       totalXpEarned += enemyStats.xpValue;
+      totalGoldEarned += enemyStats.goldDrop;
       print(
-          'ðŸ“Š XP acumulado: +${enemyStats.xpValue} (Total: $totalXpEarned)');
+          '📊 XP acumulado: +${enemyStats.xpValue} (Total: $totalXpEarned) | 💰 Gold: +${enemyStats.goldDrop} (Total: $totalGoldEarned)');
 
       // Loot drop - ACCUMULATE items (don't clear the list)
       final random = Random();
@@ -435,8 +439,11 @@ class CombatManager {
             print('🏆 Boss Persistence: Saved kill for $currentBossId');
           }
 
-          // NEW: Award all XP at END of battle
+          // NEW: Award all XP and Gold at END of battle
           game.player.stats.gainXp(totalXpEarned);
+          game.player.stats.gold.value += totalGoldEarned;
+          print(
+              '⭐ XP TOTAL GANADO: $totalXpEarned | 💰 GOLD TOTAL: $totalGoldEarned');
           print('â­ XP TOTAL GANADO: $totalXpEarned');
           // DO NOT REMOVE. Let UI show victory screen based on HP <= 0.
           // Also ensure we don't call nextTurn().
@@ -452,8 +459,11 @@ class CombatManager {
       }
 
       // Single enemy mode - end combat
-      // NEW: Award XP for single enemy too
+      // NEW: Award XP and Gold for single enemy too
       game.player.stats.gainXp(totalXpEarned);
+      game.player.stats.gold.value += totalGoldEarned;
+      print(
+          '⭐ XP TOTAL GANADO: $totalXpEarned | 💰 GOLD TOTAL: $totalGoldEarned');
       print('â­ XP TOTAL GANADO: $totalXpEarned');
       return;
     }
@@ -993,6 +1003,9 @@ class RenegadeDungeonGame extends FlameGame
   }
 
   Future<bool> loadGameData() async {
+    // 0. Clear previous session state to prevent leakage
+    _clearSessionState();
+
     // 1. Check for save data FIRST to know which map to load
     final saveData = offlineStorage.loadLocally(currentSlotIndex);
 
@@ -1138,6 +1151,8 @@ class RenegadeDungeonGame extends FlameGame
       print(
           '🚀 Spawning player at Grid: $startPos (Pixels: ${startPos.x * tileWidth}, ${startPos.y * tileHeight})');
       player = Player(gridPosition: startPos);
+      print(
+          '🆕 New Player created. Level: ${player.stats.level.value}, XP: ${player.stats.currentXp.value}');
 
       // Add default items for new game ONLY
       player.addItem(ItemDatabase.rustySword);
@@ -1191,12 +1206,27 @@ class RenegadeDungeonGame extends FlameGame
       } catch (e) {
         print('❌ Error saving game: $e');
       }
+
+      // Fix: Ensure player is marked as ready for new game
+      isPlayerReady = true;
+      isPlayerReadyNotifier.value = true;
+
       return true;
     }
   }
 
   Future<void> saveGame() async {
     if (!isPlayerReady) return;
+
+    print('💾 Attempting to save game...');
+    print('   Current Slot Index: $currentSlotIndex');
+    print('   Player Level: ${player.stats.level.value}');
+    print('   Player XP: ${player.stats.currentXp.value}');
+
+    if (currentSlotIndex < 1 || currentSlotIndex > 3) {
+      print('❌ ERROR: Invalid slot index $currentSlotIndex! Aborting save.');
+      return;
+    }
 
     final data = PlayerSaveData(
       level: player.stats.level.value,
@@ -1229,6 +1259,7 @@ class RenegadeDungeonGame extends FlameGame
     );
 
     try {
+      print('💾 Calling offlineStorage.saveLocally($currentSlotIndex)...');
       await offlineStorage.saveLocally(currentSlotIndex, data);
       print('💾 Game saved to Slot $currentSlotIndex');
     } catch (e) {
@@ -1437,14 +1468,13 @@ class RenegadeDungeonGame extends FlameGame
 
     for (final obj in portalsLayer.objects) {
       // Tiled object positions - convert directly to grid without scaleFactor
-      // (Tiled isometric coordinates are already in the correct space)
       final gridX = (obj.x / 16.0).floor(); // Tiled uses 16x16 base tiles
       final gridY = (obj.y / 16.0).floor();
 
       print(
-          'â„¹ï¸ Portal ${obj.name}: Calculated grid pos ($gridX, $gridY) from pixels (${obj.x}, ${obj.y})');
+          'ℹ️ Portal ${obj.name}: Raw(${obj.x}, ${obj.y}) -> Grid($gridX, $gridY)');
 
-      // Extract zone size from Tiled object dimensions (convert pixels â†’ grid units)
+      // Extract zone size from Tiled object dimensions (convert pixels -> grid units)
       final zoneWidthGrid = ((obj.width * scaleFactor) / tileWidth).ceil();
       final zoneHeightGrid = ((obj.height * scaleFactor) / tileHeight).ceil();
       final zoneSize = Vector2(
@@ -1498,8 +1528,14 @@ class RenegadeDungeonGame extends FlameGame
   }
 
   void checkPortalCollision(Vector2 playerGridPos) {
+    print(
+        '🔍 Checking portal collision at $playerGridPos'); // Uncomment for verbose debug
     for (final portal in portals.values) {
+      print(
+          '  - Checking against portal at ${portal.gridPosition} size ${portal.size}');
+
       // Use zone-based detection instead of exact point match
+
       if (portal.contains(playerGridPos)) {
         transitionToMap(
           portal.targetMap,
@@ -2174,6 +2210,14 @@ class RenegadeDungeonGame extends FlameGame
         await stopBackgroundVideo();
       }
 
+      // Skip video on mobile (Android/iOS) to avoid codec/source errors
+      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+        print(
+            '📱 Mobile detected: Skipping video playback (using static image)');
+        videoPlayerControllerNotifier.value = null;
+        return;
+      }
+
       final controller = VideoPlayerController.asset('assets/videos/$asset');
       await controller.initialize();
       await controller.setLooping(true);
@@ -2193,13 +2237,14 @@ class RenegadeDungeonGame extends FlameGame
   }
 
   Future<void> stopBackgroundVideo() async {
+    print('🛑 Stopping background video...');
     try {
-      if (videoPlayerControllerNotifier.value != null) {
-        final controller = videoPlayerControllerNotifier.value!;
-        await controller.pause();
-        await controller.dispose();
-        videoPlayerControllerNotifier.value = null;
+      if (videoPlayerController != null) {
+        await videoPlayerController!.dispose();
+        videoPlayerController = null;
       }
+      videoPlayerControllerNotifier.value = null;
+      print('✅ Background video stopped and disposed');
     } catch (e) {
       print('⚠️ Error stopping video: $e');
     }
@@ -2277,8 +2322,64 @@ class RenegadeDungeonGame extends FlameGame
   }
 
   Future<void> preloadBackgroundVideo(String asset) async {
+    // Skip video on mobile (Android/iOS) to avoid codec/source errors
+    // The UI will fall back to the static splash image
+    print(
+        '🔍 Checking platform: Web=$kIsWeb, Android=${Platform.isAndroid}, iOS=${Platform.isIOS}');
+
+    // Skip video on mobile (Android/iOS) to avoid codec/source errors
+    // The UI will fall back to the static splash image
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      print('📱 Mobile detected: Skipping video preload (using static image)');
+      videoPlayerControllerNotifier.value = null;
+      return;
+    }
+
     print('🎥 Preloading video: $asset');
-    // Optional: Pre-initialize controller if needed for smoother transition
+    try {
+      // Dispose previous controller if exists
+      if (videoPlayerController != null) {
+        await videoPlayerController!.dispose();
+      }
+
+      // Initialize new controller
+      videoPlayerController = VideoPlayerController.asset('assets/$asset');
+      await videoPlayerController!.initialize();
+      videoPlayerController!.setLooping(true);
+      videoPlayerController!.setVolume(0.0); // Mute by default
+      await videoPlayerController!.play();
+
+      // Update notifier to trigger UI rebuild
+      videoPlayerControllerNotifier.value = videoPlayerController;
+      print('✅ Video preloaded and playing: $asset');
+    } catch (e) {
+      print('❌ Error preloading video: $e');
+      // Ensure notifier is null so UI knows to use fallback
+      videoPlayerControllerNotifier.value = null;
+    }
+  }
+
+  void _clearSessionState() {
+    print('🧹 Clearing session state...');
+    print('   - Previous Opened Chests: ${openedChests.length}');
+    print('   - Previous Discovered Zones: ${discoveredZones.length}');
+
+    discoveredZones.clear();
+    openedChests.clear();
+    exploredTiles.clear();
+    spawnZoneRects.clear();
+    zonePropertiesMap.clear();
+    conditionalBarriers.clear();
+    bossTriggers.clear();
+    npcs.clear();
+    npcComponents.clear();
+    activeDialogueNPC = null;
+    stepsSinceLastBattle = 0;
+    accumulatedPlaytime = 0;
+    sessionCreatedAt = null;
+    // Note: player is recreated in loadGameData, so no need to clear it here
+    print(
+        '✅ Session state cleared. Chests: ${openedChests.length}, Zones: ${discoveredZones.length}');
   }
 
   void openGemShop() {
@@ -2302,11 +2403,13 @@ class RenegadeDungeonGame extends FlameGame
   }
 
   void handleNormalDeath() {
-    player.stats.gold.value = (player.stats.gold.value / 2).floor();
+    // Lose 75% of gold (retain 25%)
+    player.stats.gold.value = (player.stats.gold.value * 0.25).floor();
     player.stats.currentHp.value =
         player.stats.maxHp.value; // Full heal for respawn
     endCombat();
-    print('⚰️ Player accepted normal death.');
+    print(
+        '⚰️ Player accepted normal death. Gold reduced to ${player.stats.gold.value}.');
   }
 }
 

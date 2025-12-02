@@ -9,7 +9,7 @@ class MinimapWidget extends StatelessWidget {
   const MinimapWidget({
     Key? key,
     required this.game,
-    this.size = 150.0,
+    this.size = 180.0,
   }) : super(key: key);
 
   @override
@@ -54,7 +54,7 @@ class MinimapPainter extends CustomPainter {
     // Or center on player and show a window?
     // Let's center on player and show a window of radius X tiles.
 
-    final double zoom = 4.0; // Pixels per tile on minimap
+    final double zoom = 6.0; // Pixels per tile on minimap
     final double centerX = size.width / 2;
     final double centerY = size.height / 2;
 

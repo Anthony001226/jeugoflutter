@@ -9,6 +9,7 @@ class EnemyStats {
   final int defense;
   final int xpValue;
   final int speed; // For initiative calculation
+  final int goldDrop; // Gold dropped on defeat
 
   // Un mapa que asocia un objeto con su probabilidad de drop (de 0.0 a 1.0).
   final Map<InventoryItem, double> lootTable;
@@ -21,6 +22,7 @@ class EnemyStats {
     required this.defense,
     required this.xpValue,
     this.speed = 5, // Default speed
+    this.goldDrop = 10, // Default gold drop
     // Por defecto, un enemigo no suelta nada.
     this.lootTable = const {},
   }) {

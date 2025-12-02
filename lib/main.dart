@@ -55,7 +55,10 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     _game = RenegadeDungeonGame(offlineStorage: widget.offlineStorage);
     _game.videoPlayerControllerNotifier.addListener(() {
-      setState(() {});
+      // Safe update: check if mounted to avoid setState calls after dispose
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 
@@ -69,7 +72,7 @@ class _MyAppState extends State<MyApp> {
         // CAPA 0: Fondo Negro (Para rellenar letterboxing en Splash Screen)
         Container(color: Colors.black),
 
-        // CAPA 1: El Video de Fondo
+        // CAPA 1: El Video de Fondo (o Imagen Fallback)
         if (_game.videoPlayerControllerNotifier.value != null &&
             _game.videoPlayerControllerNotifier.value!.value.isInitialized)
           SizedBox.expand(
@@ -83,7 +86,10 @@ class _MyAppState extends State<MyApp> {
                 child: VideoPlayer(_game.videoPlayerControllerNotifier.value!),
               ),
             ),
-          ),
+          )
+        else
+          // Fallback if video fails or is loading (and no image available)
+          Container(color: Colors.black),
 
         // CAPA 2: El Juego
         GameWidget<RenegadeDungeonGame>.controlled(

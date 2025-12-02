@@ -18,6 +18,7 @@ class SkeletonStats extends EnemyStats implements CombatStatsHolder {
     required int attack,
     required int defense,
     required int xpValue,
+    required int goldDrop, // NEW
     required Map<InventoryItem, double> lootTable,
   })  : combatStats = CombatStats(
           initialHp: maxHp,
@@ -34,6 +35,7 @@ class SkeletonStats extends EnemyStats implements CombatStatsHolder {
           defense: defense,
           speed: 4,
           xpValue: xpValue,
+          goldDrop: goldDrop, // NEW
           lootTable: lootTable,
         ) {
     currentHp.value = combatStats.currentHp.value;
@@ -59,6 +61,7 @@ class SkeletonComponent extends SpriteAnimationComponent
       attack: 10,
       defense: 3,
       xpValue: 60,
+      goldDrop: 25, // NEW
       lootTable: {
         ItemDatabase.potion: 0.40,
         ItemDatabase.rustySword: 0.20,
