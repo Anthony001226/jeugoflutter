@@ -16,8 +16,6 @@ class CombatUI extends StatelessWidget {
   const CombatUI({super.key, required this.game});
 
   @override
-  @override
-  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isMobile = size.width < 800;

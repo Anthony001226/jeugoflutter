@@ -880,6 +880,8 @@ class RenegadeDungeonGame extends FlameGame
 
   final videoPlayerControllerNotifier =
       ValueNotifier<VideoPlayerController?>(null);
+  final currentBackgroundNotifier =
+      ValueNotifier<String?>(null); // NEW: For static fallback
 
   // Save System
   int currentSlotIndex = 1;
@@ -2201,6 +2203,9 @@ class RenegadeDungeonGame extends FlameGame
 
   Future<void> playBackgroundVideo(String asset) async {
     try {
+      // Always set the background asset name (for static fallback)
+      currentBackgroundNotifier.value = asset;
+
       if (videoPlayerControllerNotifier.value?.dataSource ==
           'assets/videos/$asset') {
         return;
@@ -2208,12 +2213,14 @@ class RenegadeDungeonGame extends FlameGame
 
       if (videoPlayerControllerNotifier.value != null) {
         await stopBackgroundVideo();
+        // Restore the asset name because stopBackgroundVideo clears it
+        currentBackgroundNotifier.value = asset;
       }
 
       // Skip video on mobile (Android/iOS) to avoid codec/source errors
       if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
         print(
-            '📱 Mobile detected: Skipping video playback (using static image)');
+            '📱 Mobile detected: Skipping video playback (using static image: $asset)');
         videoPlayerControllerNotifier.value = null;
         return;
       }
@@ -2244,6 +2251,7 @@ class RenegadeDungeonGame extends FlameGame
         videoPlayerController = null;
       }
       videoPlayerControllerNotifier.value = null;
+      currentBackgroundNotifier.value = null; // Clear static background too
       print('✅ Background video stopped and disposed');
     } catch (e) {
       print('⚠️ Error stopping video: $e');

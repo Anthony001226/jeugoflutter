@@ -60,6 +60,11 @@ class _MyAppState extends State<MyApp> {
         setState(() {});
       }
     });
+    _game.currentBackgroundNotifier.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -85,6 +90,18 @@ class _MyAppState extends State<MyApp> {
                     .videoPlayerControllerNotifier.value!.value.size.height,
                 child: VideoPlayer(_game.videoPlayerControllerNotifier.value!),
               ),
+            ),
+          )
+        else if (_game.currentBackgroundNotifier.value != null)
+          // Fallback to static image if video is not playing but background is set
+          SizedBox.expand(
+            child: Image.asset(
+              'assets/videos/${_game.currentBackgroundNotifier.value!.replaceAll(".mp4", ".png")}',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                // If PNG missing, fallback to black
+                return Container(color: Colors.black);
+              },
             ),
           )
         else

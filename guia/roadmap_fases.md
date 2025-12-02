@@ -9,23 +9,23 @@ Este documento resume el estado actual del proyecto, lo que se ha implementado h
 El juego tiene un **Core Loop** funcional (Exploración -> Combate -> Loot -> Progreso) y es compatible con **Web y Móvil**.
 
 ### 1. Sistemas Principales
-- **Exploración:** Movimiento isométrico, niebla de guerra, transiciones entre mapas (Cementerio -> Dungeon).
-- **Combate:** Sistema por turnos con iniciativa, múltiples enemigos, habilidades y cálculo de daño (Atque - Defensa).
-- **Inventario y Equipo:** Sistema completo para recoger items, equipar armas/armaduras y ver estadísticas.
+- **Exploración:** Movimiento isométrico, niebla de guerra, transiciones entre mapas.
+- **Combate:** Sistema por turnos, múltiples enemigos, habilidades, cálculo de daño.
+- **Economía:** Oro, drops de enemigos, tienda de gemas (debug), penalización de muerte.
 - **Persistencia (Guardado):**
-    - **Local:** Usa Hive para guardar en disco (funciona en Web y Nativo).
-    - **Nube:** Sincronización básica preparada (estructura lista).
-    - **Auto-Guardado:** Al cambiar de zona y al salir al menú.
+    - **Local:** Hive (Web/Nativo).
+    - **Nube:** Firebase Auth & Firestore (Sincronización de slots).
+    - **Auto-Guardado:** Al cambiar de zona, salir al menú y background (móvil).
 
 ### 2. Interfaz (UI)
-- **HUD:** Barra de vida/maná, minimapa y nivel siempre visibles.
-- **Menús:** Menú Principal, Selección de Slot (con video de fondo), Pausa, Inventario, Tienda de Gemas.
-- **Feedback:** Diálogos de barreras, notificaciones de loot, pantalla de victoria/derrota.
+- **HUD:** Barra de vida/maná, minimapa (zoom mejorado) y nivel.
+- **Menús:** Menú Principal, Selección de Slot (con fallback PNG en móvil), Pausa, Inventario, Tienda.
+- **Feedback:** Diálogos, notificaciones de loot, pantalla de victoria/derrota.
 
 ### 3. Correcciones Recientes (Críticas)
-- **Web Autoplay:** Se arregló el error que impedía reproducir música/video en Web al salir al menú.
-- **Persistencia al Cerrar:** Ahora el juego fuerza el guardado en disco (`flush`) para no perder datos si se cierra la app bruscamente.
-- **Visuales:** Se arregló el glitch donde el mapa se veía detrás del menú principal.
+- **Mobile Video Crash:** Implementado fallback a imágenes estáticas (`.png`) en Android/iOS para evitar crashes con `VideoPlayer`.
+- **Economía:** Implementado sistema de oro, drops de enemigos y penalización de muerte (75% pérdida vs 0% con gemas).
+- **Cloud Save:** Integración completa con Firebase para guardar progreso en la nube.
 
 ---
 
@@ -42,89 +42,59 @@ El juego tiene un **Core Loop** funcional (Exploración -> Combate -> Loot -> Pr
 - [x] Inventario y Loot
 - [x] Base de Datos de Items
 
-### ✅ Fase 3: Contenido (Completado)
+### ✅ Fase 3: Contenido Base (Completado)
 - [x] Enemigos (Goblin, Slime, Bat, Skeleton)
 - [x] Cofres y NPCs
-- [x] Bosses (Minotauro - Lógica base)
+- [x] Bosses (Lógica base y persistencia)
 
 ### ✅ Fase 4: Fundamentos Técnicos (Completado)
 - [x] Persistencia Web/Local (Hive)
 - [x] Estructura de Guardado (JSON)
+- [x] Cloud Save (Firebase)
 
-### ✅ Fase 5: Narrativa Base (Completado)
-- [x] Intro y Spawn en Cementerio (ver que aparezca correctamente)
-- [x] Transiciones de Mapa
-
-### 🛠️ Fase 6: Estabilización y Corrección de Errores (Completado)
-- [x] **Lógica de Combate:**
-    - Se arregló que enemigos muertos siguieran atacando.
-    - Se arregló el "doble ataque" del jugador (spam de habilidades).
-    - Se corrigió la finalización del combate al morir el último enemigo.
-- [x] **Persistencia Robusta (Save/Load):**
-    - **Web:** Implementado soporte para IndexedDB (sin path_provider).
-    - **Windows:** Implementado guardado en `Documents` para evitar pérdida de datos al reiniciar.
-    - **UI:** Añadido botón manual de "Guardar" en el menú de pausa.
-- [x] **Estabilidad de Carga:**
-    - **Web Freeze:** Se arregló la pantalla negra al cargar (la música ya no bloquea la carga).
-    - **Loading UI:** Se mejoró el feedback visual ("Loading World..." en ámbar).
-- [x] **Estructura del Código:**
-    - Restaurada la integridad de `RenegadeDungeonGame.dart`.
-    - Corregidos errores críticos de linter (`isPlayerReadyNotifier`).
-- [x] **Correcciones de Carga y Navegación (Noviembre 2025):**
-    - **Map Loading:** Solucionado el bug donde `zone_test.tmx` fallaba al cargar y hacía fallback a `dungeon.tmx` (LateInitializationError).
-    - **Item Duplication:** Arreglado el problema de duplicación de items iniciales al cargar partida.
-    - **Intro Screen:** Implementado auto-skip inteligente para partidas cargadas, evitando que la intro se repita.
-    - **Router:** Solucionado el problema de navegación en cargas consecutivas (pantalla negra/congelada).
-    - **Boss Persistence:** Implementado guardado de jefes derrotados para desbloquear barreras permanentemente.
+### ✅ Fase 5: Economía y Pulido (Completado)
+- [x] Sistema de Oro y Drops
+- [x] Tienda de Gemas (UI y Debug)
+- [x] Penalización de Muerte y Revivir
+- [x] Optimización Móvil (Video Fallback, UI Responsive)
 
 ---
 
-## 🔮 Pasos Siguientes (Para continuar en la escuela)
+## 🔮 Pasos Siguientes
 
-### Próxima Sesión: Contenido de Jefe (Para hacer en la escuela)
+### 🚧 Fase 6: Contenido de Jefe y Nuevas Áreas (En Progreso)
 - [ ] **Diseño de Nivel (Tiled):**
-    - Crear nuevo mapa: `boss_area.tmx` (30x30 tiles).
-    - **Capas necesarias:** `Ground`, `Walls`, `Decorations`.
-    - **Capa de Objetos (`Objects`):**
-        - `Spawn`: Punto de entrada del jugador.
-        - `BossTrigger`: Objeto rectangular para iniciar combate.
-            - Propiedad custom: `bossId` (String) = "minotaur_boss"
-            - Propiedad custom: `enemyType` (String) = "minotaur"
-    - **Capa de Portales (`Portals`):**
-        - Portal de salida de vuelta al `dungeon.tmx`.
-- [ ] **Scripting (Código):**
-    - Configurar el trigger en `RenegadeDungeonGame.dart` para llamar a `startBossCombat`.
+    - Crear `boss_area.tmx` (30x30 tiles).
+    - Capas: `Ground`, `Walls`, `Decorations`, `Objects` (Spawn, BossTrigger).
+    - Portales de entrada/salida.
+- [ ] **Scripting:**
+    - Conectar BossTrigger con `startBossCombat`.
+    - Implementar comportamiento específico del Boss (fases, habilidades).
 
 ### Fase 7: Audio y Atmósfera (Prioridad Media)
-- [ ] **Sistema de Música Dinámica:** Cambiar música suavemente entre Exploración y Combate.
-- [ ] **SFX:** Añadir sonidos de pasos, golpes, abrir cofres, UI.
+- [ ] **Sistema de Música Dinámica:** Transiciones suaves entre exploración y combate.
+- [ ] **SFX:** Sonidos de pasos, golpes, UI, abrir cofres.
 
 ### Fase 8: Narrativa y Misiones (Prioridad Alta)
-- [ ] **Sistema de Quests:** Crear estructura para misiones (Matar X enemigos, Encontrar objeto Y).
+- [ ] **Sistema de Quests:** Estructura para misiones (Matar X, Encontrar Y).
+- [ ] **Diálogos Avanzados:** NPCs con múltiples líneas y opciones.
 
-### Fase 9: Optimización (Prioridad Baja)
-- [ ] **Sprite Atlases:** Unificar imágenes para mejorar rendimiento.
-- [ ] **Pantallas de Carga:** Mejorar la barra de carga al iniciar.
-
-### Fase 10: Lanzamiento
-- [ ] **Analytics:** Integrar Firebase Analytics.
-- [ ] **Ads:** Integrar AdMob (opcional).
-- [ ] **Build:** Generar APK/IPA y Web build final.
+### Fase 9: Optimización y Lanzamiento (Prioridad Baja)
+- [ ] **Sprite Atlases:** Unificar imágenes.
+- [ ] **Analytics:** Firebase Analytics.
+- [ ] **Ads:** AdMob (opcional).
+- [ ] **Build Final:** APK/IPA y Web.
 
 ---
 
-## 📝 Notas Técnicas para el Desarrollador
+## 📝 Notas Técnicas
 
 ### Archivos Clave
-- `lib/game/renegade_dungeon_game.dart`: El "cerebro" del juego. Maneja el ciclo de vida, actualizaciones y lógica global.
-- `lib/services/offline_storage_service.dart`: Maneja el guardado en Hive. Si hay problemas de datos, revisa aquí.
-- `lib/ui/pause_menu_ui.dart`: Lógica del menú de pausa y salida.
-- `lib/components/combat_manager.dart`: Lógica del sistema de combate.
+- `lib/game/renegade_dungeon_game.dart`: Lógica global.
+- `lib/services/cloud_save_service.dart`: Sincronización con Firebase.
+- `lib/ui/gem_shop_screen.dart`: Tienda y compras (Debug).
+- `assets/videos/`: Contiene `.mp4` para Web y `.png` para Móvil.
 
 ### Comandos Útiles
-- **Correr en Chrome:** `flutter run -d chrome --web-renderer html` (o `canvaskit` para mejor rendimiento pero más peso).
-- **Correr en Windows:** `flutter run -d windows`
-
-### Consejos
-- Si añades nuevos campos al guardado, recuerda actualizar `PlayerSaveData.dart` tanto en `toJson` como en `fromJson`.
-- Para editar mapas, usa **Tiled** y guarda los archivos `.tmx` en `assets/tiles`.
+- **Correr en Chrome:** `flutter run -d chrome --web-renderer html`
+- **Correr en Móvil:** `flutter run -d <device_id>`
