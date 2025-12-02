@@ -884,8 +884,30 @@ class RenegadeDungeonGame extends FlameGame
 
   @override
   Future<void> onLoad() async {
+    // Allow game to run in background (experimental, OS may still throttle)
+    pauseWhenBackgrounded = false;
+
     super.onLoad();
     WidgetsBinding.instance.addObserver(this);
+
+    @override
+    void onRemove() {
+      WidgetsBinding.instance.removeObserver(this);
+      stopMusic();
+      super.onRemove();
+    }
+
+    @override
+    void didChangeAppLifecycleState(AppLifecycleState state) {
+      if (state == AppLifecycleState.paused ||
+          state == AppLifecycleState.detached ||
+          state == AppLifecycleState.inactive) {
+        if (isPlayerReady) {
+          print('📱 App going to background/inactive. Auto-saving...');
+          saveGame();
+        }
+      }
+    }
 
     await FlameAudio.audioCache.loadAll([
       'menu_music.ogg',
@@ -1027,6 +1049,18 @@ class RenegadeDungeonGame extends FlameGame
 
       accumulatedPlaytime = saveData.playtimeSeconds.toDouble();
       sessionCreatedAt = saveData.createdAt;
+
+      // Restore Stats
+      player.stats.level.value = saveData.level;
+      player.stats.currentXp.value = saveData.experience;
+      player.stats.currentHp.value = saveData.currentHp;
+      player.stats.maxHp.value = saveData.maxHp;
+      player.stats.currentMp.value = saveData.currentMp;
+      player.stats.maxMp.value = saveData.maxMp;
+      player.stats.attack.value = saveData.attack;
+      player.stats.defense.value = saveData.defense;
+      player.stats.gold.value = saveData.gold;
+      player.stats.gems.value = saveData.gems;
 
       // Restore progression
       discoveredZones.addAll(saveData.discoveredMaps);
