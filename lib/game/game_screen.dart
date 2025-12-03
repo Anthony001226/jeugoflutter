@@ -20,6 +20,8 @@ class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
   @override
   Future<void> onLoad() async {
     print('🎮 GameScreen.onLoad() started');
+    // Force reset to ensure UI updates when set to true later
+    game.isPlayerReadyNotifier.value = false;
 
     try {
       // Play world music

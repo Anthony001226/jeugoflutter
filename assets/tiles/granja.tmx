@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="isometric" renderorder="left-down" width="48" height="28" tilewidth="32" tileheight="16" infinite="0" nextlayerid="8" nextobjectid="8">
+<map version="1.10" tiledversion="1.11.2" orientation="isometric" renderorder="left-down" width="48" height="28" tilewidth="32" tileheight="16" infinite="0" nextlayerid="8" nextobjectid="9">
  <tileset firstgid="1" source="dungeon_tileset.tsx"/>
  <tileset firstgid="161" source="suelos.tsx"/>
  <tileset firstgid="173" source="arboles.tsx"/>
@@ -69,15 +69,6 @@
  </layer>
  <objectgroup id="4" name="SpawnZones"/>
  <objectgroup id="5" name="Portals">
-  <object id="5" x="126" y="375.333" width="104" height="41.3333">
-   <properties>
-    <property name="targetMap" value="boss_area.tmx"/>
-    <property name="targetX" type="int" value="69"/>
-    <property name="targetY" type="int" value="19"/>
-    <property name="transitionDuration" type="int" value="2000"/>
-    <property name="transitionType" value="fade"/>
-   </properties>
-  </object>
   <object id="7" x="686" y="148.083" width="46.25" height="42.5833">
    <properties>
     <property name="targetMap" value="dungeon.tmx"/>
@@ -87,9 +78,18 @@
     <property name="transitionType" value="fade"/>
    </properties>
   </object>
+  <object id="8" x="149.875" y="357.833" width="41.25" height="41.3333">
+   <properties>
+    <property name="targetMap" value="boss_area.tmx"/>
+    <property name="targetX" type="int" value="69"/>
+    <property name="targetY" type="int" value="19"/>
+    <property name="transitionDuration" type="int" value="2000"/>
+    <property name="transitionType" value="fade"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="7" name="ConditionalBarriers">
-  <object id="6" x="-102.667" y="292" width="187.333" height="21.6667">
+  <object id="6" x="-71.667" y="301" width="187.333" height="21.6667">
    <properties>
     <property name="blockedMessage" value="Necesitas ser nivel 15 y derrotar al Guardian del Panteón"/>
     <property name="id" value="granja_entrance"/>

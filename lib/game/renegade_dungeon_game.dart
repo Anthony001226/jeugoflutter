@@ -895,6 +895,9 @@ class RenegadeDungeonGame extends FlameGame
   RenegadeDungeonGame({required this.offlineStorage});
 
   @override
+  Color backgroundColor() => const Color(0x00000000); // Transparent
+
+  @override
   Future<void> onLoad() async {
     // Allow game to run in background (experimental, OS may still throttle)
     pauseWhenBackgrounded = false;
@@ -1319,29 +1322,78 @@ class RenegadeDungeonGame extends FlameGame
     await screenFade.fadeIn();
   }
 
+  /// Start boss combat with specific boss ID
+  void startBossBattle(String bossId, String enemyType) async {
+    state = GameState.inCombat;
+    player.showSurpriseEmote();
+    camera.viewfinder.add(
+      ScaleEffect.to(
+        Vector2.all(2),
+        EffectController(duration: 0.4, curve: Curves.easeIn),
+      ),
+    );
+    await Future.delayed(const Duration(milliseconds: 1000));
+    final screenFade = ScreenFade();
+    camera.viewport.add(screenFade);
+    await screenFade.fadeOut();
+    world.removeFromParent();
+    camera.viewfinder.zoom = 1.5;
+
+    // Use startBossCombat to initialize manager AND set boss ID
+    combatManager.startBossCombat(bossId, enemyType);
+
+    _battleScene = BattleScene(enemies: combatManager.currentEnemies);
+    await add(_battleScene!);
+    overlays.add('CombatUI');
+    await screenFade.fadeIn();
+  }
+
   void endCombat() {
-    // --- Â¡NUEVA LÃ“GICA AÃ‘ADIDA! ---
-    // Si el jugador fue derrotado, restauramos su estado.
-    if (player.stats.currentHp.value == 0) {
-      print('ðŸ’€ Â¡Has muerto! Reapareciendo en punto seguro...');
+    final playerDied = player.stats.currentHp.value <= 0;
+
+    if (playerDied) {
+      print('💀 ¡Has muerto! Reapareciendo en punto seguro...');
       player.stats.currentHp.value = player.stats.maxHp.value;
       player.stats.currentMp.value = player.stats.maxMp.value;
 
-      // CRÃTICO: Sincronizar con combatStats para que la UI lo vea
+      // CRÍTICO: Sincronizar con combatStats para que la UI lo vea
       player.stats.combatStats.currentHp.value = player.stats.currentHp.value;
       player.stats.combatStats.currentMp.value = player.stats.currentMp.value;
 
-      player.gridPosition = Vector2(5.0, 5.0);
+      // Respawn near a portal if possible (e.g. entrance), otherwise default
+      if (portals.isNotEmpty) {
+        // Try to find a portal that is NOT the one leading to the next area (if any)
+        // For now, just pick the first one, which is usually the entrance in simple maps
+        final portal = portals.values.first;
+        // Spawn slightly offset from portal to avoid instant transition
+        player.gridPosition = portal.gridPosition + Vector2(-5, 0);
+        print('📍 Respawning near portal: ${portal.gridPosition}');
+      } else {
+        player.gridPosition = Vector2(5.0, 5.0);
+      }
       player.position = gridToScreenPosition(player.gridPosition);
 
       // Show respawn message briefly
       Future.delayed(const Duration(milliseconds: 500), () {
-        print('âœ¨ Has reaparecido con salud completa');
+        print('✨ Has reaparecido con salud completa');
       });
+
+      // Cleanup and return EARLY so we don't mark boss as defeated
+      if (combatManager.currentEnemy != null) {
+        combatManager.currentEnemy = null;
+      }
+      overlays.remove('CombatUI');
+      if (_battleScene != null) {
+        remove(_battleScene!);
+        _battleScene = null;
+      }
+      add(world);
+      state = GameState.exploring;
+      return;
     }
-    // -----------------------------
-    if (combatManager.currentBossId != null &&
-        player.stats.currentHp.value > 0) {
+
+    // If we are here, player WON
+    if (combatManager.currentBossId != null) {
       player.stats.defeatBoss(combatManager.currentBossId!);
       print('✅ Boss ${combatManager.currentBossId} defeated and marked!');
       saveGame();
@@ -1421,6 +1473,12 @@ class RenegadeDungeonGame extends FlameGame
         }
       }
     }
+
+    // Block movement and other inputs during combat
+    if (state == GameState.inCombat) {
+      return KeyEventResult.handled;
+    }
+
     // Â¡OJO! AsegÃºrate de que esta lÃ­nea estÃ© presente.
     // Llama al mÃ©todo original para que otras teclas (como el movimiento) sigan funcionando.
     return super.onKeyEvent(event, keysPressed);
@@ -1451,6 +1509,12 @@ class RenegadeDungeonGame extends FlameGame
         checkZoneTransition(player.position);
         checkRandomEncounter();
         checkBossTriggerCollision(player.gridPosition);
+
+        // DEBUG: Print status every ~1 second
+        if (DateTime.now().millisecondsSinceEpoch % 2000 < 20) {
+          print(
+              '🔍 DEBUG: Map=$currentMapName, BossTriggers=${bossTriggers.length}, Player=${player.gridPosition}');
+        }
       }
     }
   }
@@ -1579,7 +1643,7 @@ class RenegadeDungeonGame extends FlameGame
         // Fade in
         await screenFade.fadeIn(duration: fadeOutDuration);
       } catch (e, stackTrace) {
-        print('âŒ Error during fade transition: $e');
+        print('â Œ Error during fade transition: $e');
         print(stackTrace);
         // Remove fade on error
         screenFade.removeFromParent();
@@ -1593,13 +1657,17 @@ class RenegadeDungeonGame extends FlameGame
       }
     } else {
       // Default to fade for unknown types
-      print('âš ï¸ Unknown transition type "$transitionType", using fade');
+      print('âš ï¸  Unknown transition type "$transitionType", using fade');
       return transitionToMap(mapName, startPos,
           transitionType: 'fade', duration: duration);
     }
 
     // Restore HUD after transition
     overlays.add('PlayerHud');
+
+    // Auto-save after successful transition
+    saveGame();
+    print('💾 Game saved after portal transition');
   }
 
   /// Internal method to perform the actual map loading
@@ -1749,43 +1817,86 @@ class RenegadeDungeonGame extends FlameGame
 
   void _loadBossTriggers() {
     bossTriggers.clear();
-    final objectsLayer = mapComponent.tileMap.getLayer<ObjectGroup>('Objects');
-    if (objectsLayer == null) {
-      print('ℹ️ No Objects layer found for boss triggers');
+
+    // Search ALL object layers for BossTrigger objects
+    // This is more robust than looking for a specific "Objects" layer
+    // NOTE: Use map.layers instead of renderableLayers because ObjectGroups might not be renderable
+    final objectLayers =
+        mapComponent.tileMap.map.layers.whereType<ObjectGroup>();
+
+    if (objectLayers.isEmpty) {
+      print('ℹ️ No ObjectGroup layers found for boss triggers');
       return;
     }
-    const double scaleFactor = 2.0;
-    for (final obj in objectsLayer.objects) {
-      if (obj.name == 'BossTrigger') {
-        final rect = Rect.fromLTWH(
-          obj.x * scaleFactor,
-          obj.y * scaleFactor,
-          obj.width * scaleFactor,
-          obj.height * scaleFactor,
-        );
-        final bossId = obj.properties.getValue<String>('bossId') ?? 'unknown';
-        final enemyType =
-            obj.properties.getValue<String>('enemyType') ?? 'boss1';
-        bossTriggers.add(BossTriggerData(
-          rect: rect,
-          bossId: bossId,
-          enemyType: enemyType,
-          triggered: false,
-        ));
-        print('✅ Loaded boss trigger: $bossId ($enemyType)');
+
+    int triggersFound = 0;
+
+    for (final layer in objectLayers) {
+      for (final obj in layer.objects) {
+        if (obj.name == 'BossTrigger') {
+          // Convert Tiled coordinates (pixels) to Grid coordinates
+          // Tiled uses 16x16 base tiles, so we divide by 16
+          final rect = Rect.fromLTWH(
+            obj.x / 16.0,
+            obj.y / 16.0,
+            obj.width / 16.0,
+            obj.height / 16.0,
+          );
+          final bossId = obj.properties.getValue<String>('bossId') ?? 'unknown';
+          final enemyType =
+              obj.properties.getValue<String>('enemyType') ?? 'boss1';
+          bossTriggers.add(BossTriggerData(
+            rect: rect,
+            bossId: bossId,
+            enemyType: enemyType,
+            triggered: false,
+          ));
+          print(
+              '✅ Loaded boss trigger: $bossId ($enemyType) from layer ${layer.name}');
+          triggersFound++;
+        }
       }
     }
-    print('✅ Loaded ${bossTriggers.length} boss triggers');
+
+    if (triggersFound == 0) {
+      print('ℹ️ No BossTrigger objects found in any layer');
+    } else {
+      print('✅ Loaded $triggersFound boss triggers');
+    }
   }
 
   void checkBossTriggerCollision(Vector2 playerGridPos) {
-    final playerScreenPos = gridToScreenPosition(playerGridPos);
+    // Check directly against grid coordinates (more robust)
+    if (bossTriggers.isNotEmpty && currentMapName.contains('boss_area')) {
+      // Throttle logs or just print for now since it's debugging
+      // print('🔍 Checking Boss Trigger: Player $playerGridPos vs ${bossTriggers.length} triggers');
+    }
+
     for (int i = 0; i < bossTriggers.length; i++) {
       final trigger = bossTriggers[i];
-      // Skip if already triggered
+
+      // Reset trigger if player leaves area (allows retry on death/flee)
+      if (!trigger.rect.contains(playerGridPos.toOffset())) {
+        if (trigger.triggered) {
+          trigger.triggered = false;
+          print('🔄 Reset trigger ${trigger.bossId} (player left area)');
+        }
+        continue;
+      }
+
+      // If we are here, player IS in rect
+      // Skip if already triggered this session
       if (trigger.triggered) continue;
-      // Check if player is in trigger area
-      if (trigger.rect.contains(playerScreenPos.toOffset())) {
+
+      // Debug print for proximity (if within 5 tiles)
+      if ((trigger.rect.center - playerGridPos.toOffset()).distance < 5.0) {
+        print(
+            '⚠️ Proximity Check: Player $playerGridPos vs Trigger ${trigger.rect}');
+      }
+
+      // Check if player is in trigger area (using grid coordinates)
+      if (trigger.rect.contains(playerGridPos.toOffset())) {
+        print('🎯 HIT! Player inside trigger rect!');
         // Check if boss is already defeated
         if (player.stats.defeatedBosses.contains(trigger.bossId)) {
           print('ℹ️ Boss ${trigger.bossId} already defeated, skipping trigger');
@@ -1794,9 +1905,11 @@ class RenegadeDungeonGame extends FlameGame
         }
         print('⚔️ Boss trigger activated: ${trigger.bossId}');
         trigger.triggered = true;
+
         // Start boss combat
-        combatManager.startBossCombat(trigger.bossId, trigger.enemyType);
-        startCombat(trigger.enemyType);
+        // Start boss combat
+        // NOTE: startBossBattle handles UI and state transition
+        startBossBattle(trigger.bossId, trigger.enemyType);
         break;
       }
     }
@@ -2332,12 +2445,18 @@ class RenegadeDungeonGame extends FlameGame
   Future<void> preloadBackgroundVideo(String asset) async {
     // Skip video on mobile (Android/iOS) to avoid codec/source errors
     // The UI will fall back to the static splash image
-    print(
-        '🔍 Checking platform: Web=$kIsWeb, Android=${Platform.isAndroid}, iOS=${Platform.isIOS}');
+    bool isMobile = false;
+    if (!kIsWeb) {
+      try {
+        isMobile = Platform.isAndroid || Platform.isIOS;
+      } catch (e) {
+        // Ignore platform errors
+      }
+    }
 
-    // Skip video on mobile (Android/iOS) to avoid codec/source errors
-    // The UI will fall back to the static splash image
-    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+    print('🔍 Checking platform: Web=$kIsWeb, Mobile=$isMobile');
+
+    if (isMobile) {
       print('📱 Mobile detected: Skipping video preload (using static image)');
       videoPlayerControllerNotifier.value = null;
       return;
@@ -2351,7 +2470,10 @@ class RenegadeDungeonGame extends FlameGame
       }
 
       // Initialize new controller
-      videoPlayerController = VideoPlayerController.asset('assets/$asset');
+      // FIX: Use correct path 'assets/videos/' and set notifier for fallback
+      currentBackgroundNotifier.value = asset;
+      videoPlayerController =
+          VideoPlayerController.asset('assets/videos/$asset');
       await videoPlayerController!.initialize();
       videoPlayerController!.setLooping(true);
       videoPlayerController!.setVolume(0.0); // Mute by default
