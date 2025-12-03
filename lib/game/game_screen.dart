@@ -17,6 +17,16 @@ bool get isMobile {
 }
 
 class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
+  GameScreen() {
+    print('🔨 GameScreen constructor called');
+  }
+
+  @override
+  void onMount() {
+    super.onMount();
+    print('🔨 GameScreen.onMount() called');
+  }
+
   @override
   Future<void> onLoad() async {
     print('🎮 GameScreen.onLoad() started');
@@ -88,12 +98,24 @@ class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
       // Set game state
       game.state = GameState.exploring;
 
+      // Force exploration update
+      print('🗺️ Forcing exploration update at ${game.player.position}');
+      game.updateExploration(game.player.position);
+
       print('✅ GameScreen.onLoad() completed successfully');
+      print('   - Map Size: ${game.mapComponent.size}');
+      print('   - Map Position: ${game.mapComponent.position}');
+      print('   - Player Position: ${game.player.position}');
     } catch (e, stack) {
       print('❌ ERROR in GameScreen.onLoad(): $e');
       print('Stack trace: $stack');
       rethrow;
     }
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
   }
 
   @override

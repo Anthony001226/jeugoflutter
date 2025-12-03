@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:renegade_dungeon/game/menu_route_component.dart';
 import 'package:renegade_dungeon/game/loading_route_component.dart';
+import 'package:renegade_dungeon/game/intro_route_component.dart';
 import 'package:flame/game.dart';
 
 import 'package:flame_tiled/flame_tiled.dart';
@@ -369,6 +370,56 @@ class CombatManager {
       return;
     }
 
+    // Handle All Enemies Targeting
+    if (ability.effect.targetType == TargetType.allEnemies) {
+      if (currentEnemies.isEmpty) {
+        print('❌ No hay enemigos para atacar');
+        return;
+      }
+
+      print('⚔️ Jugador usa: ${ability.name} contra TODOS los enemigos');
+
+      // Consumir recursos una sola vez
+      if (ability.type == AbilityType.ultimate) {
+        playerStats.spendUlt();
+      } else if (ability.mpCost > 0) {
+        playerStats.spendMp(ability.mpCost);
+      }
+
+      // Apply damage to ALL enemies
+      final enemiesToHit = List<SpriteAnimationComponent>.from(currentEnemies);
+
+      for (final enemy in enemiesToHit) {
+        final enemyStats = (enemy as dynamic).stats as EnemyStats;
+
+        final grossDamage = DamageCalculator.calculateDamage(
+          ability: ability,
+          attackerAtk: playerStats.effectiveAttack,
+          defenderDef: 0,
+          critChance: playerStats.critChance.value,
+        );
+
+        final enemyDef = enemyStats.defense;
+        final estimatedNetDamage = (grossDamage - enemyDef).clamp(1, 999);
+
+        enemyStats.takeDamage(grossDamage);
+        print(
+            '💥 ${ability.name} golpeó a un enemigo por $estimatedNetDamage de daño!');
+
+        playerStats.gainUltCharge(ability.effect.ultGain);
+
+        if (enemyStats.currentHp.value <= 0) {
+          _handleEnemyDeath(enemy, enemyStats);
+        }
+      }
+
+      print('⏳ Fin del turno del jugador (AoE). Siguiente turno...');
+      Future.delayed(const Duration(seconds: 1), () {
+        if (currentEnemies.isNotEmpty) nextTurn();
+      });
+      return;
+    }
+
     if (isMultiEnemy) {
       final enemyName = getEnemyName(targetEnemy);
       print('âš”ï¸ Jugador usa: ${ability.name} contra $enemyName');
@@ -408,63 +459,9 @@ class CombatManager {
     // Ganar carga de Ultimate
     playerStats.gainUltCharge(ability.effect.ultGain);
 
-    // Verificar si el enemigo muriÃ³
+    // Verificar si el enemigo murió
     if (enemyStats.currentHp.value <= 0) {
-      print('ðŸ’€ Â¡Enemigo derrotado! (HP <= 0 detected)');
-
-      // NEW: Accumulate XP instead of giving immediately
-      totalXpEarned += enemyStats.xpValue;
-      totalGoldEarned += enemyStats.goldDrop;
-      print(
-          '📊 XP acumulado: +${enemyStats.xpValue} (Total: $totalXpEarned) | 💰 Gold: +${enemyStats.goldDrop} (Total: $totalGoldEarned)');
-
-      // Loot drop - ACCUMULATE items (don't clear the list)
-      final random = Random();
-      enemyStats.lootTable.forEach((item, chance) {
-        if (random.nextDouble() < chance) {
-          game.player.addItem(item);
-          lastDroppedItems.add(item);
-        }
-      });
-
-      // Handle multi-enemy defeat
-      if (isMultiEnemy) {
-        // Check if this is the LAST enemy
-        if (currentEnemies.length == 1) {
-          print('🎉 ¡Último enemigo derrotado!');
-
-          // NEW: Boss Persistence
-          if (currentBossId != null) {
-            game.player.stats.defeatBoss(currentBossId!);
-            print('🏆 Boss Persistence: Saved kill for $currentBossId');
-          }
-
-          // NEW: Award all XP and Gold at END of battle
-          game.player.stats.gainXp(totalXpEarned);
-          game.player.stats.gold.value += totalGoldEarned;
-          print(
-              '⭐ XP TOTAL GANADO: $totalXpEarned | 💰 GOLD TOTAL: $totalGoldEarned');
-          print('â­ XP TOTAL GANADO: $totalXpEarned');
-          // DO NOT REMOVE. Let UI show victory screen based on HP <= 0.
-          // Also ensure we don't call nextTurn().
-          return;
-        }
-
-        _removeDefeatedEnemy(selectedTargetIndex);
-
-        Future.delayed(const Duration(seconds: 1), () {
-          nextTurn();
-        });
-        return;
-      }
-
-      // Single enemy mode - end combat
-      // NEW: Award XP and Gold for single enemy too
-      game.player.stats.gainXp(totalXpEarned);
-      game.player.stats.gold.value += totalGoldEarned;
-      print(
-          '⭐ XP TOTAL GANADO: $totalXpEarned | 💰 GOLD TOTAL: $totalGoldEarned');
-      print('â­ XP TOTAL GANADO: $totalXpEarned');
+      _handleEnemyDeath(targetEnemy, enemyStats);
       return;
     }
 
@@ -481,6 +478,59 @@ class CombatManager {
         });
       }
     });
+  }
+
+  void _handleEnemyDeath(
+      SpriteAnimationComponent enemy, EnemyStats enemyStats) {
+    print('💀 ¡Enemigo derrotado! (HP <= 0 detected)');
+
+    // NEW: Accumulate XP instead of giving immediately
+    totalXpEarned += enemyStats.xpValue;
+    totalGoldEarned += enemyStats.goldDrop;
+    print(
+        '📊 XP acumulado: +${enemyStats.xpValue} (Total: $totalXpEarned) | 💰 Gold: +${enemyStats.goldDrop} (Total: $totalGoldEarned)');
+
+    // Loot drop - ACCUMULATE items (don't clear the list)
+    final random = Random();
+    enemyStats.lootTable.forEach((item, chance) {
+      if (random.nextDouble() < chance) {
+        game.player.addItem(item);
+        lastDroppedItems.add(item);
+      }
+    });
+
+    // Handle multi-enemy defeat
+    if (currentEnemies.isNotEmpty) {
+      // Find index of this enemy
+      int index = currentEnemies.indexOf(enemy);
+      if (index != -1) {
+        // Check if this is the LAST enemy
+        if (currentEnemies.length == 1) {
+          print('🎉 ¡Último enemigo derrotado!');
+
+          // NEW: Boss Persistence
+          if (currentBossId != null) {
+            game.player.stats.defeatBoss(currentBossId!);
+            print('🏆 Boss Persistence: Saved kill for $currentBossId');
+          }
+
+          // NEW: Award all XP and Gold at END of battle
+          game.player.stats.gainXp(totalXpEarned);
+          game.player.stats.gold.value += totalGoldEarned;
+          print(
+              '⭐ XP TOTAL GANADO: $totalXpEarned | 💰 GOLD TOTAL: $totalGoldEarned');
+          print('🌟 XP TOTAL GANADO: $totalXpEarned');
+          return;
+        }
+
+        _removeDefeatedEnemy(index);
+      }
+    } else {
+      // Single enemy legacy mode
+      game.player.stats.gainXp(totalXpEarned);
+      game.player.stats.gold.value += totalGoldEarned;
+      return;
+    }
   }
 
   /// El enemigo usa una habilidad elegida por IA
@@ -888,11 +938,12 @@ class RenegadeDungeonGame extends FlameGame
   bool isNewGameFlag = true; // Track if current game is new or loaded
   int introNavigationCount = 0; // Force IntroScreen recreation
   final OfflineStorageService offlineStorage;
+  final AuthService authService;
 
-  final AuthService _authService = AuthService();
-  AuthService get authService => _authService;
-
-  RenegadeDungeonGame({required this.offlineStorage});
+  RenegadeDungeonGame({
+    required this.offlineStorage,
+    required this.authService,
+  });
 
   @override
   Color backgroundColor() => const Color(0x00000000); // Transparent
@@ -953,22 +1004,9 @@ class RenegadeDungeonGame extends FlameGame
           'splash-screen': Route(SplashScreen.new),
           'main-menu': Route(
               () => MenuRouteComponent('MainMenu', 'menu_background.mp4')),
-          'slot-selection-menu': Route(() =>
-              MenuRouteComponent('SlotSelectionMenu', 'slot_background.mp4')),
-          'intro-screen': Route(() {
-            return Component(children: [
-              TimerComponent(
-                period: 0.001,
-                repeat: false,
-                onTick: () {
-                  overlays.clear();
-                  // Force removal before adding to ensure recreation
-                  overlays.remove('IntroScreen');
-                  overlays.add('IntroScreen');
-                },
-              ),
-            ]);
-          }),
+          // 'slot-selection-menu': Route(() =>
+          //     MenuRouteComponent('SlotSelectionMenu', 'slot_background.mp4')),
+          'intro-screen': Route(IntroRouteComponent.new),
           'loading-screen': Route(LoadingRouteComponent.new),
           'game-screen': Route(GameScreen.new),
         },
@@ -1366,7 +1404,7 @@ class RenegadeDungeonGame extends FlameGame
         // For now, just pick the first one, which is usually the entrance in simple maps
         final portal = portals.values.first;
         // Spawn slightly offset from portal to avoid instant transition
-        player.gridPosition = portal.gridPosition + Vector2(-5, 0);
+        player.gridPosition = portal.gridPosition + Vector2(5, 0);
         print('📍 Respawning near portal: ${portal.gridPosition}');
       } else {
         player.gridPosition = Vector2(5.0, 5.0);
@@ -2524,8 +2562,8 @@ class RenegadeDungeonGame extends FlameGame
   }
 
   void handleRevive() {
-    if (player.stats.gems.value >= 5) {
-      player.stats.gems.value -= 5;
+    if (player.stats.gems.value >= 25) {
+      player.stats.gems.value -= 25;
       player.stats.currentHp.value = player.stats.maxHp.value; // Full heal
       overlays.remove('ReviveDialog');
       print('✨ Player revived with gems!');

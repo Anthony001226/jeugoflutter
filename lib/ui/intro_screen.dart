@@ -59,8 +59,11 @@ class _IntroScreenState extends State<IntroScreen> {
   }
 
   void _finishIntro() {
-    // Navigate to game, spawning at Cemetery
-    widget.game.router.pushReplacementNamed('game-screen');
+    try {
+      widget.game.router.pushReplacementNamed('game-screen');
+    } catch (e) {
+      print('❌ Error navigating to game-screen: $e');
+    }
   }
 
   @override

@@ -9,6 +9,7 @@ import 'package:renegade_dungeon/components/enemies/skeleton_component.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 import 'package:renegade_dungeon/models/enemy_stats.dart';
 import 'package:renegade_dungeon/models/combat_ability.dart';
+import 'package:renegade_dungeon/ui/revive_dialog.dart';
 
 class CombatUI extends StatelessWidget {
   final RenegadeDungeonGame game;
@@ -56,7 +57,7 @@ class CombatUI extends StatelessWidget {
                   final isLastEnemy =
                       game.combatManager.currentEnemies.length <= 1;
                   if (isLastEnemy) {
-                    return _buildVictoryScreen(enemyStats);
+                    return _buildVictoryScreen(context, enemyStats);
                   }
                   // If not last enemy, just show normal UI (enemy will be removed/swapped soon)
                 }
@@ -488,11 +489,15 @@ class CombatUI extends StatelessWidget {
     }
   }
 
-  Widget _buildVictoryScreen(EnemyStats enemyStats) {
+  Widget _buildVictoryScreen(BuildContext context, EnemyStats enemyStats) {
     final drops = game.combatManager.lastDroppedItems;
     return Center(
       child: Container(
         padding: const EdgeInsets.all(30),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+          maxWidth: 400,
+        ),
         decoration: BoxDecoration(
           color: Colors.black.withOpacity(0.9),
           borderRadius: BorderRadius.circular(20),
@@ -501,82 +506,51 @@ class CombatUI extends StatelessWidget {
             const BoxShadow(color: Colors.greenAccent, blurRadius: 20)
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('¡VICTORIA!',
-                style: TextStyle(
-                    fontSize: 32,
-                    color: Colors.greenAccent,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 3)),
-            const SizedBox(height: 20),
-            Text('+${enemyStats.xpValue} XP',
-                style: const TextStyle(fontSize: 20, color: Colors.white)),
-            if (drops.isNotEmpty) ...[
-              const SizedBox(height: 15),
-              const Text('Botín:',
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('¡VICTORIA!',
                   style: TextStyle(
-                      color: Colors.amber,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold)),
-              const SizedBox(height: 5),
-              ...drops.map((item) => Text(item.name,
-                  style: const TextStyle(color: Colors.white70, fontSize: 16))),
-            ],
-            const SizedBox(height: 30),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                      fontSize: 32,
+                      color: Colors.greenAccent,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 3)),
+              const SizedBox(height: 20),
+              Text('+${enemyStats.xpValue} XP',
+                  style: const TextStyle(fontSize: 20, color: Colors.white)),
+              if (drops.isNotEmpty) ...[
+                const SizedBox(height: 15),
+                const Text('Botín:',
+                    style: TextStyle(
+                        color: Colors.amber,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 5),
+                ...drops.map((item) => Text(item.name,
+                    style:
+                        const TextStyle(color: Colors.white70, fontSize: 16))),
+              ],
+              const SizedBox(height: 30),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                ),
+                onPressed: () => game.endCombat(),
+                child: const Text('CONTINUAR',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
-              onPressed: () => game.endCombat(),
-              child: const Text('CONTINUAR',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildDefeatScreen() {
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.all(30),
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.9),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.redAccent, width: 3),
-          boxShadow: [const BoxShadow(color: Colors.redAccent, blurRadius: 20)],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('DERROTADO',
-                style: TextStyle(
-                    fontSize: 32,
-                    color: Colors.redAccent,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 3)),
-            const SizedBox(height: 20),
-            const Text('Has caído en combate...',
-                style: TextStyle(fontSize: 18, color: Colors.white70)),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-              ),
-              onPressed: () => game.endCombat(),
-              child: const Text('RENACER',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
-      ),
-    );
+    return ReviveDialog(game: game);
   }
 }

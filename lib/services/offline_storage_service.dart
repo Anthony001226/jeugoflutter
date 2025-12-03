@@ -104,11 +104,23 @@ class OfflineStorageService {
     }
   }
 
-  // Delete local slot
-  Future<void> deleteLocalSlot(int slotNumber) async {
+  // Delete slot (Local + Cloud)
+  Future<void> deleteSlot(int slotNumber) async {
+    // 1. Delete Local
     final key = 'slot_$slotNumber';
     await _box.delete(key);
     print('✅ Local Slot $slotNumber deleted');
+
+    // 2. Delete Cloud (if logged in)
+    final userId = _authService.getUserId();
+    if (userId != null && _isOnline) {
+      try {
+        await _cloudService.deleteSlot(userId, slotNumber);
+        print('☁️ Cloud Slot $slotNumber deleted');
+      } catch (e) {
+        print('⚠️ Failed to delete cloud slot: $e');
+      }
+    }
   }
 
   // Sync local data to cloud

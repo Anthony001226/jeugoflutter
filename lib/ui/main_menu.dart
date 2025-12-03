@@ -88,8 +88,18 @@ class _MainMenuState extends State<MainMenu>
                               label: 'Jugar',
                               onPressed: () {
                                 print('🔘 Jugar button pressed');
-                                widget.game.router.pushReplacementNamed(
-                                    'slot-selection-menu');
+                                // Direct to Slot 1
+                                widget.game.currentSlotIndex = 1;
+                                widget.game.router
+                                    .pushReplacementNamed('loading-screen');
+                              },
+                            ),
+                            const SizedBox(width: 40),
+                            FantasyButton(
+                              label: 'Borrar',
+                              isDestructive: true,
+                              onPressed: () {
+                                _showDeleteConfirmation(context);
                               },
                             ),
                             const SizedBox(width: 40),
@@ -124,10 +134,25 @@ class _MainMenuState extends State<MainMenu>
     );
   }
 
+  bool _isLoggingIn = false;
+
   Widget _buildLoginSection() {
+    if (_isLoggingIn) {
+      return const SizedBox(
+        width: 20,
+        height: 20,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        ),
+      );
+    }
+
     return StreamBuilder(
       stream: widget.game.authService.authStateChanges,
       builder: (context, snapshot) {
+        print(
+            '🔄 StreamBuilder update: State=${snapshot.connectionState}, User=${snapshot.data?.email}');
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox(
             width: 20,
@@ -143,22 +168,100 @@ class _MainMenuState extends State<MainMenu>
           return FantasyButton(
             label: 'Login',
             onPressed: () async {
-              await widget.game.authService.signInWithGoogle();
-              await widget.game.offlineStorage.syncAllSlots();
+              setState(() {
+                _isLoggingIn = true;
+              });
+              print('🔘 Login button pressed');
+              try {
+                final credential =
+                    await widget.game.authService.signInWithGoogle();
+                if (credential == null) {
+                  print('⚠️ Login cancelled or failed');
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('⚠️ Login cancelado o fallido')),
+                    );
+                  }
+                } else {
+                  print('✅ signInWithGoogle completed');
+                  // Download save from cloud (Slot 1)
+                  await widget.game.offlineStorage.syncFromCloud(1);
+                  print('✅ syncFromCloud completed');
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('☁️ Sincronización completada')),
+                    );
+                  }
+                }
+              } catch (e) {
+                print('❌ Error during login/sync: $e');
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('❌ Error: $e')),
+                  );
+                }
+              } finally {
+                if (mounted) {
+                  setState(() {
+                    _isLoggingIn = false;
+                  });
+                }
+              }
             },
           );
         } else {
-          // If logged in, show Logout (maybe show user name in tooltip or separate area?)
-          // For a clean horizontal menu, just "Logout" or "Perfil" is better.
-          return FantasyButton(
-            label: 'Logout',
-            isDestructive: true,
-            onPressed: () async {
-              await widget.game.authService.signOut();
-            },
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '👤 ${user.email?.split('@')[0] ?? "User"}',
+                style: GoogleFonts.cinzel(color: Colors.white70, fontSize: 16),
+              ),
+              const SizedBox(width: 20),
+              FantasyButton(
+                label: 'Logout',
+                isDestructive: true,
+                onPressed: () async {
+                  await widget.game.authService.signOut();
+                },
+              ),
+            ],
           );
         }
       },
+    );
+  }
+
+  Future<void> _showDeleteConfirmation(BuildContext context) async {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.black87,
+        title: const Text('⚠️ Borrar Partida',
+            style: TextStyle(color: Colors.red)),
+        content: const Text(
+          '¿Estás seguro? Esto borrará tu progreso local y en la nube permanentemente.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop(); // Close dialog
+              await widget.game.offlineStorage.deleteSlot(1);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('🗑️ Partida borrada')),
+              );
+            },
+            child: const Text('Borrar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
   }
 

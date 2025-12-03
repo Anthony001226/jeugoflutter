@@ -2,13 +2,10 @@
 
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 
 /// Visual indicator showing which enemy is currently targeted
 class EnemyTargetIndicator extends PositionComponent {
   final SpriteAnimationComponent enemy;
-  late final RectangleComponent _border;
-  double _pulseTime = 0;
 
   EnemyTargetIndicator({required this.enemy})
       : super(
@@ -18,20 +15,6 @@ class EnemyTargetIndicator extends PositionComponent {
 
   @override
   Future<void> onLoad() async {
-    // Animated border that pulses
-    // Animated border removed as per user request
-    /*
-    _border = RectangleComponent(
-      size: Vector2(180, 180),
-      paint: Paint()
-        ..color = Colors.yellow.withOpacity(0.8)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 4,
-      anchor: Anchor.center,
-    );
-    add(_border);
-    */
-
     // Arrow pointing down at enemy
     final arrow = _ArrowComponent();
     arrow.position = Vector2(0, -100);
@@ -44,14 +27,6 @@ class EnemyTargetIndicator extends PositionComponent {
 
     // Follow enemy position
     position = enemy.position;
-
-    // Pulse animation
-    _pulseTime += dt * 3;
-    /*
-    final pulse = (math.sin(_pulseTime) + 1) / 2; // 0 to 1
-    _border.paint.strokeWidth = 3 + pulse * 2; // 3 to 5
-    _border.paint.color = Colors.yellow.withOpacity(0.6 + pulse * 0.3);
-    */
   }
 }
 
