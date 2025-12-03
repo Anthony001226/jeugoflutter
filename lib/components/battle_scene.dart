@@ -139,7 +139,11 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
     super.onGameResize(size);
     _background.size = size;
     _background.position = size / 2;
-    _playerSprite.position = Vector2(size.x * 0.25, size.y * 0.6);
+
+    // Move sprites slightly up to avoid UI panels at bottom
+    final double spriteY = size.y * 0.55;
+
+    _playerSprite.position = Vector2(size.x * 0.25, spriteY);
 
     // Position enemies based on count
     if (enemies != null && enemies!.isNotEmpty) {
@@ -147,36 +151,35 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
 
       if (enemyCount == 1) {
         // Single enemy: center-right
-        enemies![0].position = Vector2(size.x * 0.75, size.y * 0.6);
+        enemies![0].position = Vector2(size.x * 0.75, spriteY);
         if (_hpBars.isNotEmpty)
-          _hpBars[0].position = Vector2(size.x * 0.75 - 60, size.y * 0.6 - 100);
+          _hpBars[0].position = Vector2(size.x * 0.75 - 60, spriteY - 100);
       } else if (enemyCount == 2) {
         // Two enemies: spread horizontally (wider)
-        enemies![0].position = Vector2(size.x * 0.60, size.y * 0.6);
-        enemies![1].position = Vector2(size.x * 0.85, size.y * 0.6);
+        enemies![0].position = Vector2(size.x * 0.60, spriteY);
+        enemies![1].position = Vector2(size.x * 0.85, spriteY);
 
         if (_hpBars.length >= 2) {
-          _hpBars[0].position = Vector2(size.x * 0.60 - 60, size.y * 0.6 - 100);
-          _hpBars[1].position = Vector2(size.x * 0.85 - 60, size.y * 0.6 - 100);
+          _hpBars[0].position = Vector2(size.x * 0.60 - 60, spriteY - 100);
+          _hpBars[1].position = Vector2(size.x * 0.85 - 60, spriteY - 100);
         }
       } else if (enemyCount == 3) {
         // Three enemies: left, center, right (wider)
-        enemies![0].position = Vector2(size.x * 0.55, size.y * 0.6);
-        enemies![1].position = Vector2(size.x * 0.725, size.y * 0.6);
-        enemies![2].position = Vector2(size.x * 0.90, size.y * 0.6);
+        enemies![0].position = Vector2(size.x * 0.55, spriteY);
+        enemies![1].position = Vector2(size.x * 0.725, spriteY);
+        enemies![2].position = Vector2(size.x * 0.90, spriteY);
 
         if (_hpBars.length >= 3) {
-          _hpBars[0].position = Vector2(size.x * 0.55 - 60, size.y * 0.6 - 100);
-          _hpBars[1].position =
-              Vector2(size.x * 0.725 - 60, size.y * 0.6 - 100);
-          _hpBars[2].position = Vector2(size.x * 0.90 - 60, size.y * 0.6 - 100);
+          _hpBars[0].position = Vector2(size.x * 0.55 - 60, spriteY - 100);
+          _hpBars[1].position = Vector2(size.x * 0.725 - 60, spriteY - 100);
+          _hpBars[2].position = Vector2(size.x * 0.90 - 60, spriteY - 100);
         }
       }
     } else if (enemy != null) {
       // Single enemy mode (legacy)
-      enemy!.position = Vector2(size.x * 0.75, size.y * 0.6);
+      enemy!.position = Vector2(size.x * 0.75, spriteY);
       if (_hpBars.isNotEmpty) {
-        _hpBars[0].position = Vector2(size.x * 0.75 - 60, size.y * 0.6 - 100);
+        _hpBars[0].position = Vector2(size.x * 0.75 - 60, spriteY - 100);
       }
     }
   }

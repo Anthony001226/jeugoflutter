@@ -19,6 +19,8 @@ class EnemyTargetIndicator extends PositionComponent {
   @override
   Future<void> onLoad() async {
     // Animated border that pulses
+    // Animated border removed as per user request
+    /*
     _border = RectangleComponent(
       size: Vector2(180, 180),
       paint: Paint()
@@ -28,6 +30,7 @@ class EnemyTargetIndicator extends PositionComponent {
       anchor: Anchor.center,
     );
     add(_border);
+    */
 
     // Arrow pointing down at enemy
     final arrow = _ArrowComponent();
@@ -44,9 +47,11 @@ class EnemyTargetIndicator extends PositionComponent {
 
     // Pulse animation
     _pulseTime += dt * 3;
+    /*
     final pulse = (math.sin(_pulseTime) + 1) / 2; // 0 to 1
     _border.paint.strokeWidth = 3 + pulse * 2; // 3 to 5
     _border.paint.color = Colors.yellow.withOpacity(0.6 + pulse * 0.3);
+    */
   }
 }
 
