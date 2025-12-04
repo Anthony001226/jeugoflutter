@@ -1386,10 +1386,13 @@ class RenegadeDungeonGame extends FlameGame
     await screenFade.fadeIn();
   }
 
-  void endCombat() {
-    final playerDied = player.stats.currentHp.value <= 0;
+  void endCombat({bool? playerWon}) {
+    // Determine victory/defeat
+    // If playerWon is explicitly provided, use it.
+    // Otherwise, fallback to checking HP (legacy behavior).
+    final bool didPlayerWin = playerWon ?? (player.stats.currentHp.value > 0);
 
-    if (playerDied) {
+    if (!didPlayerWin) {
       print('💀 ¡Has muerto! Reapareciendo en punto seguro...');
       player.stats.currentHp.value = player.stats.maxHp.value;
       player.stats.currentMp.value = player.stats.maxMp.value;
@@ -1967,38 +1970,38 @@ class RenegadeDungeonGame extends FlameGame
           continue;
         }
 
-        if (barrier.requiredLevel > 0 &&
-            player.stats.level.value < barrier.requiredLevel) {
-          print('ðŸš« Nivel ${barrier.requiredLevel} requerido');
-          overlays.add('barrier_dialog');
-          _currentBarrierMessage = barrier.blockedMessage;
-          _currentBarrierIsBlocked = true;
-          return false;
+        if (barrier.requiredLevel > 0) {
+          print(
+              '🔍 Checking Barrier ${barrier.id}: Player Level ${player.stats.level.value} vs Required ${barrier.requiredLevel}');
+          if (player.stats.level.value < barrier.requiredLevel) {
+            print(
+                '🚫 Nivel ${barrier.requiredLevel} requerido (Player has ${player.stats.level.value})');
+            overlays.add('barrier_dialog');
+            _currentBarrierMessage = barrier.blockedMessage;
+            _currentBarrierIsBlocked = true;
+            return false;
+          }
         }
 
         if (barrier.requiredBoss != 'none' &&
             !player.stats.hasBossBeenDefeated(barrier.requiredBoss)) {
           print('🚫 Boss ${barrier.requiredBoss} requerido');
-          overlays.add('barrier_dialog');
-          _currentBarrierMessage = barrier.blockedMessage;
-          _currentBarrierIsBlocked = true;
-          return false;
-        }
 
-        if (barrier.requiredQuest != 'none' &&
-            !player.stats.hasQuestBeenCompleted(barrier.requiredQuest)) {
-          print('🚫 Quest ${barrier.requiredQuest} requerida');
-          overlays.add('barrier_dialog');
-          _currentBarrierMessage = barrier.blockedMessage;
-          _currentBarrierIsBlocked = true;
-          return false;
-        }
+          if (barrier.requiredQuest != 'none' &&
+              !player.stats.hasQuestBeenCompleted(barrier.requiredQuest)) {
+            print('🚫 Quest ${barrier.requiredQuest} requerida');
+            overlays.add('barrier_dialog');
+            _currentBarrierMessage = barrier.blockedMessage;
+            _currentBarrierIsBlocked = true;
+            return false;
+          }
 
-        barrier.isPermanentlyUnlocked = true;
-        if (barrier.unlockedMessage != null) {
-          overlays.add('barrier_dialog');
-          _currentBarrierMessage = barrier.unlockedMessage!;
-          _currentBarrierIsBlocked = false;
+          barrier.isPermanentlyUnlocked = true;
+          if (barrier.unlockedMessage != null) {
+            overlays.add('barrier_dialog');
+            _currentBarrierMessage = barrier.unlockedMessage!;
+            _currentBarrierIsBlocked = false;
+          }
         }
       }
     }
@@ -2575,7 +2578,7 @@ class RenegadeDungeonGame extends FlameGame
     player.stats.gold.value = (player.stats.gold.value * 0.25).floor();
     player.stats.currentHp.value =
         player.stats.maxHp.value; // Full heal for respawn
-    endCombat();
+    endCombat(playerWon: false);
     print(
         '⚰️ Player accepted normal death. Gold reduced to ${player.stats.gold.value}.');
   }

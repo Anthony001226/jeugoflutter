@@ -181,7 +181,7 @@
   <object id="1" name="Granja" x="1183" y="269" width="54" height="106">
    <properties>
     <property name="targetMap" value="granja.tmx"/>
-    <property name="targetX" type="int" value="9"/>
+    <property name="targetX" type="int" value="7"/>
     <property name="targetY" type="int" value="20"/>
     <property name="transitionDuration" type="int" value="2000"/>
     <property name="transitionType" value="fade"/>
