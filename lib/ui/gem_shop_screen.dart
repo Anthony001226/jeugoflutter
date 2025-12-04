@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 import '../game/renegade_dungeon_game.dart';
+import 'simulated_payment_dialog.dart';
 
 class GemShopScreen extends StatefulWidget {
   final RenegadeDungeonGame game;
@@ -155,42 +156,9 @@ class _GemShopScreenState extends State<GemShopScreen> {
   Widget _buildProductGrid() {
     final products = widget.game.iapService.products;
 
+    // Always use simulated products if real products aren't available
     if (products.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.remove_shopping_cart,
-                color: Colors.white54, size: 48),
-            const SizedBox(height: 16),
-            const Text(
-              'No products found',
-              style: TextStyle(color: Colors.white, fontSize: 18),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Make sure you are connected to the internet',
-              style: TextStyle(color: Colors.white54, fontSize: 14),
-            ),
-            const SizedBox(height: 24),
-            // DEBUG BUTTON
-            ElevatedButton.icon(
-              onPressed: () {
-                widget.game.iapService.onGemsPurchased(50);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('DEBUG: Added 50 Gems')),
-                );
-              },
-              icon: const Icon(Icons.bug_report),
-              label: const Text('DEBUG: Add 50 Gems'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey.shade800,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      );
+      return _buildSimulatedProductGrid();
     }
 
     return GridView.builder(
@@ -205,6 +173,110 @@ class _GemShopScreenState extends State<GemShopScreen> {
       itemBuilder: (context, index) {
         return _buildProductCard(products[index]);
       },
+    );
+  }
+
+  Widget _buildSimulatedProductGrid() {
+    // Simulated gem packages with fake prices
+    final simulatedPackages = [
+      {'gems': 10, 'price': '\$0.99', 'color': Colors.blue[900]!},
+      {'gems': 50, 'price': '\$3.99', 'color': Colors.purple[900]!},
+      {'gems': 150, 'price': '\$9.99', 'color': Colors.orange[900]!},
+      {'gems': 500, 'price': '\$24.99', 'color': Colors.red[900]!},
+    ];
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.8,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ),
+      itemCount: simulatedPackages.length,
+      itemBuilder: (context, index) {
+        final package = simulatedPackages[index];
+        return _buildSimulatedProductCard(
+          gemAmount: package['gems'] as int,
+          price: package['price'] as String,
+          cardColor: package['color'] as Color,
+        );
+      },
+    );
+  }
+
+  Widget _buildSimulatedProductCard({
+    required int gemAmount,
+    required String price,
+    required Color cardColor,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [cardColor.withOpacity(0.6), cardColor.withOpacity(0.3)],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.diamond, color: Colors.cyanAccent, size: 48),
+          const SizedBox(height: 12),
+          Text(
+            '$gemAmount Gems',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Paquete de Gemas',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.amber,
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            onPressed: () async {
+              // Show simulated payment dialog
+              final result = await showDialog<bool>(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => SimulatedPaymentDialog(
+                  gemAmount: gemAmount,
+                  price: price,
+                ),
+              );
+
+              // If payment was successful, add gems
+              if (result == true) {
+                widget.game.iapService.onGemsPurchased(gemAmount);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('¡$gemAmount gemas agregadas!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              }
+            },
+            child: Text(
+              price,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -265,8 +337,29 @@ class _GemShopScreenState extends State<GemShopScreen> {
               foregroundColor: Colors.black,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
-            onPressed: () {
-              widget.game.iapService.buyProduct(product);
+            onPressed: () async {
+              // Show simulated payment dialog
+              final result = await showDialog<bool>(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => SimulatedPaymentDialog(
+                  gemAmount: gemAmount,
+                  price: product.price,
+                ),
+              );
+
+              // If payment was successful, add gems
+              if (result == true) {
+                widget.game.iapService.onGemsPurchased(gemAmount);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('¡$gemAmount gemas agregadas!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              }
             },
             child: Text(
               product.price,

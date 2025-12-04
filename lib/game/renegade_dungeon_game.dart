@@ -48,6 +48,7 @@ import 'package:flame_audio/flame_audio.dart';
 import '../models/npc.dart';
 import '../components/npc_component.dart';
 import '../services/iap_service.dart';
+import '../services/ad_service.dart';
 import '../services/offline_storage_service.dart';
 
 import '../services/auth_service.dart';
@@ -919,6 +920,7 @@ class RenegadeDungeonGame extends FlameGame
   String? activeDialogueNPC;
 
   late final IAPService iapService;
+  late final AdService adService;
 
   // Fog of War System
   final Set<math.Point<int>> exploredTiles = {};
@@ -992,6 +994,14 @@ class RenegadeDungeonGame extends FlameGame
       await iapService.initialize();
     } catch (e) {
       print('⚠️ Failed to initialize IAP (continuing anyway): $e');
+    }
+
+    // Initialize AdMob service
+    adService = AdService();
+    try {
+      await adService.initialize();
+    } catch (e) {
+      print('⚠️ Failed to initialize AdMob (continuing anyway): $e');
     }
 
     combatManager = CombatManager(this);
@@ -2559,17 +2569,36 @@ class RenegadeDungeonGame extends FlameGame
     overlays.add('GemShop');
   }
 
-  void onPlayerDeath() {
-    print('💀 Player died! Showing ReviveDialog...');
+  void onPlayerDeath() async {
+    print('💀 Player died! Showing ad first...');
+
+    // Show interstitial ad before revive dialog
+    try {
+      await adService.showInterstitial();
+    } catch (e) {
+      print('⚠️ Error showing ad: $e');
+    }
+
+    // Then show revive dialog
+    print('💀 Showing ReviveDialog...');
     overlays.add('ReviveDialog');
   }
 
-  void handleRevive() {
+  Future<void> handleRevive() async {
     if (player.stats.gems.value >= 25) {
       player.stats.gems.value -= 25;
-      player.stats.currentHp.value = player.stats.maxHp.value; // Full heal
+
+      // Set HP to max
+      final maxHp = player.stats.maxHp.value;
+
       overlays.remove('ReviveDialog');
-      print('✨ Player revived with gems!');
+
+      // Wait for next frame to ensure overlay is removed before updating HP
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      player.stats.currentHp.value = maxHp;
+
+      print('✨ Player revived with gems! HP: $maxHp/$maxHp');
     }
   }
 
