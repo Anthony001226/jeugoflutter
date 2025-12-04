@@ -68,6 +68,21 @@ class PauseMenuUI extends StatelessWidget {
 
                   const SizedBox(width: 16),
 
+                  // Botón Tienda de Gemas
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      game.openGemShop();
+                    },
+                    icon: const Icon(Icons.shopping_cart),
+                    label: const Text('Tienda'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber.shade800,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                    ),
+                  ),
+
                   // Botón Volver al Menú Principal
                   ElevatedButton.icon(
                     onPressed: () {

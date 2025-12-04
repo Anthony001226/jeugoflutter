@@ -31,159 +31,162 @@ class PlayerHud extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        return SizedBox.expand(
-          child: Stack(
-            children: [
-              // Top Left: Stats Bars (HP, MP, XP)
-              Positioned(
-                top: padding,
-                left: padding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // HP Bar
-                    ValueListenableBuilder<int>(
-                      valueListenable: game.player.stats.currentHp,
-                      builder: (context, currentHp, _) {
-                        return _buildPixelBar(
-                          label: 'HP',
-                          current: currentHp,
-                          max: game.player.stats.maxHp.value,
-                          color: const Color(0xFFE74C3C), // Red
-                          icon: Icons.favorite,
-                          barWidth: barWidth,
-                          barHeight: barHeight,
-                          iconSize: iconSize,
-                          iconInnerSize: iconInnerSize,
-                          fontSize: fontSize,
-                        );
-                      },
-                    ),
-                    SizedBox(height: isSmallScreen ? 4 : 8),
-
-                    // MP Bar
-                    ValueListenableBuilder<int>(
-                      valueListenable: game.player.stats.currentMp,
-                      builder: (context, currentMp, _) {
-                        return _buildPixelBar(
-                          label: 'MP',
-                          current: currentMp,
-                          max: game.player.stats.maxMp.value,
-                          color: const Color(0xFF3498DB), // Blue
-                          icon: Icons.bolt,
-                          barWidth: barWidth,
-                          barHeight: barHeight,
-                          iconSize: iconSize,
-                          iconInnerSize: iconInnerSize,
-                          fontSize: fontSize,
-                        );
-                      },
-                    ),
-                    SizedBox(height: isSmallScreen ? 4 : 8),
-
-                    // XP Bar
-                    ValueListenableBuilder<int>(
-                      valueListenable: game.player.stats.currentXp,
-                      builder: (context, currentXp, _) {
-                        return _buildPixelBar(
-                          label: 'XP',
-                          current: currentXp,
-                          max: game.player.stats.xpToNextLevel.value,
-                          color: const Color(0xFFF1C40F), // Yellow/Gold
-                          icon: Icons.star,
-                          barWidth: barWidth,
-                          barHeight: barHeight,
-                          iconSize: iconSize,
-                          iconInnerSize: iconInnerSize,
-                          fontSize: fontSize,
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Currency Row (Gold & Gems)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.white24, width: 2),
+        return Material(
+          type: MaterialType.transparency,
+          child: SizedBox.expand(
+            child: Stack(
+              children: [
+                // Top Left: Stats Bars (HP, MP, XP)
+                Positioned(
+                  top: padding,
+                  left: padding,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // HP Bar
+                      ValueListenableBuilder<int>(
+                        valueListenable: game.player.stats.currentHp,
+                        builder: (context, currentHp, _) {
+                          return _buildPixelBar(
+                            label: 'HP',
+                            current: currentHp,
+                            max: game.player.stats.maxHp.value,
+                            color: const Color(0xFFE74C3C), // Red
+                            icon: Icons.favorite,
+                            barWidth: barWidth,
+                            barHeight: barHeight,
+                            iconSize: iconSize,
+                            iconInnerSize: iconInnerSize,
+                            fontSize: fontSize,
+                          );
+                        },
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Gold
-                          Icon(Icons.monetization_on,
-                              color: Colors.amber, size: iconInnerSize),
-                          const SizedBox(width: 6),
-                          ValueListenableBuilder<int>(
-                            valueListenable: game.player.stats.gold,
-                            builder: (context, gold, _) {
-                              return Text(
-                                '$gold',
-                                style: TextStyle(
-                                  color: Colors.amber,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: isSmallScreen ? 14 : 16,
-                                  fontFamily: 'monospace',
-                                  shadows: const [
-                                    Shadow(
-                                        color: Colors.black,
-                                        blurRadius: 2,
-                                        offset: Offset(1, 1))
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 16),
-                          // Gems
-                          Icon(Icons.diamond,
-                              color: Colors.cyan, size: iconInnerSize),
-                          const SizedBox(width: 6),
-                          ValueListenableBuilder<int>(
-                            valueListenable: game.player.stats.gems,
-                            builder: (context, gems, _) {
-                              return Text(
-                                '$gems',
-                                style: TextStyle(
-                                  color: Colors.cyan,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: isSmallScreen ? 14 : 16,
-                                  fontFamily: 'monospace',
-                                  shadows: const [
-                                    Shadow(
-                                        color: Colors.black,
-                                        blurRadius: 2,
-                                        offset: Offset(1, 1))
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ],
+                      SizedBox(height: isSmallScreen ? 4 : 8),
+
+                      // MP Bar
+                      ValueListenableBuilder<int>(
+                        valueListenable: game.player.stats.currentMp,
+                        builder: (context, currentMp, _) {
+                          return _buildPixelBar(
+                            label: 'MP',
+                            current: currentMp,
+                            max: game.player.stats.maxMp.value,
+                            color: const Color(0xFF3498DB), // Blue
+                            icon: Icons.bolt,
+                            barWidth: barWidth,
+                            barHeight: barHeight,
+                            iconSize: iconSize,
+                            iconInnerSize: iconInnerSize,
+                            fontSize: fontSize,
+                          );
+                        },
                       ),
-                    ),
-                  ],
+                      SizedBox(height: isSmallScreen ? 4 : 8),
+
+                      // XP Bar
+                      ValueListenableBuilder<int>(
+                        valueListenable: game.player.stats.currentXp,
+                        builder: (context, currentXp, _) {
+                          return _buildPixelBar(
+                            label: 'XP',
+                            current: currentXp,
+                            max: game.player.stats.xpToNextLevel.value,
+                            color: const Color(0xFFF1C40F), // Yellow/Gold
+                            icon: Icons.star,
+                            barWidth: barWidth,
+                            barHeight: barHeight,
+                            iconSize: iconSize,
+                            iconInnerSize: iconInnerSize,
+                            fontSize: fontSize,
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Currency Row (Gold & Gems)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white24, width: 2),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Gold
+                            Icon(Icons.monetization_on,
+                                color: Colors.amber, size: iconInnerSize),
+                            const SizedBox(width: 6),
+                            ValueListenableBuilder<int>(
+                              valueListenable: game.player.stats.gold,
+                              builder: (context, gold, _) {
+                                return Text(
+                                  '$gold',
+                                  style: TextStyle(
+                                    color: Colors.amber,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: isSmallScreen ? 14 : 16,
+                                    fontFamily: 'monospace',
+                                    shadows: const [
+                                      Shadow(
+                                          color: Colors.black,
+                                          blurRadius: 2,
+                                          offset: Offset(1, 1))
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(width: 16),
+                            // Gems
+                            Icon(Icons.diamond,
+                                color: Colors.cyan, size: iconInnerSize),
+                            const SizedBox(width: 6),
+                            ValueListenableBuilder<int>(
+                              valueListenable: game.player.stats.gems,
+                              builder: (context, gems, _) {
+                                return Text(
+                                  '$gems',
+                                  style: TextStyle(
+                                    color: Colors.cyan,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: isSmallScreen ? 14 : 16,
+                                    fontFamily: 'monospace',
+                                    shadows: const [
+                                      Shadow(
+                                          color: Colors.black,
+                                          blurRadius: 2,
+                                          offset: Offset(1, 1))
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-              // Minimap (Top Right)
-              Positioned(
-                top: padding,
-                right: padding,
-                child: MinimapWidget(game: game),
-              ),
+                // Minimap (Top Right)
+                Positioned(
+                  top: padding,
+                  right: padding,
+                  child: MinimapWidget(game: game),
+                ),
 
-              // Zone Notification (Centered Top)
-              Positioned(
-                top: isSmallScreen ? 60 : 100,
-                left: 0,
-                right: 0,
-                child: ZoneNotificationWidget(game: game),
-              ),
-            ],
+                // Zone Notification (Centered Top)
+                Positioned(
+                  top: isSmallScreen ? 60 : 100,
+                  left: 0,
+                  right: 0,
+                  child: ZoneNotificationWidget(game: game),
+                ),
+              ],
+            ),
           ),
         );
       },

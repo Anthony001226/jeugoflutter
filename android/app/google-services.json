@@ -9,10 +9,23 @@
       "client_info": {
         "mobilesdk_app_id": "1:684085714964:android:736adacc0362da80464701",
         "android_client_info": {
-          "package_name": "com.example.renegade_dungeon_game"
+          "package_name": "com.example.renegade_dungeon"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "684085714964-hohjiiqj022pmras2927lhldi206fore.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.renegade_dungeon",
+            "certificate_hash": "63a7cda9028738d5dccc38b0bf756c0f9a78866f"
+          }
+        },
+        {
+          "client_id": "684085714964-eudph3i6cevfphl3u4g00qmmhjl8fth3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCc4dm31FEkjZ8by0IT4a330l5eoEpAPAI"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "684085714964-eudph3i6cevfphl3u4g00qmmhjl8fth3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

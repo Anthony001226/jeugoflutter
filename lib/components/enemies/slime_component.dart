@@ -20,6 +20,7 @@ class SlimeComponent extends SpriteAnimationComponent
       defense: 4,
       speed: 6, // Slightly faster than average
       xpValue: 35,
+      goldDrop: 10, // NEW
       lootTable: {
         ItemDatabase.potion: 0.30, // 30% drop
       },

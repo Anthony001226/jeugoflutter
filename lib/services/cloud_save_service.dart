@@ -13,6 +13,8 @@ class CloudSaveService {
   ) async {
     try {
       final slotId = 'slot_$slotNumber';
+      final path = 'users/$userId/saves/$slotId';
+      print('☁️ Attempting to SAVE to: $path');
 
       // Save game data
       await _firestore
@@ -36,6 +38,9 @@ class CloudSaveService {
   Future<PlayerSaveData?> loadPlayerData(String userId, int slotNumber) async {
     try {
       final slotId = 'slot_$slotNumber';
+      final path = 'users/$userId/saves/$slotId';
+      print('☁️ Attempting to load from: $path');
+
       final doc = await _firestore
           .collection('users')
           .doc(userId)
@@ -44,11 +49,12 @@ class CloudSaveService {
           .get();
 
       if (!doc.exists) {
-        print('ℹ️ No save found in Slot $slotNumber');
+        print('ℹ️ No save found in Cloud Slot $slotNumber (Path: $path)');
         return null;
       }
 
-      print('✅ Game loaded from cloud (Slot $slotNumber)');
+      print(
+          '✅ Game loaded from cloud (Slot $slotNumber). Data size: ${doc.data()?.length ?? 0}');
       return PlayerSaveData.fromJson(doc.data()!);
     } catch (e) {
       print('❌ Error loading from cloud: $e');

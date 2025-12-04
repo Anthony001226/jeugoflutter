@@ -71,27 +71,56 @@ class OfflineStorageService {
     try {
       final key = 'slot_$slotNumber';
       print('📂 Loading from $key...');
-      final data = _box.get(key);
 
-      if (data == null) {
-        print('ℹ️ No local save in Slot $slotNumber');
+      // Debug: Check if key exists
+      if (!_box.containsKey(key)) {
+        print('❌ Key $key does not exist in box ${_box.name}');
         return null;
       }
 
-      print('✅ Loaded from local storage (Slot $slotNumber)');
-      print('   Level: ${data['level']}, Map: ${data['currentMap']}');
-      return PlayerSaveData.fromJson(Map<String, dynamic>.from(data));
+      final data = _box.get(key);
+
+      if (data == null) {
+        print('ℹ️ No local save in Slot $slotNumber (data is null)');
+        return null;
+      }
+
+      print('✅ Loaded raw data from local storage (Slot $slotNumber)');
+      // print('   Raw Data: $data'); // Uncomment if needed, but might be huge
+
+      try {
+        final parsedData =
+            PlayerSaveData.fromJson(Map<String, dynamic>.from(data));
+        print(
+            '   Parsed Level: ${parsedData.level}, Map: ${parsedData.currentMap}');
+        return parsedData;
+      } catch (parseError) {
+        print('❌ Error parsing save data: $parseError');
+        return null;
+      }
     } catch (e) {
       print('❌ Error loading locally: $e');
       return null;
     }
   }
 
-  // Delete local slot
-  Future<void> deleteLocalSlot(int slotNumber) async {
+  // Delete slot (Local + Cloud)
+  Future<void> deleteSlot(int slotNumber) async {
+    // 1. Delete Local
     final key = 'slot_$slotNumber';
     await _box.delete(key);
     print('✅ Local Slot $slotNumber deleted');
+
+    // 2. Delete Cloud (if logged in)
+    final userId = _authService.getUserId();
+    if (userId != null && _isOnline) {
+      try {
+        await _cloudService.deleteSlot(userId, slotNumber);
+        print('☁️ Cloud Slot $slotNumber deleted');
+      } catch (e) {
+        print('⚠️ Failed to delete cloud slot: $e');
+      }
+    }
   }
 
   // Sync local data to cloud

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="isometric" renderorder="left-down" width="48" height="28" tilewidth="32" tileheight="16" infinite="0" nextlayerid="8" nextobjectid="7">
+<map version="1.10" tiledversion="1.11.2" orientation="isometric" renderorder="left-down" width="48" height="28" tilewidth="32" tileheight="16" infinite="0" nextlayerid="8" nextobjectid="10">
  <tileset firstgid="1" source="dungeon_tileset.tsx"/>
  <tileset firstgid="161" source="suelos.tsx"/>
  <tileset firstgid="173" source="arboles.tsx"/>
@@ -69,16 +69,7 @@
  </layer>
  <objectgroup id="4" name="SpawnZones"/>
  <objectgroup id="5" name="Portals">
-  <object id="1" x="575.477" y="111.588" width="48.0145" height="96.4811">
-   <properties>
-    <property name="targetMap" value="dungeon.tmx"/>
-    <property name="targetX" type="int" value="31"/>
-    <property name="targetY" type="int" value="42"/>
-    <property name="transitionDuration" type="int" value="2000"/>
-    <property name="transitionType" value="fade"/>
-   </properties>
-  </object>
-  <object id="5" x="126" y="375.333" width="104" height="41.3333">
+  <object id="8" x="149.875" y="357.833" width="41.25" height="41.3333">
    <properties>
     <property name="targetMap" value="boss_area.tmx"/>
     <property name="targetX" type="int" value="69"/>
@@ -87,14 +78,23 @@
     <property name="transitionType" value="fade"/>
    </properties>
   </object>
+  <object id="9" x="664.125" y="153.458" width="46.25" height="42.5833">
+   <properties>
+    <property name="targetMap" value="dungeon.tmx"/>
+    <property name="targetX" type="int" value="31"/>
+    <property name="targetY" type="int" value="42"/>
+    <property name="transitionDuration" type="int" value="2000"/>
+    <property name="transitionType" value="fade"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="7" name="ConditionalBarriers">
-  <object id="6" x="75.3333" y="310" width="187.333" height="21.6667">
+  <object id="6" x="58.833" y="280.5" width="187.333" height="21.6667">
    <properties>
-    <property name="blockedMessage" value="Necesitas ser nivel 15 y derrotar al Guardian del Panteón"/>
+    <property name="blockedMessage" value="Necesitas ser nivel 3"/>
     <property name="id" value="granja_entrance"/>
     <property name="requiredBoss" value="first_boss"/>
-    <property name="requiredLevel" type="int" value="15"/>
+    <property name="requiredLevel" type="int" value="3"/>
     <property name="unlockedMessage" value="&quot;El camino se abrio&quot;"/>
    </properties>
   </object>

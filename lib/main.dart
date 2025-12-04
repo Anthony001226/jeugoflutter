@@ -10,7 +10,7 @@ import 'package:renegade_dungeon/ui/combat_ui.dart';
 import 'package:renegade_dungeon/ui/loading_ui.dart';
 import 'package:renegade_dungeon/ui/main_menu.dart';
 import 'package:renegade_dungeon/ui/player_hud.dart';
-import 'package:renegade_dungeon/ui/slot_selection_menu.dart';
+// import 'package:renegade_dungeon/ui/slot_selection_menu.dart';
 import 'game/renegade_dungeon_game.dart';
 import 'services/auth_service.dart';
 import 'services/cloud_save_service.dart';
@@ -41,7 +41,12 @@ bool get isMobile {
 // El StatefulWidget que creamos está perfecto. No necesita cambios.
 class MyApp extends StatefulWidget {
   final OfflineStorageService offlineStorage;
-  const MyApp({super.key, required this.offlineStorage});
+  final AuthService authService;
+  const MyApp({
+    super.key,
+    required this.offlineStorage,
+    required this.authService,
+  });
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -53,9 +58,20 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _game = RenegadeDungeonGame(offlineStorage: widget.offlineStorage);
+    _game = RenegadeDungeonGame(
+      offlineStorage: widget.offlineStorage,
+      authService: widget.authService,
+    );
     _game.videoPlayerControllerNotifier.addListener(() {
-      setState(() {});
+      // Safe update: check if mounted to avoid setState calls after dispose
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    _game.currentBackgroundNotifier.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 
@@ -69,7 +85,7 @@ class _MyAppState extends State<MyApp> {
         // CAPA 0: Fondo Negro (Para rellenar letterboxing en Splash Screen)
         Container(color: Colors.black),
 
-        // CAPA 1: El Video de Fondo
+        // CAPA 1: El Video de Fondo (o Imagen Fallback)
         if (_game.videoPlayerControllerNotifier.value != null &&
             _game.videoPlayerControllerNotifier.value!.value.isInitialized)
           SizedBox.expand(
@@ -83,7 +99,22 @@ class _MyAppState extends State<MyApp> {
                 child: VideoPlayer(_game.videoPlayerControllerNotifier.value!),
               ),
             ),
-          ),
+          )
+        else if (_game.currentBackgroundNotifier.value != null)
+          // Fallback to static image if video is not playing but background is set
+          SizedBox.expand(
+            child: Image.asset(
+              'assets/videos/${_game.currentBackgroundNotifier.value!.replaceAll(".mp4", ".png")}',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                // If PNG missing, fallback to black
+                return Container(color: Colors.black);
+              },
+            ),
+          )
+        else
+          // Fallback if video fails or is loading (and no image available)
+          Container(color: Colors.black),
 
         // CAPA 2: El Juego
         GameWidget<RenegadeDungeonGame>.controlled(
@@ -94,8 +125,7 @@ class _MyAppState extends State<MyApp> {
             'PlayerHud': (context, game) => PlayerHud(game: game),
             'LoadingUI': (context, game) => const LoadingUI(),
             'MainMenu': (context, game) => MainMenu(game: game),
-            'SlotSelectionMenu': (context, game) =>
-                SlotSelectionMenu(game: game),
+            // 'SlotSelectionMenu' removed
             'PauseMenuUI': (context, game) => PauseMenuUI(game: game),
             'CombatInventoryUI': (context, game) =>
                 CombatInventoryUI(game: game),
@@ -154,7 +184,10 @@ void main() async {
       // Esto quita la cinta de "Debug" de la esquina superior derecha.
       debugShowCheckedModeBanner: false,
       // Le decimos que nuestra página de inicio es el widget que ya creamos.
-      home: MyApp(offlineStorage: offlineStorage),
+      home: MyApp(
+        offlineStorage: offlineStorage,
+        authService: authService,
+      ),
     ),
   );
 }

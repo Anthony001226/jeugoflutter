@@ -123,7 +123,7 @@
   <object id="5" x="30.3333" y="427" width="47.6667" height="46.3333">
    <properties>
     <property name="targetMap" value="dungeon.tmx"/>
-    <property name="targetX" type="int" value="26"/>
+    <property name="targetX" type="int" value="30"/>
     <property name="targetY" type="int" value="26"/>
     <property name="transitionDuration" type="int" value="2000"/>
     <property name="transitionType" value="fade"/>

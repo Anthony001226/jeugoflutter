@@ -31,10 +31,12 @@ class PortalData {
 
   /// Check if a grid position is within this portal zone
   bool contains(Vector2 gridPos) {
-    return gridPos.x >= gridPosition.x &&
-        gridPos.x < gridPosition.x + size.x &&
-        gridPos.y >= gridPosition.y &&
-        gridPos.y < gridPosition.y + size.y;
+    // Add a small buffer (1.0) to make detection more forgiving
+    const buffer = 1.0;
+    return gridPos.x >= gridPosition.x - buffer &&
+        gridPos.x < gridPosition.x + size.x + buffer &&
+        gridPos.y >= gridPosition.y - buffer &&
+        gridPos.y < gridPosition.y + size.y + buffer;
   }
 
   @override

@@ -172,6 +172,22 @@ class _GemShopScreenState extends State<GemShopScreen> {
               'Make sure you are connected to the internet',
               style: TextStyle(color: Colors.white54, fontSize: 14),
             ),
+            const SizedBox(height: 24),
+            // DEBUG BUTTON
+            ElevatedButton.icon(
+              onPressed: () {
+                widget.game.iapService.onGemsPurchased(50);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('DEBUG: Added 50 Gems')),
+                );
+              },
+              icon: const Icon(Icons.bug_report),
+              label: const Text('DEBUG: Add 50 Gems'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey.shade800,
+                foregroundColor: Colors.white,
+              ),
+            ),
           ],
         ),
       );

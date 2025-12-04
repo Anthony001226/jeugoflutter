@@ -96,6 +96,17 @@ class Player extends SpriteComponent
       print('¡Cofre recogido en ${other.gridPosition} por colisión!');
       addItem(other.item);
 
+      // --- GEM DROP LOGIC ---
+      // 20% chance to find gems in a chest
+      if (Random().nextDouble() < 0.20) {
+        final gemsFound = Random().nextInt(3) + 1; // 1 to 3 gems
+        stats.gems.value += gemsFound;
+        print('💎 ¡Encontraste $gemsFound gemas en el cofre!');
+
+        // Show a floating text or simple notification (using print for now, UI will update)
+        // Ideally we would show an overlay message here
+      }
+
       // Track this chest as opened in game state
       final chestId =
           '${game.currentMapName}:${other.gridPosition.x.toInt()},${other.gridPosition.y.toInt()}';
