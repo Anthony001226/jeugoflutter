@@ -100,7 +100,6 @@ class ItemDatabase {
     isUsable: true,
     effect: (game) {
       game.player.stats.restoreHealth(25);
-      print('¡Usaste una poción! HP restaurado.');
     },
   );
 
@@ -493,7 +492,6 @@ class ItemDatabase {
     try {
       return allItems.firstWhere((item) => item.id == id);
     } catch (e) {
-      print('⚠️ Item ID not found: $id');
       return null;
     }
   }

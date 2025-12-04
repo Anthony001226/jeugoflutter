@@ -14,7 +14,6 @@ class SplashScreen extends Component
 
   @override
   Future<void> onLoad() async {
-    print('🎨 SplashScreen.onLoad() started');
     // 1. Fondo
     try {
       _background = SpriteComponent(
@@ -22,9 +21,7 @@ class SplashScreen extends Component
         anchor: Anchor.center,
       );
       add(_background!);
-      print('✅ Background sprite loaded');
     } catch (e) {
-      print('❌ Error loading background sprite: $e');
     }
 
     // 2. Logo
@@ -35,9 +32,7 @@ class SplashScreen extends Component
         size: Vector2(125, 125),
       );
       add(_logo!);
-      print('✅ Logo sprite loaded');
     } catch (e) {
-      print('❌ Error loading logo sprite: $e');
     }
 
     // 3. Texto que vamos a animar
@@ -87,7 +82,6 @@ class SplashScreen extends Component
         period: 3.0,
         repeat: false,
         onTick: () {
-          print('⏰ Auto-advancing from splash screen');
           _startGame();
         },
       ),
@@ -95,7 +89,6 @@ class SplashScreen extends Component
 
     // Initial resize
     _resizeComponents(game.size);
-    print('🎨 SplashScreen.onLoad() completed');
   }
 
   @override
@@ -108,7 +101,6 @@ class SplashScreen extends Component
   }
 
   void _resizeComponents(Vector2 size) {
-    print('📏 Resizing SplashScreen to $size');
     // Background: BoxFit.cover logic
     if (_background?.sprite != null) {
       final spriteSize = _background!.sprite!.originalSize;

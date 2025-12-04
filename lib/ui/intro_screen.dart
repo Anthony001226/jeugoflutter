@@ -35,16 +35,12 @@ class _IntroScreenState extends State<IntroScreen> {
 
   void _checkAndSkip() {
     // Debug logging
-    print(
-        '🎬 IntroScreen._checkAndSkip() - isNewGameFlag: ${widget.game.isNewGameFlag}, counter: ${widget.game.introNavigationCount}');
 
     // If loading an existing save (not a new game), skip intro
     if (!widget.game.isNewGameFlag) {
-      print('🎬 Loaded save detected, auto-skipping intro');
       // Use Future to avoid calling setState during build
       Future.microtask(() => _finishIntro());
     } else {
-      print('🎬 New game, showing intro');
     }
   }
 
@@ -62,7 +58,6 @@ class _IntroScreenState extends State<IntroScreen> {
     try {
       widget.game.router.pushReplacementNamed('game-screen');
     } catch (e) {
-      print('❌ Error navigating to game-screen: $e');
     }
   }
 

@@ -27,7 +27,6 @@ class NPCComponent extends SpriteComponent
       sprite = await game.loadSprite(npc.spriteSheet);
     } catch (e) {
       // Fallback to default sprite if not found
-      print('⚠️ Could not load sprite ${npc.spriteSheet}, using default');
       sprite = await game.loadSprite('characters/player.png');
     }
 

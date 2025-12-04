@@ -78,7 +78,6 @@ class PlayerStats {
         baseAttack = ValueNotifier(initialAttack),
         baseDefense = ValueNotifier(initialDefense),
         baseSpeed = ValueNotifier(initialSpeed) {
-    print('📊 PlayerStats created. Level: $initialLevel');
     // ← AGREGADO
     currentHp = ValueNotifier(maxHp.value);
     currentMp = ValueNotifier(maxMp.value);
@@ -146,7 +145,6 @@ class PlayerStats {
     // Sincronizar con CombatStats
     _syncCombatStats();
 
-    print('¡SUBISTE DE NIVEL! Ahora eres nivel ${level.value}');
   }
 
   void takeDamage(int amount) {
@@ -171,7 +169,6 @@ class PlayerStats {
     // Si había un objeto equipado antes, lo devolvemos al inventario del jugador.
     if (currentItem != null) {
       player.addItem(currentItem);
-      print('Devuelto al inventario: ${currentItem.name}');
     }
 
     final newMap = Map<EquipmentSlot, EquipmentItem>.from(equippedItems.value);
@@ -181,8 +178,6 @@ class PlayerStats {
     // Sincronizar stats con CombatStats
     _syncCombatStats();
 
-    print(
-        'Equipado: ${newItem.name}. Nuevo Ataque: ${attack.value}, Nueva Defensa: ${defense.value}, Nueva Velocidad: ${speed.value}');
   }
 
   // Load equipment from save without side effects
@@ -194,7 +189,6 @@ class PlayerStats {
   void unequipItem(EquipmentSlot slot) {
     // 1. Verificamos si realmente hay algo en esa ranura.
     if (!equippedItems.value.containsKey(slot)) {
-      print('Nada que desequipar en la ranura $slot.');
       return;
     }
 
@@ -214,8 +208,6 @@ class PlayerStats {
     // Sincronizar stats con CombatStats
     _syncCombatStats();
 
-    print(
-        'Desequipado: ${itemToReturn.name}. Nuevo Ataque: ${attack.value}, Nueva Defensa: ${defense.value}, Nueva Velocidad: ${speed.value}');
   }
 
   // ========== UNIQUE PASSIVE HELPERS ==========
@@ -246,7 +238,6 @@ class PlayerStats {
   /// Mark a boss as defeated
   void defeatBoss(String bossId) {
     if (defeatedBosses.add(bossId)) {
-      print('🏆 Boss derrotado: $bossId');
     }
   }
 
@@ -258,7 +249,6 @@ class PlayerStats {
   /// Mark a quest as completed (future use)
   void completeQuest(String questId) {
     if (completedQuests.add(questId)) {
-      print('✅ Quest completada: $questId');
     }
   }
 

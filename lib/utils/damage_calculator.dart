@@ -47,25 +47,16 @@ class DamageCalculator {
               attackerStats.getPassiveValue(PassiveType.critDamageBonus);
           if (critBonus > 0) {
             critMultiplier += critBonus / 100; // +50 → 1.5 becomes 2.0
-            print('💥 ¡CRÍTICO con Bonus! Multiplicador: ${critMultiplier}x');
-          } else {
-            print('💥 ¡CRÍTICO! Daño x$critMultiplier');
           }
         } catch (e) {
           // attackerStats doesn't have getPassiveValue
-          print('💥 ¡CRÍTICO! Daño x$critMultiplier');
         }
-      } else {
-        print('💥 ¡CRÍTICO! Daño x$critMultiplier');
       }
       damageAfterDefense = (damageAfterDefense * critMultiplier).round();
     }
 
     // 6. Mínimo de daño: 1
     int finalDamage = max(1, damageAfterDefense);
-
-    print(
-        'Daño calculado: Base=$baseDamage x${ability.effect.damageMultiplier} + Atk=$attackerAtk - Def=$defenderDef = $finalDamage${isCrit ? ' (CRIT)' : ''}');
 
     return finalDamage;
   }

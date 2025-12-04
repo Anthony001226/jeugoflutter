@@ -6,7 +6,6 @@ class IntroRouteComponent extends Component
   @override
   void onMount() {
     super.onMount();
-    print('🎬 IntroRouteComponent mounted');
 
     // Ensure clean state
     game.overlays.clear();
@@ -17,7 +16,6 @@ class IntroRouteComponent extends Component
 
   @override
   void onRemove() {
-    print('🎬 IntroRouteComponent removed');
     game.overlays.remove('IntroScreen');
     super.onRemove();
   }

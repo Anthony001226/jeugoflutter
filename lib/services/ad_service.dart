@@ -17,18 +17,15 @@ class AdService {
   Future<void> initialize() async {
     // Skip on web and desktop platforms
     if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
-      print('⚠️ AdMob not supported on this platform');
       return;
     }
 
     try {
       await MobileAds.instance.initialize();
-      print('✅ AdMob initialized successfully');
 
       // Pre-load first interstitial ad
       _loadInterstitialAd();
     } catch (e) {
-      print('⚠️ Error initializing AdMob: $e');
     }
   }
 
@@ -48,7 +45,6 @@ class AdService {
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
-          print('✅ Interstitial ad loaded');
           _interstitialAd = ad;
           _isInterstitialReady = true;
 
@@ -56,10 +52,8 @@ class AdService {
           _interstitialAd!.fullScreenContentCallback =
               FullScreenContentCallback(
             onAdShowedFullScreenContent: (ad) {
-              print('📺 Interstitial ad shown');
             },
             onAdDismissedFullScreenContent: (ad) {
-              print('✅ Interstitial ad dismissed');
               ad.dispose();
               _interstitialAd = null;
               _isInterstitialReady = false;
@@ -68,7 +62,6 @@ class AdService {
               _loadInterstitialAd();
             },
             onAdFailedToShowFullScreenContent: (ad, error) {
-              print('❌ Interstitial ad failed to show: $error');
               ad.dispose();
               _interstitialAd = null;
               _isInterstitialReady = false;
@@ -79,7 +72,6 @@ class AdService {
           );
         },
         onAdFailedToLoad: (error) {
-          print('❌ Interstitial ad failed to load: $error');
           _interstitialAd = null;
           _isInterstitialReady = false;
 
@@ -97,7 +89,6 @@ class AdService {
   Future<void> showInterstitial() async {
     // Skip on unsupported platforms
     if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
-      print('⚠️ Ads not supported on this platform, skipping...');
       return;
     }
 
@@ -106,7 +97,6 @@ class AdService {
         await _interstitialAd!.show();
         // The ad callback will handle cleanup and preloading next ad
       } catch (e) {
-        print('⚠️ Error showing interstitial ad: $e');
         // Clean up and preload
         _interstitialAd?.dispose();
         _interstitialAd = null;
@@ -114,7 +104,6 @@ class AdService {
         _loadInterstitialAd();
       }
     } else {
-      print('⚠️ Interstitial ad not ready yet, skipping...');
       // Try loading if not already loading
       if (_interstitialAd == null) {
         _loadInterstitialAd();

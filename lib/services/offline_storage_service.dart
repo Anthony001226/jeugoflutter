@@ -22,16 +22,13 @@ class OfflineStorageService {
     if (kIsWeb) {
       // Web uses IndexedDB, no path needed
       await Hive.initFlutter();
-      print('📦 Hive initialized for Web (IndexedDB)');
     } else {
       // Explicitly set path for Windows/Mobile persistence
       final appDocumentDir = await getApplicationDocumentsDirectory();
       await Hive.initFlutter(appDocumentDir.path);
-      print('📦 Hive initialized at: ${appDocumentDir.path}');
     }
 
     _box = await Hive.openBox(_boxName);
-    print('📦 Box opened: ${_box.name}');
 
     // Start monitoring connectivity
     _monitorConnectivity();
@@ -41,28 +38,22 @@ class OfflineStorageService {
   Future<void> saveLocally(int slotNumber, PlayerSaveData data) async {
     try {
       final key = 'slot_$slotNumber';
-      print('💾 Saving to $key...');
       await _box.put(key, data.toJson());
       await _box.flush(); // Force write to disk
-      print('💾 Flushed to disk');
 
       // Verify save was successful
       final verification = _box.get(key);
       if (verification == null) {
-        print('❌ Verification failed: data not found after save!');
       } else {
-        print('✅ Save verified: data exists in box');
       }
 
       _currentSlot = slotNumber;
-      print('✅ Saved locally to Slot $slotNumber');
 
       // Try to sync if online (Fire and forget to avoid blocking UI/Autoplay)
       if (_isOnline) {
         _syncToCloud(slotNumber, data);
       }
     } catch (e) {
-      print('❌ Error saving locally: $e');
     }
   }
 
@@ -70,36 +61,28 @@ class OfflineStorageService {
   PlayerSaveData? loadLocally(int slotNumber) {
     try {
       final key = 'slot_$slotNumber';
-      print('📂 Loading from $key...');
 
       // Debug: Check if key exists
       if (!_box.containsKey(key)) {
-        print('❌ Key $key does not exist in box ${_box.name}');
         return null;
       }
 
       final data = _box.get(key);
 
       if (data == null) {
-        print('ℹ️ No local save in Slot $slotNumber (data is null)');
         return null;
       }
 
-      print('✅ Loaded raw data from local storage (Slot $slotNumber)');
       // print('   Raw Data: $data'); // Uncomment if needed, but might be huge
 
       try {
         final parsedData =
             PlayerSaveData.fromJson(Map<String, dynamic>.from(data));
-        print(
-            '   Parsed Level: ${parsedData.level}, Map: ${parsedData.currentMap}');
         return parsedData;
       } catch (parseError) {
-        print('❌ Error parsing save data: $parseError');
         return null;
       }
     } catch (e) {
-      print('❌ Error loading locally: $e');
       return null;
     }
   }
@@ -109,16 +92,13 @@ class OfflineStorageService {
     // 1. Delete Local
     final key = 'slot_$slotNumber';
     await _box.delete(key);
-    print('✅ Local Slot $slotNumber deleted');
 
     // 2. Delete Cloud (if logged in)
     final userId = _authService.getUserId();
     if (userId != null && _isOnline) {
       try {
         await _cloudService.deleteSlot(userId, slotNumber);
-        print('☁️ Cloud Slot $slotNumber deleted');
       } catch (e) {
-        print('⚠️ Failed to delete cloud slot: $e');
       }
     }
   }
@@ -127,16 +107,13 @@ class OfflineStorageService {
   Future<bool> _syncToCloud(int slotNumber, PlayerSaveData data) async {
     final userId = _authService.getUserId();
     if (userId == null) {
-      print('⚠️ Cannot sync: not logged in');
       return false;
     }
 
     try {
       await _cloudService.savePlayerData(userId, slotNumber, data);
-      print('☁️ Synced Slot $slotNumber to cloud');
       return true;
     } catch (e) {
-      print('❌ Sync failed: $e');
       return false;
     }
   }
@@ -156,12 +133,9 @@ class OfflineStorageService {
         if (localData != null) {
           // Resolve conflict
           if (cloudData.lastSaved.isAfter(localData.lastSaved)) {
-            print('☁️ Cloud save is newer. Overwriting local.');
             await saveLocally(slotNumber, cloudData);
             return cloudData;
           } else {
-            print(
-                '💾 Local save is newer (or same). Keeping local and syncing up.');
             // Upload local to cloud to ensure consistency
             await _syncToCloud(slotNumber, localData);
             return localData;
@@ -169,14 +143,12 @@ class OfflineStorageService {
         } else {
           // No local data, safe to download
           await saveLocally(slotNumber, cloudData);
-          print('⬇️ Downloaded Slot $slotNumber from cloud (new install)');
           return cloudData;
         }
       }
 
       return null;
     } catch (e) {
-      print('❌ Error syncing from cloud: $e');
       return null;
     }
   }
@@ -188,7 +160,6 @@ class OfflineStorageService {
     final userId = _authService.getUserId();
     if (userId == null) return;
 
-    print('🔄 Auto-syncing all slots...');
 
     for (int i = 1; i <= 3; i++) {
       final localData = loadLocally(i);
@@ -197,7 +168,6 @@ class OfflineStorageService {
       }
     }
 
-    print('✅ All slots synced');
   }
 
   // Monitor internet connectivity
@@ -207,10 +177,8 @@ class OfflineStorageService {
       _isOnline = result != ConnectivityResult.none;
 
       if (_isOnline && wasOffline) {
-        print('📶 Connection restored');
         syncAllSlots(); // Auto-sync when back online
       } else if (!_isOnline) {
-        print('📴 Offline mode');
       }
     });
 
@@ -230,10 +198,8 @@ class OfflineStorageService {
   ) {
     // Use most recent save
     if (cloudData.lastSaved.isAfter(localData.lastSaved)) {
-      print('☁️ Using cloud data (more recent)');
       return cloudData;
     } else {
-      print('💾 Using local data (more recent)');
       return localData;
     }
   }

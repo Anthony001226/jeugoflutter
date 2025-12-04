@@ -18,18 +18,15 @@ bool get isMobile {
 
 class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
   GameScreen() {
-    print('🔨 GameScreen constructor called');
   }
 
   @override
   void onMount() {
     super.onMount();
-    print('🔨 GameScreen.onMount() called');
   }
 
   @override
   Future<void> onLoad() async {
-    print('🎮 GameScreen.onLoad() started');
     // Force reset to ensure UI updates when set to true later
     game.isPlayerReadyNotifier.value = false;
 
@@ -42,11 +39,9 @@ class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
       // Ensure world is mounted
       if (!game.world.isMounted) {
         game.add(game.world);
-        print('🌍 World re-mounted');
       }
 
       // Add background
-      print('📐 Adding background...');
       final mapSize = game.mapComponent.size;
       await game.world.add(
         RectangleComponent(
@@ -58,26 +53,20 @@ class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
 
       // Add map if not already added
       if (!game.world.contains(game.mapComponent)) {
-        print('🗺️ Adding mapComponent to world');
         await game.world.add(game.mapComponent);
       } else {
-        print('⚠️ mapComponent already in world');
       }
 
       // Add player if not already added
       if (!game.world.contains(game.player)) {
-        print('🧍 Adding player to world');
         await game.world.add(game.player);
       } else {
-        print('⚠️ player already in world');
       }
 
       // Setup camera and UI
-      print('📷 Setting up camera and UI');
       game.camera.follow(game.player);
 
       // Force camera to snap to player position immediately
-      print('📷 Snapping camera to player at ${game.player.position}');
       game.camera.viewfinder.position = game.player.position.clone();
 
       // Small delay to ensure camera updates
@@ -92,23 +81,15 @@ class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
       // Add mobile controls if on mobile
       if (isMobile) {
         game.overlays.add('MobileControls');
-        print('📱 Mobile controls added');
       }
 
       // Set game state
       game.state = GameState.exploring;
 
       // Force exploration update
-      print('🗺️ Forcing exploration update at ${game.player.position}');
       game.updateExploration(game.player.position);
 
-      print('✅ GameScreen.onLoad() completed successfully');
-      print('   - Map Size: ${game.mapComponent.size}');
-      print('   - Map Position: ${game.mapComponent.position}');
-      print('   - Player Position: ${game.player.position}');
     } catch (e, stack) {
-      print('❌ ERROR in GameScreen.onLoad(): $e');
-      print('Stack trace: $stack');
       rethrow;
     }
   }

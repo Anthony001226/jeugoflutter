@@ -14,7 +14,6 @@ class CloudSaveService {
     try {
       final slotId = 'slot_$slotNumber';
       final path = 'users/$userId/saves/$slotId';
-      print('☁️ Attempting to SAVE to: $path');
 
       // Save game data
       await _firestore
@@ -27,9 +26,7 @@ class CloudSaveService {
       // Update slot metadata
       await _updateSlotMetadata(userId, slotNumber, data);
 
-      print('✅ Game saved to cloud (Slot $slotNumber)');
     } catch (e) {
-      print('❌ Error saving to cloud: $e');
       rethrow;
     }
   }
@@ -39,7 +36,6 @@ class CloudSaveService {
     try {
       final slotId = 'slot_$slotNumber';
       final path = 'users/$userId/saves/$slotId';
-      print('☁️ Attempting to load from: $path');
 
       final doc = await _firestore
           .collection('users')
@@ -49,15 +45,11 @@ class CloudSaveService {
           .get();
 
       if (!doc.exists) {
-        print('ℹ️ No save found in Cloud Slot $slotNumber (Path: $path)');
         return null;
       }
 
-      print(
-          '✅ Game loaded from cloud (Slot $slotNumber). Data size: ${doc.data()?.length ?? 0}');
       return PlayerSaveData.fromJson(doc.data()!);
     } catch (e) {
-      print('❌ Error loading from cloud: $e');
       return null;
     }
   }
@@ -83,9 +75,7 @@ class CloudSaveService {
           .doc(slotId)
           .delete();
 
-      print('✅ Slot $slotNumber deleted');
     } catch (e) {
-      print('❌ Error deleting slot: $e');
       rethrow;
     }
   }
@@ -111,7 +101,6 @@ class CloudSaveService {
 
       return slots;
     } catch (e) {
-      print('❌ Error loading slots metadata: $e');
       return [null, null, null];
     }
   }

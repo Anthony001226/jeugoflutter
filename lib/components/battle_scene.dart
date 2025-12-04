@@ -102,7 +102,6 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
   }
 
   void _onEnemyTapped(int index) {
-    print('🎯 Enemy #${index + 1} tapped!');
     game.combatManager.selectedTargetIndex = index;
     _updateTargetIndicator();
   }

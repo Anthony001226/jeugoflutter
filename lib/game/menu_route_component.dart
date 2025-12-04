@@ -11,7 +11,6 @@ class MenuRouteComponent extends Component
   @override
   void onMount() {
     super.onMount();
-    print('🚩 Mounting $overlayName route');
 
     // Clear the game world (map, player, etc.) to prevent visual glitches
     game.world.removeAll(game.world.children);
@@ -26,13 +25,11 @@ class MenuRouteComponent extends Component
       final bool isDesktop = true; // Assume desktop by default
       game.playBackgroundVideo(videoName);
     } catch (e) {
-      print('ℹ️ Skipping video on this platform');
     }
   }
 
   @override
   void onRemove() {
-    print('🚩 Removing $overlayName route');
     game.overlays.remove(overlayName);
     super.onRemove();
   }

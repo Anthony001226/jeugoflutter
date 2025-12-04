@@ -36,7 +36,6 @@ class IAPService {
     // Check if platform is supported
     if (kIsWeb ||
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-      print('⚠️ In-App Purchases not supported on this platform');
       _isAvailable = false;
       return;
     }
@@ -51,15 +50,12 @@ class IAPService {
         _subscription = purchaseUpdated.listen(_onPurchaseUpdate, onDone: () {
           _subscription?.cancel();
         }, onError: (error) {
-          print('⚠️ IAP Error: $error');
         });
 
         await _loadProducts();
       } else {
-        print('⚠️ Store not available');
       }
     } catch (e) {
-      print('⚠️ Error initializing IAP: $e');
       _isAvailable = false;
     }
   }
@@ -71,11 +67,9 @@ class IAPService {
         await _iap!.queryProductDetails(_kIds);
 
     if (response.notFoundIDs.isNotEmpty) {
-      print('⚠️ Products not found: ${response.notFoundIDs}');
     }
 
     _products = response.productDetails;
-    print('✅ Loaded ${_products.length} products');
 
     // Sort by price if possible, or by ID logic
     _products.sort((a, b) => a.rawPrice.compareTo(b.rawPrice));
@@ -98,17 +92,14 @@ class IAPService {
     purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
       if (purchaseDetails.status == PurchaseStatus.pending) {
         // Show pending UI if needed
-        print('⏳ Purchase pending...');
       } else {
         if (purchaseDetails.status == PurchaseStatus.error) {
-          print('❌ Purchase error: ${purchaseDetails.error!}');
         } else if (purchaseDetails.status == PurchaseStatus.purchased ||
             purchaseDetails.status == PurchaseStatus.restored) {
           final bool valid = await _verifyPurchase(purchaseDetails);
           if (valid) {
             _deliverProduct(purchaseDetails);
           } else {
-            print('❌ Invalid purchase verification');
           }
         }
 
@@ -126,7 +117,6 @@ class IAPService {
   }
 
   void _deliverProduct(PurchaseDetails purchaseDetails) {
-    print('💎 Delivering product: ${purchaseDetails.productID}');
 
     int gemsToAdd = 0;
     switch (purchaseDetails.productID) {

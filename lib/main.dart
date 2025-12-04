@@ -78,8 +78,6 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     // print('--- PASO 3: Reconstruyendo UI... ---');
-    print(
-        '🎨 Building UI. Video Controller: ${_game.videoPlayerControllerNotifier.value != null ? "Present" : "NULL"} | Initialized: ${_game.videoPlayerControllerNotifier.value?.value.isInitialized ?? false}');
     return Stack(
       children: [
         // CAPA 0: Fondo Negro (Para rellenar letterboxing en Splash Screen)
@@ -166,9 +164,7 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print('✅ Firebase initialized');
   } catch (e) {
-    print('❌ Firebase initialization failed: $e');
   }
 
   // Initialize Services

@@ -52,7 +52,6 @@ class CombatStats {
     // Create a copy to avoid shared state
     activeEffects.add(effect.copy());
     effectsVersion.value++;
-    print('✨ Aplicado: ${effect.name} (${effect.remainingTurns} turnos)');
   }
 
   /// Process effects at the start of this entity's turn
@@ -77,7 +76,6 @@ class CombatStats {
     // Remove expired effects
     for (final expired in expiredEffects) {
       activeEffects.remove(expired);
-      print('⏱️ Expiró: ${expired.name}');
     }
 
     if (expiredEffects.isNotEmpty) {
@@ -94,7 +92,6 @@ class CombatStats {
             ? (maxHp.value * effect.value).round()
             : effect.value.toInt();
         currentHp.value = (currentHp.value - damage).clamp(0, maxHp.value);
-        print('☠️ ${effect.name} causó $damage de daño');
         break;
 
       case StatusEffectType.regeneration:
@@ -102,7 +99,6 @@ class CombatStats {
             ? (maxHp.value * effect.value).round()
             : effect.value.toInt();
         currentHp.value = (currentHp.value + healing).clamp(0, maxHp.value);
-        print('💚 ${effect.name} restauró $healing HP');
         break;
 
       default:
@@ -116,7 +112,6 @@ class CombatStats {
     if (activeEffects.isNotEmpty) {
       activeEffects.clear();
       effectsVersion.value++;
-      print('🧹 Todos los efectos removidos');
     }
   }
 

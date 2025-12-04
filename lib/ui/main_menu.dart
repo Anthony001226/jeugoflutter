@@ -87,7 +87,6 @@ class _MainMenuState extends State<MainMenu>
                             FantasyButton(
                               label: 'Jugar',
                               onPressed: () {
-                                print('🔘 Jugar button pressed');
                                 // Direct to Slot 1
                                 widget.game.currentSlotIndex = 1;
                                 widget.game.router
@@ -106,7 +105,6 @@ class _MainMenuState extends State<MainMenu>
                             FantasyButton(
                               label: 'Ajustes',
                               onPressed: () {
-                                print('Botón de Ajustes presionado');
                               },
                             ),
                             const SizedBox(width: 40),
@@ -151,8 +149,6 @@ class _MainMenuState extends State<MainMenu>
     return StreamBuilder(
       stream: widget.game.authService.authStateChanges,
       builder: (context, snapshot) {
-        print(
-            '🔄 StreamBuilder update: State=${snapshot.connectionState}, User=${snapshot.data?.email}');
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox(
             width: 20,
@@ -171,12 +167,10 @@ class _MainMenuState extends State<MainMenu>
               setState(() {
                 _isLoggingIn = true;
               });
-              print('🔘 Login button pressed');
               try {
                 final credential =
                     await widget.game.authService.signInWithGoogle();
                 if (credential == null) {
-                  print('⚠️ Login cancelled or failed');
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -184,10 +178,8 @@ class _MainMenuState extends State<MainMenu>
                     );
                   }
                 } else {
-                  print('✅ signInWithGoogle completed');
                   // Download save from cloud (Slot 1)
                   await widget.game.offlineStorage.syncFromCloud(1);
-                  print('✅ syncFromCloud completed');
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -196,7 +188,6 @@ class _MainMenuState extends State<MainMenu>
                   }
                 }
               } catch (e) {
-                print('❌ Error during login/sync: $e');
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('❌ Error: $e')),

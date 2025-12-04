@@ -17,7 +17,6 @@ class AuthService {
       // Trigger Google Sign In
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        print('ℹ️ User cancelled Google Sign-In');
         return null; // User cancelled
       }
 
@@ -33,10 +32,8 @@ class AuthService {
 
       // Sign in to Firebase
       final userCredential = await _auth.signInWithCredential(credential);
-      print('✅ Signed in: ${userCredential.user?.email}');
       return userCredential;
     } catch (e) {
-      print('❌ Error signing in with Google: $e');
       return null;
     }
   }
@@ -46,9 +43,7 @@ class AuthService {
     try {
       await _googleSignIn.signOut();
       await _auth.signOut();
-      print('✅ Signed out successfully');
     } catch (e) {
-      print('❌ Error signing out: $e');
     }
   }
 

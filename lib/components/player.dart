@@ -93,7 +93,6 @@ class Player extends SpriteComponent
       other.isCollected = true;
 
       // 3. Ahora, y solo ahora, ejecutamos la lógica de forma segura.
-      print('¡Cofre recogido en ${other.gridPosition} por colisión!');
       addItem(other.item);
 
       // --- GEM DROP LOGIC ---
@@ -101,7 +100,6 @@ class Player extends SpriteComponent
       if (Random().nextDouble() < 0.20) {
         final gemsFound = Random().nextInt(3) + 1; // 1 to 3 gems
         stats.gems.value += gemsFound;
-        print('💎 ¡Encontraste $gemsFound gemas en el cofre!');
 
         // Show a floating text or simple notification (using print for now, UI will update)
         // Ideally we would show an overlay message here
@@ -111,7 +109,6 @@ class Player extends SpriteComponent
       final chestId =
           '${game.currentMapName}:${other.gridPosition.x.toInt()},${other.gridPosition.y.toInt()}';
       game.openedChests.add(chestId);
-      print('Chest $chestId marked as opened');
 
       // 4. Finalmente, lo mandamos a la cola de eliminación.
       other.removeFromParent();
@@ -273,7 +270,6 @@ class Player extends SpriteComponent
 
       if (randomValue < cumulativeChance) {
         final enemyType = game.zoneEnemyTypes[i];
-        print('¡Encuentro aleatorio con $enemyType!');
         game.startCombat(enemyType); // Inicia el combate con ese enemigo
         return; // Sal del bucle y del método una vez que se encuentra un enemigo
       }
@@ -323,8 +319,6 @@ class Player extends SpriteComponent
 
     // ¡Muy importante! Notificamos a los 'listeners' (como nuestra UI) que el inventario ha cambiado.
     inventory.notifyListeners();
-    print(
-        'Añadido ${itemToAdd.name}. Inventario ahora tiene ${inventory.value.length} tipos de objetos.');
   }
 
   void useItem(InventorySlot slot) {
@@ -346,7 +340,6 @@ class Player extends SpriteComponent
   void equipItem(InventorySlot slot) {
     // 1. Nos aseguramos de que el objeto que intentamos equipar sea realmente un EquipmentItem.
     if (slot.item is! EquipmentItem) {
-      print('Error: Intentando equipar un objeto no equipable.');
       return;
     }
 

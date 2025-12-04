@@ -70,7 +70,6 @@ class CombatInventoryUI extends StatelessWidget {
                                     color: Colors.white70, fontSize: 12)),
                             onTap: () {
                               game.combatManager.playerUseItem(slot);
-                              print('¡Usar ${slot.item.name}!');
                               game.overlays.remove(
                                   'CombatInventoryUI'); // Cierra este menú
                             },

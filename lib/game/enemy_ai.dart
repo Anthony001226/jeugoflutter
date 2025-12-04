@@ -21,9 +21,6 @@ class EnemyAI {
     final currentMp = stats.currentMp.value;
     final hpPercentage = currentHp / maxHp;
 
-    print(
-        '🤖 Enemy AI: HP=${currentHp}/${maxHp} (${(hpPercentage * 100).toStringAsFixed(0)}%), MP=$currentMp');
-
     // 1. HP crítico - buscar habilidad defensiva
     if (hpPercentage < 0.3) {
       final defensiveAbility = abilities.firstWhere(
@@ -36,7 +33,6 @@ class EnemyAI {
 
       if (defensiveAbility != abilities.first &&
           defensiveAbility.canUse(currentMp, 0)) {
-        print('   → HP bajo! Usando ${defensiveAbility.name}');
         return defensiveAbility;
       }
     }
@@ -47,7 +43,6 @@ class EnemyAI {
         .toList();
 
     if (usableAbilities.isEmpty) {
-      print('   → Sin MP! Usando básica: ${abilities.first.name}');
       return abilities.first;
     }
 
@@ -66,8 +61,6 @@ class EnemyAI {
       chosenAbility = usableAbilities[_random.nextInt(usableAbilities.length)];
     }
 
-    print(
-        '   → Eligió: ${chosenAbility.name} (${chosenAbility.effect.baseDamage} dmg, ${chosenAbility.mpCost} MP)');
     return chosenAbility;
   }
 
