@@ -1,4 +1,3 @@
-// lib/ui/dialogue_ui.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,7 +14,6 @@ class DialogueUI extends StatelessWidget {
   Widget build(BuildContext context) {
     final npcId = game.activeDialogueNPC;
     if (npcId == null) {
-      // No active dialogue, shouldn't happen but handle gracefully
       return const SizedBox.shrink();
     }
 
@@ -59,7 +57,6 @@ class DialogueUI extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // NPC Name Header
                 Row(
                   children: [
                     Icon(
@@ -91,7 +88,6 @@ class DialogueUI extends StatelessWidget {
                 const Divider(color: Colors.grey),
                 const SizedBox(height: 16),
 
-                // Dialogue Text
                 Text(
                   npc.dialogue,
                   style: const TextStyle(
@@ -102,7 +98,6 @@ class DialogueUI extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Close Button
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [

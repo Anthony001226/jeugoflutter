@@ -1,4 +1,3 @@
-// lib/ui/equipment_tab_view.dart
 
 import 'package:flutter/material.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
@@ -8,7 +7,6 @@ class EquipmentTabView extends StatelessWidget {
   final RenegadeDungeonGame game;
   const EquipmentTabView({super.key, required this.game});
 
-  // Un widget de ayuda para mostrar una ranura de equipo equipada.
   Widget _buildEquippedSlot(EquipmentSlot slot, EquipmentItem? item) {
     final String slotName = slot == EquipmentSlot.weapon ? 'Arma' : 'Armadura';
 
@@ -43,14 +41,12 @@ class EquipmentTabView extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // --- SECCIÓN 1: EQUIPADO ACTUALMENTE ---
           const Text('Equipado Actualmente',
               style: TextStyle(
                   color: Colors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.bold)),
           const Divider(color: Colors.grey),
-          // Este ValueListenableBuilder se actualiza cuando el equipo cambia.
           ValueListenableBuilder<Map<EquipmentSlot, EquipmentItem>>(
             valueListenable: game.player.stats.equippedItems,
             builder: (context, equipped, child) {
@@ -67,7 +63,6 @@ class EquipmentTabView extends StatelessWidget {
 
           const SizedBox(height: 32),
 
-          // --- SECCIÓN 2: EQUIPABLES EN INVENTARIO ---
           const Text('Equipables en Inventario',
               style: TextStyle(
                   color: Colors.white,
@@ -75,13 +70,9 @@ class EquipmentTabView extends StatelessWidget {
                   fontWeight: FontWeight.bold)),
           const Divider(color: Colors.grey),
 
-          // Removed Expanded, added shrinkWrap to ListView
           ValueListenableBuilder<List<InventorySlot>>(
             valueListenable: game.player.inventory,
             builder: (context, inventory, child) {
-              // --- ¡LA SOLUCIÓN! ---
-              // La lista de objetos equipables se calcula aquí DENTRO,
-              // cada vez que el inventario se actualiza.
               final equipableItems = inventory
                   .where((slot) => slot.item is EquipmentItem)
                   .toList();
@@ -104,7 +95,6 @@ class EquipmentTabView extends StatelessWidget {
                         style: const TextStyle(color: Colors.white)),
                     trailing: ElevatedButton(
                       onPressed: () {
-                        // Llama al método para equipar el objeto.
                         game.player.equipItem(slot);
                       },
                       child: const Text('Equipar'),

@@ -1,9 +1,7 @@
-// lib/models/ability_database.dart
 
 import 'package:renegade_dungeon/models/combat_ability.dart';
 
 class AbilityDatabase {
-  // ==================== PLAYER ABILITIES ====================
 
   static const CombatAbility playerBasicAttack = CombatAbility(
     name: 'Corte',
@@ -61,7 +59,6 @@ class AbilityDatabase {
     animationKey: 'attack',
   );
 
-  // ==================== SLIME ABILITIES ====================
 
   static const CombatAbility slimeBasicAttack = CombatAbility(
     name: 'Salto',
@@ -76,7 +73,6 @@ class AbilityDatabase {
     animationKey: 'attack',
   );
 
-  // ==================== GOBLIN ABILITIES ====================
 
   static const CombatAbility goblinBasicAttack = CombatAbility(
     name: 'Puñalada',
@@ -104,7 +100,6 @@ class AbilityDatabase {
     animationKey: 'attack',
   );
 
-  // ==================== BAT ABILITIES (NUEVO) ====================
 
   static const CombatAbility batBasicAttack = CombatAbility(
     name: 'Picotazo',
@@ -119,7 +114,6 @@ class AbilityDatabase {
     animationKey: 'attack',
   );
 
-  // ==================== SKELETON ABILITIES (NUEVO) ====================
 
   static const CombatAbility skeletonBasicAttack = CombatAbility(
     name: 'Espadazo',
@@ -144,14 +138,11 @@ class AbilityDatabase {
       damageMultiplier: 0.0,
       targetType: TargetType.self,
       statusEffects: [
-        // Use the predefined defense buff factory
-        // Note: Due to const limitations, we'll apply this in combat logic
       ],
     ),
     animationKey: 'idle',
   );
 
-  // ==================== BOSS1 ABILITIES ====================
 
   static const CombatAbility boss1BasicAttack = CombatAbility(
     name: 'Zarpazo',
@@ -163,7 +154,7 @@ class AbilityDatabase {
       damageMultiplier: 1.2,
       targetType: TargetType.singleEnemy,
     ),
-    animationKey: 'ataque', // Usará animación 'ataque' cuando esté disponible
+    animationKey: 'ataque',
   );
 
   static const CombatAbility boss1HeavyAttack = CombatAbility(
@@ -176,7 +167,7 @@ class AbilityDatabase {
       damageMultiplier: 1.5,
       targetType: TargetType.singleEnemy,
     ),
-    animationKey: 'pesado', // Usará animación 'pesado' cuando esté disponible
+    animationKey: 'pesado',
   );
 
   static const CombatAbility boss1Ultimate = CombatAbility(
@@ -189,10 +180,9 @@ class AbilityDatabase {
       damageMultiplier: 2.0,
       targetType: TargetType.singleEnemy,
     ),
-    animationKey: 'ulti', // Usará animación 'ulti' cuando esté disponible
+    animationKey: 'ulti',
   );
 
-  // Helper methods para obtener kits completos
   static List<CombatAbility> getPlayerAbilities() {
     return [
       playerBasicAttack,
@@ -222,7 +212,6 @@ class AbilityDatabase {
     return [boss1BasicAttack, boss1HeavyAttack, boss1Ultimate];
   }
 
-  // General method to get enemy abilities by type
   static List<CombatAbility> getEnemyAbilities(String enemyType) {
     switch (enemyType) {
       case 'slime':

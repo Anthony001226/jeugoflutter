@@ -35,12 +35,10 @@ class _SimulatedPaymentDialogState extends State<SimulatedPaymentDialog> {
   }
 
   Future<void> _processPayment() async {
-    // No validation needed - all data is fake
     setState(() {
       _isProcessing = true;
     });
 
-    // Simulate payment processing
     await Future.delayed(const Duration(seconds: 2));
 
     setState(() {
@@ -48,10 +46,8 @@ class _SimulatedPaymentDialogState extends State<SimulatedPaymentDialog> {
       _showSuccess = true;
     });
 
-    // Show success message briefly
     await Future.delayed(const Duration(seconds: 1));
 
-    // Close and return success
     if (mounted) {
       Navigator.of(context).pop(true);
     }
@@ -155,11 +151,10 @@ class _SimulatedPaymentDialogState extends State<SimulatedPaymentDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header with Stripe-like design
             Container(
               padding: const EdgeInsets.all(24),
               decoration: const BoxDecoration(
-                color: Color(0xFF635BFF), // Stripe purple
+                color: Color(0xFF635BFF),
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
@@ -225,7 +220,6 @@ class _SimulatedPaymentDialogState extends State<SimulatedPaymentDialog> {
               ),
             ),
 
-            // Payment form
             Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -250,7 +244,6 @@ class _SimulatedPaymentDialogState extends State<SimulatedPaymentDialog> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Card Number
                   _buildTextField(
                     controller: _cardNumberController,
                     label: 'Número de Tarjeta',
@@ -260,7 +253,6 @@ class _SimulatedPaymentDialogState extends State<SimulatedPaymentDialog> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Expiry and CVV Row
                   Row(
                     children: [
                       Expanded(
@@ -287,7 +279,6 @@ class _SimulatedPaymentDialogState extends State<SimulatedPaymentDialog> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Cardholder Name
                   _buildTextField(
                     controller: _nameController,
                     label: 'Nombre en la Tarjeta',
@@ -296,7 +287,6 @@ class _SimulatedPaymentDialogState extends State<SimulatedPaymentDialog> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Pay Button
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -321,7 +311,6 @@ class _SimulatedPaymentDialogState extends State<SimulatedPaymentDialog> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Security notice
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -372,7 +361,7 @@ class _SimulatedPaymentDialogState extends State<SimulatedPaymentDialog> {
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: Icon(icon, color: const Color(0xFF635BFF)),
-            counterText: '', // Hide counter
+            counterText: '',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: Colors.grey[300]!),

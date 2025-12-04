@@ -1,4 +1,3 @@
-// lib/ui/barrier_dialog_ui.dart
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -27,7 +26,6 @@ class _BarrierDialogUIState extends State<BarrierDialogUI> {
   @override
   void initState() {
     super.initState();
-    // Auto-close after 3 seconds
     _autoCloseTimer = Timer(const Duration(seconds: 3), _closeDialog);
   }
 
@@ -54,25 +52,24 @@ class _BarrierDialogUIState extends State<BarrierDialogUI> {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           constraints: const BoxConstraints(maxWidth: 500),
           decoration: BoxDecoration(
-            // Medieval stone/gray style
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: widget.isBlocked
                   ? [
-                      const Color(0xFF2A2A2A), // Dark gray
-                      const Color(0xFF1A1A1A), // Darker gray
+                      const Color(0xFF2A2A2A),
+                      const Color(0xFF1A1A1A),
                     ]
                   : [
-                      const Color(0xFF2A3A2A), // Dark green-gray
-                      const Color(0xFF1A251A), // Darker green-gray
+                      const Color(0xFF2A3A2A),
+                      const Color(0xFF1A251A),
                     ],
             ),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: widget.isBlocked
-                  ? const Color(0xFF6A6A6A) // Medium gray
-                  : const Color(0xFF5A7A5A), // Green-gray
+                  ? const Color(0xFF6A6A6A)
+                  : const Color(0xFF5A7A5A),
               width: 2,
             ),
             boxShadow: [
@@ -86,18 +83,16 @@ class _BarrierDialogUIState extends State<BarrierDialogUI> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Icon
               Icon(
                 widget.isBlocked ? Icons.lock : Icons.lock_open,
                 color: widget.isBlocked
-                    ? const Color(0xFFAAAAAA) // Light gray
-                    : const Color(0xFF88AA88), // Light green-gray
+                    ? const Color(0xFFAAAAAA)
+                    : const Color(0xFF88AA88),
                 size: 28,
               ),
 
               const SizedBox(width: 12),
 
-              // Message - plain white, no decoration
               Flexible(
                 child: Text(
                   widget.message,
@@ -116,7 +111,6 @@ class _BarrierDialogUIState extends State<BarrierDialogUI> {
 
               const SizedBox(width: 12),
 
-              // Close hint - shows "3s"
               const Icon(
                 Icons.timer,
                 color: Color(0xFF888888),

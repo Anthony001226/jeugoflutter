@@ -1,4 +1,3 @@
-// lib/ui/combat_inventory_ui.dart
 
 import 'package:flutter/material.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
@@ -10,7 +9,6 @@ class CombatInventoryUI extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Filtramos el inventario para obtener SOLO los objetos usables.
     final usableItems = game.player.inventory.value
         .where((slot) => slot.item.isUsable)
         .toList();
@@ -39,7 +37,6 @@ class CombatInventoryUI extends StatelessWidget {
                           fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
 
-                  // Si no hay objetos usables, mostramos un mensaje.
                   if (usableItems.isEmpty)
                     const Padding(
                       padding: EdgeInsets.all(20.0),
@@ -47,7 +44,6 @@ class CombatInventoryUI extends StatelessWidget {
                           style: TextStyle(color: Colors.grey)),
                     ),
 
-                  // Creamos una lista de objetos.
                   if (usableItems.isNotEmpty)
                     Container(
                       constraints: const BoxConstraints(maxHeight: 300),
@@ -71,7 +67,7 @@ class CombatInventoryUI extends StatelessWidget {
                             onTap: () {
                               game.combatManager.playerUseItem(slot);
                               game.overlays.remove(
-                                  'CombatInventoryUI'); // Cierra este menú
+                                  'CombatInventoryUI');
                             },
                           );
                         },

@@ -1,4 +1,3 @@
-// lib/components/enemies/bat_component.dart
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -10,7 +9,6 @@ import 'package:renegade_dungeon/models/inventory_item.dart';
 import 'package:renegade_dungeon/models/enemy_stats.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 
-// Enemy wrapper que implementa CombatStatsHolder
 class BatStats extends EnemyStats implements CombatStatsHolder {
   @override
   final CombatStats combatStats;
@@ -20,14 +18,12 @@ class BatStats extends EnemyStats implements CombatStatsHolder {
           maxHp: combatStats.maxHp.value,
           attack: combatStats.attack.value,
           defense: combatStats.defense.value,
-          speed: combatStats.speed.value, // Use speed from combatStats
+          speed: combatStats.speed.value,
           xpValue: 30,
-          lootTable: {ItemDatabase.potion: 0.50}, // 50% drop (was 15%)
+          lootTable: {ItemDatabase.potion: 0.50},
         ) {
-    // Sincronizar valores iniciales
     currentHp.value = combatStats.currentHp.value;
 
-    // Escuchar cambios en combatStats y sincronizar
     combatStats.currentHp.addListener(() {
       currentHp.value = combatStats.currentHp.value;
     });
@@ -45,27 +41,24 @@ class BatComponent extends SpriteAnimationComponent
   late final List<CombatAbility> abilities;
 
   BatComponent() : super(size: Vector2.all(128)) {
-    // Initialize stats in constructor so it's available immediately
     final combatStats = CombatStats(
       initialHp: 15,
       initialMaxHp: 15,
       initialMp: 20,
       initialMaxMp: 20,
-      initialSpeed: 15, // MUY RÁPIDO
+      initialSpeed: 15,
       initialAttack: 8,
       initialDefense: 2,
-      initialCritChance: 0.25, // 25% crítico
+      initialCritChance: 0.25,
     );
 
     stats = BatStats(combatStats);
 
-    // Habilidades
     abilities = AbilityDatabase.getBatAbilities();
   }
 
   @override
   Future<void> onLoad() async {
-    // Sprite temporal (usaremos el del goblin por ahora)
     final sprite = await Sprite.load('enemies/bat.png');
     animation = SpriteAnimation.fromFrameData(
       sprite.image,
@@ -83,7 +76,6 @@ class BatComponent extends SpriteAnimationComponent
     super.onTapDown(event);
   }
 
-  // Loot table
   Map<InventoryItem, double> get lootTable => {
         ItemDatabase.potion: 0.15,
       };

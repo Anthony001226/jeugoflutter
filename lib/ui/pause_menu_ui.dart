@@ -1,4 +1,3 @@
-// lib/ui/pause_menu_ui.dart
 
 import 'package:flutter/material.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
@@ -46,12 +45,10 @@ class PauseMenuUI extends StatelessWidget {
                 ),
               ),
 
-              // Botones de control
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Botón Reanudar
                   ElevatedButton.icon(
                     onPressed: () {
                       game.togglePauseMenu();
@@ -68,7 +65,6 @@ class PauseMenuUI extends StatelessWidget {
 
                   const SizedBox(width: 16),
 
-                  // Botón Tienda de Gemas
                   ElevatedButton.icon(
                     onPressed: () {
                       game.openGemShop();
@@ -83,7 +79,6 @@ class PauseMenuUI extends StatelessWidget {
                     ),
                   ),
 
-                  // Botón Volver al Menú Principal
                   ElevatedButton.icon(
                     onPressed: () {
                       showDialog(
@@ -106,14 +101,11 @@ class PauseMenuUI extends StatelessWidget {
                             ElevatedButton(
                               onPressed: () async {
                                 Navigator.of(context).pop();
-                                // Save game before exiting
                                 await game.saveGame();
 
-                                // Reset game state to ensure clean slate for next session
                                 game.reset();
 
                                 game.state = GameState.inMenu;
-                                // Removed delay to preserve user interaction token for Web Autoplay
                                 game.router.pushReplacementNamed('main-menu');
                               },
                               style: ElevatedButton.styleFrom(

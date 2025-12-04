@@ -29,9 +29,6 @@ class _GemShopScreenState extends State<GemShopScreen> {
   }
 
   Future<void> _loadProducts() async {
-    // Wait a bit for initialization if needed, or just refresh state
-    // In a real app, we might want to listen to a stream of products
-    // For now, we assume service is initialized in game
 
     setState(() {
       _isLoading = false;
@@ -66,7 +63,6 @@ class _GemShopScreenState extends State<GemShopScreen> {
           ),
           child: Column(
             children: [
-              // Header
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: const BoxDecoration(
@@ -89,7 +85,7 @@ class _GemShopScreenState extends State<GemShopScreen> {
                             color: Colors.white,
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            fontFamily: 'PixelFont', // Assuming font exists
+                            fontFamily: 'PixelFont',
                           ),
                         ),
                       ],
@@ -102,7 +98,6 @@ class _GemShopScreenState extends State<GemShopScreen> {
                 ),
               ),
 
-              // Content
               Expanded(
                 child: _isLoading
                     ? const Center(
@@ -137,7 +132,6 @@ class _GemShopScreenState extends State<GemShopScreen> {
                         : _buildProductGrid(),
               ),
 
-              // Footer info
               Container(
                 padding: const EdgeInsets.all(12),
                 color: Colors.black26,
@@ -156,7 +150,6 @@ class _GemShopScreenState extends State<GemShopScreen> {
   Widget _buildProductGrid() {
     final products = widget.game.iapService.products;
 
-    // Always use simulated products if real products aren't available
     if (products.isEmpty) {
       return _buildSimulatedProductGrid();
     }
@@ -177,7 +170,6 @@ class _GemShopScreenState extends State<GemShopScreen> {
   }
 
   Widget _buildSimulatedProductGrid() {
-    // Simulated gem packages with fake prices
     final simulatedPackages = [
       {'gems': 10, 'price': '\$0.99', 'color': Colors.blue[900]!},
       {'gems': 50, 'price': '\$3.99', 'color': Colors.purple[900]!},
@@ -247,7 +239,6 @@ class _GemShopScreenState extends State<GemShopScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
             onPressed: () async {
-              // Show simulated payment dialog
               final result = await showDialog<bool>(
                 context: context,
                 barrierDismissible: false,
@@ -257,7 +248,6 @@ class _GemShopScreenState extends State<GemShopScreen> {
                 ),
               );
 
-              // If payment was successful, add gems
               if (result == true) {
                 widget.game.iapService.onGemsPurchased(gemAmount);
                 if (context.mounted) {
@@ -281,7 +271,6 @@ class _GemShopScreenState extends State<GemShopScreen> {
   }
 
   Widget _buildProductCard(ProductDetails product) {
-    // Extract gem amount from title or ID if possible, otherwise hardcode for display based on ID
     int gemAmount = 0;
     Color cardColor = Colors.blueGrey;
 
@@ -338,7 +327,6 @@ class _GemShopScreenState extends State<GemShopScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
             onPressed: () async {
-              // Show simulated payment dialog
               final result = await showDialog<bool>(
                 context: context,
                 barrierDismissible: false,
@@ -348,7 +336,6 @@ class _GemShopScreenState extends State<GemShopScreen> {
                 ),
               );
 
-              // If payment was successful, add gems
               if (result == true) {
                 widget.game.iapService.onGemsPurchased(gemAmount);
                 if (context.mounted) {

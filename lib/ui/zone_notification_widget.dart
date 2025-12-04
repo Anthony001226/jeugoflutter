@@ -25,15 +25,15 @@ class _ZoneNotificationWidgetState extends State<ZoneNotificationWidget>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3000), // Total duration
+      duration: const Duration(milliseconds: 3000),
     );
 
     _opacityAnimation = TweenSequence<double>([
       TweenSequenceItem(
-          tween: Tween(begin: 0.0, end: 1.0), weight: 20), // Fade in
+          tween: Tween(begin: 0.0, end: 1.0), weight: 20),
       TweenSequenceItem(
           tween: ConstantTween(1.0),
-          weight: 80), // Stay visible forever (or until next change)
+          weight: 80),
     ]).animate(_controller);
 
     _slideAnimation = Tween<Offset>(
@@ -44,14 +44,11 @@ class _ZoneNotificationWidgetState extends State<ZoneNotificationWidget>
       curve: const Interval(0.0, 0.2, curve: Curves.easeOut),
     ));
 
-    // Listen to zone changes
     widget.game.currentZoneNameNotifier.addListener(_onZoneChanged);
 
-    // Initial state
     _zoneName = widget.game.currentZoneNameNotifier.value;
     _dangerLevel = widget.game.currentDangerLevelNotifier.value;
 
-    // Show immediately on load
     if (_zoneName.isNotEmpty) {
       _controller.forward(from: 0.0);
     }
@@ -77,13 +74,13 @@ class _ZoneNotificationWidgetState extends State<ZoneNotificationWidget>
 
   Color _getDangerColor(int level) {
     switch (level) {
-      case 0: // Safe
+      case 0:
         return Colors.greenAccent;
-      case 1: // Low
+      case 1:
         return Colors.yellowAccent;
-      case 2: // Medium
+      case 2:
         return Colors.orangeAccent;
-      case 3: // High
+      case 3:
         return Colors.redAccent;
       default:
         return Colors.white;

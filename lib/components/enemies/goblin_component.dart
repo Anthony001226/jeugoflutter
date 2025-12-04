@@ -1,14 +1,12 @@
-// lib/components/goblin_component.dart
 
 import 'package:flame/components.dart';
-import 'package:flame/events.dart'; // Import for TapCallbacks
+import 'package:flame/events.dart';
 import 'package:renegade_dungeon/models/enemy_stats.dart';
 import 'package:renegade_dungeon/models/inventory_item.dart';
 import 'package:renegade_dungeon/models/combat_stats.dart';
 import 'package:renegade_dungeon/models/combat_stats_holder.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 
-// Wrapper que combina EnemyStats con CombatStats
 class GoblinStats extends EnemyStats implements CombatStatsHolder {
   @override
   final CombatStats combatStats;
@@ -18,7 +16,7 @@ class GoblinStats extends EnemyStats implements CombatStatsHolder {
     required int attack,
     required int defense,
     required int xpValue,
-    required int goldDrop, // NEW
+    required int goldDrop,
     required Map<InventoryItem, double> lootTable,
   })  : combatStats = CombatStats(
           initialHp: maxHp,
@@ -33,15 +31,13 @@ class GoblinStats extends EnemyStats implements CombatStatsHolder {
           maxHp: maxHp,
           attack: attack,
           defense: defense,
-          speed: 5, // Use speed from combatStats
+          speed: 5,
           xpValue: xpValue,
-          goldDrop: goldDrop, // NEW
+          goldDrop: goldDrop,
           lootTable: lootTable,
         ) {
-    // Sincronizar valores iniciales
     currentHp.value = combatStats.currentHp.value;
 
-    // Escuchar cambios en combatStats y sincronizar
     combatStats.currentHp.addListener(() {
       currentHp.value = combatStats.currentHp.value;
     });
@@ -50,39 +46,35 @@ class GoblinStats extends EnemyStats implements CombatStatsHolder {
   @override
   void takeDamage(int damage) {
     combatStats.takeDamage(damage);
-    // currentHp se sincroniza automáticamente por el listener
   }
 }
 
-// Lo convertimos en SpriteAnimationComponent para que sea del mismo tipo que el Slime
 class GoblinComponent extends SpriteAnimationComponent
     with HasGameReference<RenegadeDungeonGame>, TapCallbacks {
   late final GoblinStats stats;
 
   GoblinComponent() : super(size: Vector2.all(128)) {
-    // Initialize stats in constructor so it's available immediately
     stats = GoblinStats(
       maxHp: 30,
       attack: 8,
       defense: 2,
       xpValue: 45,
-      goldDrop: 15, // NEW
+      goldDrop: 15,
       lootTable: {
-        ItemDatabase.potion: 0.50, // 50% drop (antes 10%)
-        ItemDatabase.goblinScimitar: 0.30, // 30% drop (antes 5%)
+        ItemDatabase.potion: 0.50,
+        ItemDatabase.goblinScimitar: 0.30,
       },
     );
   }
 
   @override
   Future<void> onLoad() async {
-    // Creamos una "animación" de un solo frame
     final sprite = await Sprite.load('enemies/goblin.png');
     animation = SpriteAnimation.fromFrameData(
       sprite.image,
       SpriteAnimationData.sequenced(
-        amount: 1, // solo un frame
-        stepTime: 1, // no importa el tiempo
+        amount: 1,
+        stepTime: 1,
         textureSize: sprite.srcSize,
       ),
     );

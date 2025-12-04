@@ -1,4 +1,3 @@
-// lib/ui/combat_ui.dart
 
 import 'package:flutter/material.dart';
 import 'package:flame/components.dart';
@@ -24,8 +23,6 @@ class CombatUI extends StatelessWidget {
     return ValueListenableBuilder<SpriteAnimationComponent?>(
       valueListenable: game.combatManager.currentEnemyNotifier,
       builder: (context, enemy, child) {
-        // Handle Victory/Defeat logic via HP listeners
-        // We wrap the main UI in these listeners to trigger screen changes
         return ValueListenableBuilder<int>(
           valueListenable: game.player.stats.currentHp,
           builder: (context, playerHp, child) {
@@ -33,16 +30,9 @@ class CombatUI extends StatelessWidget {
               return _buildDefeatScreen();
             }
 
-            // If no enemy is selected but we are in combat, it might be a transition or error
-            // But usually currentEnemy is set.
-            // If enemy is null, check if we won
             if (enemy == null) {
               if (game.combatManager.currentEnemies.isEmpty &&
                   game.combatManager.lastDroppedItems.isNotEmpty) {
-                // We don't have the last enemy stats here easily if 'enemy' is null
-                // But usually the last enemy is still in 'enemy' when it dies?
-                // Ah, currentEnemy might be null if cleared.
-                // Let's rely on the HP listener of the *current* enemy if it exists.
                 return const SizedBox();
               }
               return const SizedBox();
@@ -59,7 +49,6 @@ class CombatUI extends StatelessWidget {
                   if (isLastEnemy) {
                     return _buildVictoryScreen(context, enemyStats);
                   }
-                  // If not last enemy, just show normal UI (enemy will be removed/swapped soon)
                 }
 
                 return Scaffold(
@@ -67,7 +56,6 @@ class CombatUI extends StatelessWidget {
                   body: SafeArea(
                     child: Stack(
                       children: [
-                        // 1. Top Center: Target Info
                         Positioned(
                           top: 10,
                           left: 0,
@@ -78,7 +66,6 @@ class CombatUI extends StatelessWidget {
                           ),
                         ),
 
-                        // 2. Center: Turn Indicator
                         Positioned(
                           top: size.height * 0.15,
                           left: 0,
@@ -86,14 +73,12 @@ class CombatUI extends StatelessWidget {
                           child: Center(child: _buildTurnIndicator(isMobile)),
                         ),
 
-                        // 3. Bottom Left: Player Stats
                         Positioned(
                           bottom: 20,
                           left: 20,
                           child: _buildPlayerPanel(isMobile),
                         ),
 
-                        // 4. Bottom Right: Command Panel
                         Positioned(
                           bottom: 20,
                           right: 20,
@@ -111,12 +96,10 @@ class CombatUI extends StatelessWidget {
     );
   }
 
-  // --- PANELS ---
 
   Widget _buildTargetPanel(SpriteAnimationComponent enemy, EnemyStats stats,
       int currentHp, bool isMobile) {
     String enemyName = game.combatManager.getEnemyName(enemy);
-    // Simple name mapping
     if (enemy is GoblinComponent)
       enemyName = enemyName.replaceFirst('Enemigo', 'Goblin');
     else if (enemy is SlimeComponent)
@@ -184,7 +167,6 @@ class CombatUI extends StatelessWidget {
           ),
           const Divider(color: Colors.white30, height: 10),
 
-          // HP
           ValueListenableBuilder<int>(
             valueListenable: game.player.stats.combatStats.currentHp,
             builder: (context, hp, _) => _buildStatRow(
@@ -196,7 +178,6 @@ class CombatUI extends StatelessWidget {
           ),
           const SizedBox(height: 5),
 
-          // MP
           ValueListenableBuilder<int>(
             valueListenable: game.player.stats.combatStats.currentMp,
             builder: (context, mp, _) => _buildStatRow(
@@ -208,7 +189,6 @@ class CombatUI extends StatelessWidget {
           ),
           const SizedBox(height: 5),
 
-          // ULT
           ValueListenableBuilder<int>(
             valueListenable: game.player.stats.combatStats.ultMeter,
             builder: (context, ult, _) =>
@@ -216,7 +196,6 @@ class CombatUI extends StatelessWidget {
           ),
 
           const SizedBox(height: 8),
-          // Status Effects
           ValueListenableBuilder<int>(
             valueListenable: game.player.stats.combatStats.effectsVersion,
             builder: (context, _, __) => _buildStatusEffects(isMobile),
@@ -279,7 +258,7 @@ class CombatUI extends StatelessWidget {
       builder: (context, turn, _) {
         final isPlayer = turn == CombatTurn.playerTurn;
         return AnimatedOpacity(
-          opacity: 1.0, // Could animate this
+          opacity: 1.0,
           duration: const Duration(milliseconds: 500),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 8),
@@ -317,7 +296,6 @@ class CombatUI extends StatelessWidget {
     );
   }
 
-  // --- WIDGET HELPERS ---
 
   Widget _buildStatRow(
       String label, int current, int max, Color color, bool isMobile) {

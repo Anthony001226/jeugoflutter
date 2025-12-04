@@ -1,4 +1,3 @@
-// lib/models/loot_manager.dart
 
 import 'dart:math';
 import 'package:renegade_dungeon/models/inventory_item.dart';
@@ -14,10 +13,8 @@ class LootManager {
     ItemRarity maxRarity = ItemRarity.rare,
     List<InventoryItem> itemPool = const [],
   }) {
-    // Si no hay pool especificado, usar todos los items
     final pool = itemPool.isEmpty ? _getAllItems() : itemPool;
 
-    // Filtrar items por nivel y rareza maxima
     final eligibleItems = pool.where((item) {
       return item.levelRequirement <= playerLevel &&
           item.rarity.index <= maxRarity.index &&
@@ -26,13 +23,11 @@ class LootManager {
 
     if (eligibleItems.isEmpty) return null;
 
-    // Calcular peso total
     double totalWeight = 0.0;
     for (final item in eligibleItems) {
       totalWeight += RarityConfig.getConfig(item.rarity).dropWeight;
     }
 
-    // Selección ponderada
     double roll = _random.nextDouble() * totalWeight;
     double currentWeight = 0.0;
 
@@ -43,7 +38,6 @@ class LootManager {
       }
     }
 
-    // Fallback (no deberia llegar aqui)
     return eligibleItems.first;
   }
 
@@ -106,7 +100,7 @@ class LootManager {
           ItemDatabase.huntingBow,
           ItemDatabase.shadowDagger,
           ItemDatabase.clothRobe,
-          ItemDatabase.monkRobes, // ← Rare regen armor
+          ItemDatabase.monkRobes,
           ItemDatabase.potion,
         ];
 
@@ -115,7 +109,7 @@ class LootManager {
           ItemDatabase.rustySword,
           ItemDatabase.steelSword,
           ItemDatabase.chainmail,
-          ItemDatabase.monkRobes, // ← Rare regen armor
+          ItemDatabase.monkRobes,
           ItemDatabase.potionMedium,
         ];
 
@@ -132,9 +126,9 @@ class LootManager {
       case 'goblin':
         return ItemRarity.uncommon;
       case 'bat':
-        return ItemRarity.epic; // ← Upgraded to drop archmage vestments
+        return ItemRarity.epic;
       case 'skeleton':
-        return ItemRarity.epic; // ← Upgraded to drop archmage vestments
+        return ItemRarity.epic;
       default:
         return ItemRarity.uncommon;
     }
@@ -143,50 +137,39 @@ class LootManager {
   /// Obtener todos los items del juego (para uso general)
   List<InventoryItem> _getAllItems() {
     return [
-      // Consumibles
       ItemDatabase.potion,
       ItemDatabase.potionMedium,
       ItemDatabase.potionLarge,
 
-      // Common Weapons
       ItemDatabase.rustySword,
       ItemDatabase.woodenClub,
       ItemDatabase.huntingBow,
 
-      // Uncommon Weapons
       ItemDatabase.goblinScimitar,
       ItemDatabase.steelSword,
       ItemDatabase.battleAxe,
 
-      // Rare Weapons
       ItemDatabase.vampiricBlade,
       ItemDatabase.flameTongue,
       ItemDatabase.shadowDagger,
 
-      // Epic Weapons
       ItemDatabase.reapersScythe,
 
-      // Legendary Weapons
       ItemDatabase.bladeOfEternity,
 
-      // Common Armor
       ItemDatabase.leatherTunic,
       ItemDatabase.clothRobe,
 
-      // Uncommon Armor
       ItemDatabase.chainmail,
       ItemDatabase.studledLeather,
 
-      // Rare Armor
       ItemDatabase.thornmail,
       ItemDatabase.dragonscale,
-      ItemDatabase.monkRobes, // ← NEW
+      ItemDatabase.monkRobes,
 
-      // Epic Armor
       ItemDatabase.etherealPlate,
-      ItemDatabase.archmageVestments, // ← NEW
+      ItemDatabase.archmageVestments,
 
-      // Legendary Armor
       ItemDatabase.armorOfTheAncients,
     ];
   }
@@ -196,7 +179,6 @@ class LootManager {
     required int playerLevel,
     required String bossName,
   }) {
-    // Bosses siempre dropean rare o mejor
     final pool = _getAllItems().where((item) {
       return item.rarity.index >= ItemRarity.rare.index;
     }).toList();

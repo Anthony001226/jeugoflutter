@@ -1,4 +1,3 @@
-// lib/game/enemy_ai.dart
 
 import 'dart:math';
 import 'package:renegade_dungeon/models/combat_ability.dart';
@@ -21,7 +20,6 @@ class EnemyAI {
     final currentMp = stats.currentMp.value;
     final hpPercentage = currentHp / maxHp;
 
-    // 1. HP crítico - buscar habilidad defensiva
     if (hpPercentage < 0.3) {
       final defensiveAbility = abilities.firstWhere(
         (ability) =>
@@ -37,7 +35,6 @@ class EnemyAI {
       }
     }
 
-    // 2. Intentar usar habilidad más fuerte disponible
     final usableAbilities = abilities
         .where((ability) => ability.canUse(currentMp, stats.ultMeter.value))
         .toList();
@@ -46,14 +43,12 @@ class EnemyAI {
       return abilities.first;
     }
 
-    // Ordenar por daño base descendente
     usableAbilities.sort((a, b) {
       final damageA = (a.effect.baseDamage * a.effect.damageMultiplier).round();
       final damageB = (b.effect.baseDamage * b.effect.damageMultiplier).round();
       return damageB.compareTo(damageA);
     });
 
-    // 70% usa la más fuerte, 30% aleatorio
     CombatAbility chosenAbility;
     if (_random.nextDouble() < 0.7) {
       chosenAbility = usableAbilities.first;
@@ -69,7 +64,6 @@ class EnemyAI {
     required CombatAbility ability,
     required int numberOfTargets,
   }) {
-    // Por ahora siempre ataca al jugador (índice 0)
     return 0;
   }
 }

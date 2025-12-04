@@ -1,4 +1,3 @@
-// lib/components/enemy_target_indicator.dart
 
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +14,6 @@ class EnemyTargetIndicator extends PositionComponent {
 
   @override
   Future<void> onLoad() async {
-    // Arrow pointing down at enemy
     final arrow = _ArrowComponent();
     arrow.position = Vector2(0, -100);
     add(arrow);
@@ -25,7 +23,6 @@ class EnemyTargetIndicator extends PositionComponent {
   void update(double dt) {
     super.update(dt);
 
-    // Follow enemy position
     position = enemy.position;
   }
 }
@@ -41,18 +38,17 @@ class _ArrowComponent extends PositionComponent {
       ..style = PaintingStyle.fill;
 
     final path = Path()
-      ..moveTo(0, 0) // Top center
-      ..lineTo(-15, -20) // Top left
-      ..lineTo(-5, -20) // Inner left
-      ..lineTo(-5, -30) // Bottom left
-      ..lineTo(5, -30) // Bottom right
-      ..lineTo(5, -20) // Inner right
-      ..lineTo(15, -20) // Top right
+      ..moveTo(0, 0)
+      ..lineTo(-15, -20)
+      ..lineTo(-5, -20)
+      ..lineTo(-5, -30)
+      ..lineTo(5, -30)
+      ..lineTo(5, -20)
+      ..lineTo(15, -20)
       ..close();
 
     canvas.drawPath(path, paint);
 
-    // Outline
     paint
       ..color = Colors.black
       ..style = PaintingStyle.stroke

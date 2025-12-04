@@ -14,7 +14,6 @@ class SplashScreen extends Component
 
   @override
   Future<void> onLoad() async {
-    // 1. Fondo
     try {
       _background = SpriteComponent(
         sprite: await game.loadSprite('backgrounds/splash_screen.png'),
@@ -24,7 +23,6 @@ class SplashScreen extends Component
     } catch (e) {
     }
 
-    // 2. Logo
     try {
       _logo = SpriteComponent(
         sprite: await game.loadSprite('ui/logo.png'),
@@ -35,7 +33,6 @@ class SplashScreen extends Component
     } catch (e) {
     }
 
-    // 3. Texto que vamos a animar
     _prompt = TextComponent(
       text: 'Presiona cualquier tecla para continuar',
       anchor: Anchor.center,
@@ -53,11 +50,10 @@ class SplashScreen extends Component
     );
     add(_prompt);
 
-    // 4. Efecto de pulso suave (Manual)
     double time = 0;
     add(
       TimerComponent(
-        period: 0.016, // ~60fps
+        period: 0.016,
         repeat: true,
         onTick: () {
           time += 0.05;
@@ -73,10 +69,8 @@ class SplashScreen extends Component
       ),
     );
 
-    // 5. Preload menu video to avoid Autoplay errors
     game.preloadBackgroundVideo('menu_background.mp4');
 
-    // 6. Auto-advance after 3 seconds (fallback for mobile)
     add(
       TimerComponent(
         period: 3.0,
@@ -87,21 +81,18 @@ class SplashScreen extends Component
       ),
     );
 
-    // Initial resize
     _resizeComponents(game.size);
   }
 
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
-    // Check if components are initialized before resizing
     if (isLoaded) {
       _resizeComponents(size);
     }
   }
 
   void _resizeComponents(Vector2 size) {
-    // Background: BoxFit.cover logic
     if (_background?.sprite != null) {
       final spriteSize = _background!.sprite!.originalSize;
       final scaleX = size.x / spriteSize.x;
@@ -112,13 +103,11 @@ class SplashScreen extends Component
       _background!.position = size / 2;
     }
 
-    // Logo: Bottom Right with margin
     const double margin = 20.0;
     if (_logo != null) {
       _logo!.position = Vector2(size.x - margin, size.y - margin);
     }
 
-    // Prompt: Bottom Center
     _prompt.position = Vector2(size.x / 2, size.y * 0.85);
   }
 
@@ -134,7 +123,6 @@ class SplashScreen extends Component
   }
 
   void _startGame() {
-    // Play menu music
     game.playMenuMusic();
     game.router.pushReplacementNamed('main-menu');
   }

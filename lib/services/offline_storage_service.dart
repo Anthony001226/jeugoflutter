@@ -17,31 +17,25 @@ class OfflineStorageService {
 
   OfflineStorageService(this._cloudService, this._authService);
 
-  // Initialize Hive
   Future<void> init() async {
     if (kIsWeb) {
-      // Web uses IndexedDB, no path needed
       await Hive.initFlutter();
     } else {
-      // Explicitly set path for Windows/Mobile persistence
       final appDocumentDir = await getApplicationDocumentsDirectory();
       await Hive.initFlutter(appDocumentDir.path);
     }
 
     _box = await Hive.openBox(_boxName);
 
-    // Start monitoring connectivity
     _monitorConnectivity();
   }
 
-  // Save to local storage
   Future<void> saveLocally(int slotNumber, PlayerSaveData data) async {
     try {
       final key = 'slot_$slotNumber';
       await _box.put(key, data.toJson());
-      await _box.flush(); // Force write to disk
+      await _box.flush();
 
-      // Verify save was successful
       final verification = _box.get(key);
       if (verification == null) {
       } else {
@@ -49,7 +43,6 @@ class OfflineStorageService {
 
       _currentSlot = slotNumber;
 
-      // Try to sync if online (Fire and forget to avoid blocking UI/Autoplay)
       if (_isOnline) {
         _syncToCloud(slotNumber, data);
       }
@@ -57,12 +50,10 @@ class OfflineStorageService {
     }
   }
 
-  // Load from local storage
   PlayerSaveData? loadLocally(int slotNumber) {
     try {
       final key = 'slot_$slotNumber';
 
-      // Debug: Check if key exists
       if (!_box.containsKey(key)) {
         return null;
       }
@@ -73,7 +64,6 @@ class OfflineStorageService {
         return null;
       }
 
-      // print('   Raw Data: $data'); // Uncomment if needed, but might be huge
 
       try {
         final parsedData =
@@ -87,13 +77,10 @@ class OfflineStorageService {
     }
   }
 
-  // Delete slot (Local + Cloud)
   Future<void> deleteSlot(int slotNumber) async {
-    // 1. Delete Local
     final key = 'slot_$slotNumber';
     await _box.delete(key);
 
-    // 2. Delete Cloud (if logged in)
     final userId = _authService.getUserId();
     if (userId != null && _isOnline) {
       try {
@@ -103,7 +90,6 @@ class OfflineStorageService {
     }
   }
 
-  // Sync local data to cloud
   Future<bool> _syncToCloud(int slotNumber, PlayerSaveData data) async {
     final userId = _authService.getUserId();
     if (userId == null) {
@@ -118,7 +104,6 @@ class OfflineStorageService {
     }
   }
 
-  // Sync cloud data to local (when user logs in)
   Future<PlayerSaveData?> syncFromCloud(int slotNumber) async {
     final userId = _authService.getUserId();
     if (userId == null) return null;
@@ -127,21 +112,17 @@ class OfflineStorageService {
       final cloudData = await _cloudService.loadPlayerData(userId, slotNumber);
 
       if (cloudData != null) {
-        // Check local data first
         final localData = loadLocally(slotNumber);
 
         if (localData != null) {
-          // Resolve conflict
           if (cloudData.lastSaved.isAfter(localData.lastSaved)) {
             await saveLocally(slotNumber, cloudData);
             return cloudData;
           } else {
-            // Upload local to cloud to ensure consistency
             await _syncToCloud(slotNumber, localData);
             return localData;
           }
         } else {
-          // No local data, safe to download
           await saveLocally(slotNumber, cloudData);
           return cloudData;
         }
@@ -153,7 +134,6 @@ class OfflineStorageService {
     }
   }
 
-  // Auto-sync all slots when connection is restored
   Future<void> syncAllSlots() async {
     if (!_isOnline) return;
 
@@ -170,33 +150,28 @@ class OfflineStorageService {
 
   }
 
-  // Monitor internet connectivity
   void _monitorConnectivity() {
     Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
       final wasOffline = !_isOnline;
       _isOnline = result != ConnectivityResult.none;
 
       if (_isOnline && wasOffline) {
-        syncAllSlots(); // Auto-sync when back online
+        syncAllSlots();
       } else if (!_isOnline) {
       }
     });
 
-    // Check initial state
     Connectivity().checkConnectivity().then((ConnectivityResult result) {
       _isOnline = result != ConnectivityResult.none;
     });
   }
 
-  // Get sync status
   bool get isOnline => _isOnline;
 
-  // Resolve conflict (local vs cloud)
   PlayerSaveData resolveConflict(
     PlayerSaveData localData,
     PlayerSaveData cloudData,
   ) {
-    // Use most recent save
     if (cloudData.lastSaved.isAfter(localData.lastSaved)) {
       return cloudData;
     } else {

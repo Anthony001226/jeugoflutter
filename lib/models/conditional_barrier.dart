@@ -1,4 +1,3 @@
-// lib/models/conditional_barrier.dart
 
 import 'dart:ui';
 import 'package:flame/components.dart';

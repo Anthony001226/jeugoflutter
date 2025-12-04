@@ -5,17 +5,15 @@ import '../models/save_slot_metadata.dart';
 class CloudSaveService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Save player data to specific slot
   Future<void> savePlayerData(
     String userId,
-    int slotNumber, // 1, 2, or 3
+    int slotNumber,
     PlayerSaveData data,
   ) async {
     try {
       final slotId = 'slot_$slotNumber';
       final path = 'users/$userId/saves/$slotId';
 
-      // Save game data
       await _firestore
           .collection('users')
           .doc(userId)
@@ -23,7 +21,6 @@ class CloudSaveService {
           .doc(slotId)
           .set(data.toJson(), SetOptions(merge: true));
 
-      // Update slot metadata
       await _updateSlotMetadata(userId, slotNumber, data);
 
     } catch (e) {
@@ -31,7 +28,6 @@ class CloudSaveService {
     }
   }
 
-  // Load player data from specific slot
   Future<PlayerSaveData?> loadPlayerData(String userId, int slotNumber) async {
     try {
       final slotId = 'slot_$slotNumber';
@@ -54,12 +50,10 @@ class CloudSaveService {
     }
   }
 
-  // Delete specific slot
   Future<void> deleteSlot(String userId, int slotNumber) async {
     try {
       final slotId = 'slot_$slotNumber';
 
-      // Delete game data
       await _firestore
           .collection('users')
           .doc(userId)
@@ -67,7 +61,6 @@ class CloudSaveService {
           .doc(slotId)
           .delete();
 
-      // Delete metadata
       await _firestore
           .collection('users')
           .doc(userId)
@@ -80,10 +73,9 @@ class CloudSaveService {
     }
   }
 
-  // Get all slots metadata for user
   Future<List<SaveSlotMetadata?>> getAllSlotsMetadata(String userId) async {
     try {
-      List<SaveSlotMetadata?> slots = [null, null, null]; // 3 slots
+      List<SaveSlotMetadata?> slots = [null, null, null];
 
       for (int i = 1; i <= 3; i++) {
         final slotId = 'slot_$i';
@@ -105,7 +97,6 @@ class CloudSaveService {
     }
   }
 
-  // Update slot metadata
   Future<void> _updateSlotMetadata(
     String userId,
     int slotNumber,
@@ -114,10 +105,10 @@ class CloudSaveService {
     final slotId = 'slot_$slotNumber';
     final metadata = SaveSlotMetadata(
       slotNumber: slotNumber,
-      characterName: "Héroe", // TODO: Get from player name if added
+      characterName: "Héroe",
       level: data.level,
       currentMap: data.currentMap,
-      playTimeSeconds: 0, // TODO: Track play time
+      playTimeSeconds: 0,
       lastSaved: DateTime.now(),
     );
 
@@ -129,7 +120,6 @@ class CloudSaveService {
         .set(metadata.toJson());
   }
 
-  // Check if slot is empty
   Future<bool> isSlotEmpty(String userId, int slotNumber) async {
     final slotId = 'slot_$slotNumber';
     final doc = await _firestore

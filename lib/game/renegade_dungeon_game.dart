@@ -1,4 +1,3 @@
-// lib/game/renegade_dungeon_game.dart
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -126,7 +125,6 @@ class CombatManager {
     currentTurnIndex = -1;
     currentBossId = null;
 
-    // 2. Create enemies
     for (int i = 0; i < enemyTypes.length; i++) {
       final enemyType = enemyTypes[i];
       SpriteAnimationComponent enemy;
@@ -150,7 +148,6 @@ class CombatManager {
           enemy = SlimeComponent();
       }
       currentEnemies.add(enemy);
-      // Assign permanent name (1-based index)
       enemyNames[enemy] = 'Enemigo #${i + 1}';
     }
 
@@ -277,7 +274,7 @@ class CombatManager {
       return;
     }
 
-    isProcessingAbility = true; // Lock
+    isProcessingAbility = true;
 
     final isMultiEnemy = currentEnemies.isNotEmpty;
     final targetEnemy =
@@ -339,7 +336,6 @@ class CombatManager {
       final enemyName = getEnemyName(targetEnemy);
     } else {}
 
-    // Consumir recursos
     if (ability.type == AbilityType.ultimate) {
       playerStats.spendUlt();
     } else if (ability.mpCost > 0) {
@@ -491,7 +487,7 @@ class CombatManager {
     if (enemy is SlimeComponent) return 'slime';
     if (enemy is BatComponent) return 'bat';
     if (enemy is SkeletonComponent) return 'skeleton';
-    return 'slime'; // fallback
+    return 'slime';
   }
 
   void _applyGroupScaling() {
@@ -835,7 +831,6 @@ class RenegadeDungeonGame extends FlameGame
           world.remove(mapComponent);
         }
       } catch (e) {
-        // mapComponent not initialized yet, nothing to remove
       }
 
       mapComponent =
@@ -906,9 +901,9 @@ class RenegadeDungeonGame extends FlameGame
       isPlayerReady = true;
       isPlayerReadyNotifier.value = true;
       checkZoneTransition(player.position);
-      return false; // Not a new game
+      return false;
     } else {
-      Vector2 startPos = Vector2(40.0, 42.0); // Fallback
+      Vector2 startPos = Vector2(40.0, 42.0);
 
       final objectLayer = mapComponent.tileMap.getLayer<ObjectGroup>('Setup');
       if (objectLayer != null) {
@@ -1389,7 +1384,6 @@ class RenegadeDungeonGame extends FlameGame
     for (int i = 0; i < zonesLayer.objects.length; i++) {
       final obj = zonesLayer.objects[i];
 
-      // Scale the rect to match game coordinates
       final rect = Rect.fromLTWH(
         obj.x * scaleFactor,
         obj.y * scaleFactor,
@@ -1645,7 +1639,6 @@ class RenegadeDungeonGame extends FlameGame
     stepsSinceLastBattle = 0;
     final random = Random();
 
-    // Always single enemy combat
     final enemyType =
         currentZone!.enemyTypes[random.nextInt(currentZone!.enemyTypes.length)];
     startCombat(enemyType);
@@ -1694,7 +1687,6 @@ class RenegadeDungeonGame extends FlameGame
     }
   }
 
-  // ========== NPC SYSTEM ==========
 
   void _loadNPCs() {
     npcs.clear();
@@ -1766,7 +1758,7 @@ class RenegadeDungeonGame extends FlameGame
     if (npc == null) return;
 
     activeDialogueNPC = npcId;
-    state = GameState.inMenu; // Pause game
+    state = GameState.inMenu;
     overlays.add('DialogueUI');
   }
 
@@ -1796,7 +1788,6 @@ class RenegadeDungeonGame extends FlameGame
     }
   }
 
-  // ===== MOBILE CONTROLS =====
 
   void handleMobileInput(int gridX, int gridY) {
     if (!isPlayerReady) return;
@@ -1855,7 +1846,7 @@ class RenegadeDungeonGame extends FlameGame
         videoPlayerController = null;
       }
       videoPlayerControllerNotifier.value = null;
-      currentBackgroundNotifier.value = null; // Clear static background too
+      currentBackgroundNotifier.value = null;
     } catch (e) {}
   }
 
@@ -1865,14 +1856,12 @@ class RenegadeDungeonGame extends FlameGame
         mapComponent.removeFromParent();
       }
     } catch (e) {
-      // mapComponent not initialized yet (first load), skip
     }
     try {
       if (isPlayerReady && world.contains(player)) {
         player.removeFromParent();
       }
     } catch (e) {
-      // player not initialized yet (first load), skip
     }
     final chests = world.children.whereType<Chest>().toList();
     for (final chest in chests) {

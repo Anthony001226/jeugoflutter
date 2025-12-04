@@ -7,10 +7,8 @@ class IntroRouteComponent extends Component
   void onMount() {
     super.onMount();
 
-    // Ensure clean state
     game.overlays.clear();
 
-    // Add IntroScreen overlay
     game.overlays.add('IntroScreen');
   }
 

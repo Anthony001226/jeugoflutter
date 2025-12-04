@@ -1,14 +1,12 @@
-// lib/components/enemies/skeleton_component.dart
 
 import 'package:flame/components.dart';
-import 'package:flame/events.dart'; // Added for TapCallbacks
+import 'package:flame/events.dart';
 import 'package:renegade_dungeon/models/combat_stats.dart';
 import 'package:renegade_dungeon/models/combat_stats_holder.dart';
 import 'package:renegade_dungeon/models/enemy_stats.dart';
 import 'package:renegade_dungeon/models/inventory_item.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 
-// Enemy wrapper que implementa CombatStatsHolder
 class SkeletonStats extends EnemyStats implements CombatStatsHolder {
   @override
   final CombatStats combatStats;
@@ -18,7 +16,7 @@ class SkeletonStats extends EnemyStats implements CombatStatsHolder {
     required int attack,
     required int defense,
     required int xpValue,
-    required int goldDrop, // NEW
+    required int goldDrop,
     required Map<InventoryItem, double> lootTable,
   })  : combatStats = CombatStats(
           initialHp: maxHp,
@@ -35,7 +33,7 @@ class SkeletonStats extends EnemyStats implements CombatStatsHolder {
           defense: defense,
           speed: 4,
           xpValue: xpValue,
-          goldDrop: goldDrop, // NEW
+          goldDrop: goldDrop,
           lootTable: lootTable,
         ) {
     currentHp.value = combatStats.currentHp.value;
@@ -52,7 +50,6 @@ class SkeletonStats extends EnemyStats implements CombatStatsHolder {
 
 class SkeletonComponent extends SpriteAnimationComponent
     with HasGameReference<RenegadeDungeonGame>, TapCallbacks {
-  // Added mixins
   late final SkeletonStats stats;
 
   SkeletonComponent() : super(size: Vector2.all(128)) {
@@ -61,7 +58,7 @@ class SkeletonComponent extends SpriteAnimationComponent
       attack: 10,
       defense: 3,
       xpValue: 60,
-      goldDrop: 25, // NEW
+      goldDrop: 25,
       lootTable: {
         ItemDatabase.potion: 0.40,
         ItemDatabase.rustySword: 0.20,

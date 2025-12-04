@@ -1,37 +1,35 @@
-// lib/models/zone_config.dart
 
 import 'package:flame/game.dart';
 import 'package:renegade_dungeon/models/item_rarity.dart';
 
 /// Nivel de peligrosidad de una zona
 enum DangerLevel {
-  safe, // Sin enemigos, verde
-  low, // Enemigos débiles, amarillo
-  medium, // Enemigos normales, naranja
-  high, // Enemigos fuertes/bosses, rojo
+  safe,
+  low,
+  medium,
+  high,
 }
 
 /// Datos de un portal para transición de mapas
 class PortalData {
   final Vector2 gridPosition;
-  final Vector2 size; // Portal zone size (in grid units)
+  final Vector2 size;
   final String targetMap;
   final Vector2 targetPosition;
-  final String transitionType; // 'fade', 'instant', 'walk'
-  final int transitionDuration; // milliseconds
+  final String transitionType;
+  final int transitionDuration;
 
   PortalData({
     required this.gridPosition,
-    Vector2? size, // Make nullable
+    Vector2? size,
     required this.targetMap,
     required this.targetPosition,
     this.transitionType = 'fade',
-    this.transitionDuration = 2000, // 2 seconds default
-  }) : size = size ?? Vector2(1, 1); // Initialize in initializer list
+    this.transitionDuration = 2000,
+  }) : size = size ?? Vector2(1, 1);
 
   /// Check if a grid position is within this portal zone
   bool contains(Vector2 gridPos) {
-    // Add a small buffer (1.0) to make detection more forgiving
     const buffer = 1.0;
     return gridPos.x >= gridPosition.x - buffer &&
         gridPos.x < gridPosition.x + size.x + buffer &&

@@ -1,13 +1,12 @@
-// lib/models/npc.dart
 
 import 'package:flame/components.dart';
 
 /// Types of NPCs available in the game
 enum NPCType {
-  vendor, // Comerciante (compra/vende items)
-  questGiver, // Da misiones
-  lore, // Información del mundo
-  generic, // Conversación simple
+  vendor,
+  questGiver,
+  lore,
+  generic,
 }
 
 /// NPC (Non-Player Character) model with dialogue and interaction data

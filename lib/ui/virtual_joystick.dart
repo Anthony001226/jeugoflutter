@@ -32,12 +32,10 @@ class _VirtualJoystickState extends State<VirtualJoystick> {
     final center = Offset(widget.size / 2, widget.size / 2);
     final localPosition = renderBox.globalToLocal(details.globalPosition);
 
-    // Calculate offset from center
     Offset offset = localPosition - center;
 
-    // Clamp to circle boundary
     final distance = offset.distance;
-    final maxDistance = widget.size / 2 - 20; // Leave space for knob
+    final maxDistance = widget.size / 2 - 20;
 
     if (distance > maxDistance) {
       offset = Offset.fromDirection(
@@ -50,11 +48,9 @@ class _VirtualJoystickState extends State<VirtualJoystick> {
       _knobPosition = offset;
     });
 
-    // Normalize direction (-1 to 1)
     final normalizedX = offset.dx / maxDistance;
     final normalizedY = offset.dy / maxDistance;
 
-    // Apply deadzone
     if (distance / maxDistance > widget.deadZone) {
       widget.onDirectionChanged(Offset(normalizedX, normalizedY));
     } else {
@@ -90,7 +86,6 @@ class _VirtualJoystickState extends State<VirtualJoystick> {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Center dot
             Container(
               width: 8,
               height: 8,
@@ -100,7 +95,6 @@ class _VirtualJoystickState extends State<VirtualJoystick> {
               ),
             ),
 
-            // Movable knob
             Transform.translate(
               offset: _knobPosition,
               child: Container(

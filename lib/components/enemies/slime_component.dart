@@ -1,4 +1,3 @@
-// lib/components/enemies/slime_component.dart
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -13,16 +12,15 @@ class SlimeComponent extends SpriteAnimationComponent
   final Map<String, SpriteAnimation> _animations = {};
 
   SlimeComponent() : super(size: Vector2.all(128)) {
-    // Initialize stats in constructor so it's available immediately
     stats = EnemyStats(
       maxHp: 20,
       attack: 6,
       defense: 4,
-      speed: 6, // Slightly faster than average
+      speed: 6,
       xpValue: 35,
-      goldDrop: 10, // NEW
+      goldDrop: 10,
       lootTable: {
-        ItemDatabase.potion: 0.30, // 30% drop
+        ItemDatabase.potion: 0.30,
       },
     );
   }
@@ -36,7 +34,6 @@ class SlimeComponent extends SpriteAnimationComponent
   Future<void> _loadAnimations() async {
     final jsonData = await game.assets.readJson('images/enemies/slime.json');
 
-    // Usamos el nombre exacto que tienes en tu carpeta de assets.
     final image = await game.images.load('enemies/slime-sheet.png');
 
     final asepriteData = AsepriteData.fromJson(jsonData);
@@ -51,7 +48,6 @@ class SlimeComponent extends SpriteAnimationComponent
   }
 }
 
-// Clase helper para parsear los datos de Aseprite
 class AsepriteData {
   final Map<String, dynamic> _json;
   AsepriteData.fromJson(this._json);

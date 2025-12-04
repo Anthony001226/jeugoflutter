@@ -1,33 +1,31 @@
-// lib/models/combat_ability.dart
 
 enum AbilityType {
-  basic, // Sin costo, daño base
-  strong, // Cuesta MP, más daño
-  skill, // Habilidad única del personaje
-  ultimate, // Requiere barra llena
+  basic,
+  strong,
+  skill,
+  ultimate,
 }
 
 enum TargetType {
-  singleEnemy, // Un solo enemigo
-  allEnemies, // Todos los enemigos
-  self, // El que usa la habilidad
-  singleAlly, // Un aliado
-  allAllies, // Todos los aliados
+  singleEnemy,
+  allEnemies,
+  self,
+  singleAlly,
+  allAllies,
 }
 
 /// Types of status effects that can be applied in combat
 enum StatusEffectType {
-  attackBuff, // Aumenta ataque
-  defenseBuff, // Aumenta defensa
-  speedBuff, // Aumenta velocidad
-  attackDebuff, // Reduce ataque
-  defenseDebuff, // Reduce defensa
-  speedDebuff, // Reduce velocidad
-  poison, // Daño por turno
-  burn, // Daño por turno (fuego)
-  regeneration, // Cura por turno
-  stun, // Salta turno
-  // Future Phase 7 effects will be added here
+  attackBuff,
+  defenseBuff,
+  speedBuff,
+  attackDebuff,
+  defenseDebuff,
+  speedDebuff,
+  poison,
+  burn,
+  regeneration,
+  stun,
 }
 
 /// Represents a temporary status effect in combat
@@ -36,8 +34,8 @@ class StatusEffect {
   final String name;
   final String description;
   int remainingTurns;
-  final double value; // Multiplier (for %) or flat value
-  final bool isPercentage; // true = multiplier, false = flat bonus
+  final double value;
+  final bool isPercentage;
 
   StatusEffect({
     required this.type,
@@ -73,7 +71,6 @@ class StatusEffect {
   @override
   String toString() => '$name ($remainingTurns turnos)';
 
-  // Predefined common effects
   static StatusEffect defenseBuffStrong({int duration = 3}) {
     return StatusEffect(
       type: StatusEffectType.defenseBuff,
@@ -124,7 +121,7 @@ class AbilityEffect {
   final double damageMultiplier;
   final List<StatusEffect> statusEffects;
   final TargetType targetType;
-  final int ultGain; // Cuánto ULT genera al usar
+  final int ultGain;
 
   const AbilityEffect({
     required this.baseDamage,
@@ -140,10 +137,9 @@ class CombatAbility {
   final String description;
   final AbilityType type;
   final int mpCost;
-  final int ultCost; // 0-100, solo para ultimates
+  final int ultCost;
   final AbilityEffect effect;
 
-  // Animación asociada (por ahora usaremos la que ya existe)
   final String animationKey;
 
   const CombatAbility({

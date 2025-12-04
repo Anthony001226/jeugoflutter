@@ -12,17 +12,13 @@ class MenuRouteComponent extends Component
   void onMount() {
     super.onMount();
 
-    // Clear the game world (map, player, etc.) to prevent visual glitches
     game.world.removeAll(game.world.children);
 
     game.overlays.clear();
     game.overlays.add(overlayName);
 
-    // Only play videos on non-mobile platforms (performance)
     try {
-      // Check if mobile by trying to access Platform
-      // This will throw on web, so we wrap in try-catch
-      final bool isDesktop = true; // Assume desktop by default
+      final bool isDesktop = true;
       game.playBackgroundVideo(videoName);
     } catch (e) {
     }

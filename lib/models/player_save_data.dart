@@ -1,7 +1,6 @@
 import 'package:renegade_dungeon/models/inventory_item.dart';
 
 class PlayerSaveData {
-  // Player Stats
   final int level;
   final int currentHp;
   final int maxHp;
@@ -11,11 +10,9 @@ class PlayerSaveData {
   final int attack;
   final int defense;
 
-  // Inventory
   final List<InventorySlotData> inventory;
-  final Map<String, String?> equipment; // slot -> itemId
+  final Map<String, String?> equipment;
 
-  // Progression
   final String currentMap;
   final double gridX;
   final double gridY;
@@ -25,14 +22,12 @@ class PlayerSaveData {
   final List<String> openedChests;
   final List<String> defeatedBosses;
 
-  // Quests (for future)
   final List<String> activeQuests;
   final List<String> completedQuests;
 
-  // Timestamps
   final DateTime lastSaved;
   final DateTime createdAt;
-  final int playtimeSeconds; // NEW: Track total playtime
+  final int playtimeSeconds;
 
   PlayerSaveData({
     required this.level,
@@ -60,7 +55,6 @@ class PlayerSaveData {
     this.playtimeSeconds = 0,
   });
 
-  // Convert to JSON for Firestore
   Map<String, dynamic> toJson() {
     return {
       'level': level,
@@ -89,7 +83,6 @@ class PlayerSaveData {
     };
   }
 
-  // Create from JSON
   factory PlayerSaveData.fromJson(Map<String, dynamic> json) {
     return PlayerSaveData(
       level: json['level'] ?? 1,
@@ -125,7 +118,6 @@ class PlayerSaveData {
   }
 }
 
-// Helper class for inventory serialization
 class InventorySlotData {
   final String itemId;
   final int quantity;

@@ -1,4 +1,3 @@
-// lib/components/npc_component.dart
 
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
@@ -10,33 +9,27 @@ class NPCComponent extends SpriteComponent
     with HasGameReference<RenegadeDungeonGame> {
   final NPC npc;
 
-  // Interaction indicator
   late TextComponent _interactionIndicator;
   bool _showIndicator = false;
 
   NPCComponent({required this.npc})
       : super(
-          size: Vector2(32, 48), // Same as player
+          size: Vector2(32, 48),
           anchor: Anchor.bottomCenter,
         );
 
   @override
   Future<void> onLoad() async {
-    // Load NPC sprite
     try {
       sprite = await game.loadSprite(npc.spriteSheet);
     } catch (e) {
-      // Fallback to default sprite if not found
       sprite = await game.loadSprite('characters/player.png');
     }
 
-    // Set position in isometric space
     position = game.gridToScreenPosition(npc.gridPosition);
 
-    // Priority: above tiles, below player
     priority = 5;
 
-    // Create interaction indicator (E key prompt)
     _interactionIndicator = TextComponent(
       text: 'E',
       textRenderer: TextPaint(
@@ -54,9 +47,8 @@ class NPCComponent extends SpriteComponent
         ),
       ),
       anchor: Anchor.center,
-      position: Vector2(0, -size.y - 10), // Above NPC
+      position: Vector2(0, -size.y - 10),
     );
-    // Don't add initially, will add when needed
 
     return super.onLoad();
   }
@@ -67,16 +59,13 @@ class NPCComponent extends SpriteComponent
 
     if (!game.isPlayerReady) return;
 
-    // Check distance to player
     final playerPos = game.player.gridPosition;
     final distance = (npc.gridPosition - playerPos).length;
 
-    // Show interaction indicator if player is close (1.5 tiles)
     final shouldShow = distance <= 1.5 && game.state == GameState.exploring;
 
     if (shouldShow != _showIndicator) {
       _showIndicator = shouldShow;
-      // Add/remove indicator instead of using opacity
       if (shouldShow) {
         if (!_interactionIndicator.isMounted) {
           add(_interactionIndicator);

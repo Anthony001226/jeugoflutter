@@ -37,14 +37,12 @@ class SaveSlotMetadata {
     );
   }
 
-  // Format play time for display
   String get formattedPlayTime {
     final hours = playTimeSeconds ~/ 3600;
     final minutes = (playTimeSeconds % 3600) ~/ 60;
     return '${hours}h ${minutes}m';
   }
 
-  // Format last saved for display
   String get formattedLastSaved {
     final now = DateTime.now();
     final difference = now.difference(lastSaved);

@@ -18,7 +18,6 @@ class FullMapOverlay extends StatelessWidget {
       backgroundColor: Colors.black.withOpacity(0.9),
       body: Stack(
         children: [
-          // Map Content
           Center(
             child: InteractiveViewer(
               minScale: 0.5,
@@ -33,7 +32,6 @@ class FullMapOverlay extends StatelessWidget {
             ),
           ),
 
-          // Header / Controls
           Positioned(
             top: 40,
             left: 20,
@@ -70,7 +68,6 @@ class FullMapOverlay extends StatelessWidget {
             ),
           ),
 
-          // Legend
           Positioned(
             bottom: 20,
             left: 20,
@@ -128,61 +125,47 @@ class FullMapPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // if (game.mapComponent == null) return; // mapComponent is late final
 
-    // Determine scale to fit map in view
-    // We want to show the whole map if possible, or at least a large chunk
-    // Let's assume we want to fit the whole map into the available size
 
-    // Map dimensions in tiles
     final double mapTilesX = game.mapComponent.tileMap.map.width.toDouble();
     final double mapTilesY = game.mapComponent.tileMap.map.height.toDouble();
 
-    // Calculate scale to fit
     final double scaleX = size.width / mapTilesX;
     final double scaleY = size.height / mapTilesY;
-    final double scale = math.min(scaleX, scaleY); // Keep aspect ratio
+    final double scale = math.min(scaleX, scaleY);
 
-    // Center the map
     final double offsetX = (size.width - (mapTilesX * scale)) / 2;
     final double offsetY = (size.height - (mapTilesY * scale)) / 2;
 
     canvas.translate(offsetX, offsetY);
     canvas.scale(scale);
 
-    // Draw background (border of the map)
     final Paint borderPaint = Paint()
       ..color = Colors.white10
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.5;
     canvas.drawRect(Rect.fromLTWH(0, 0, mapTilesX, mapTilesY), borderPaint);
 
-    // Draw explored tiles
     final Paint exploredPaint = Paint()..color = Colors.grey.withOpacity(0.6);
 
     for (final point in game.exploredTiles) {
       canvas.drawRect(
           Rect.fromLTWH(point.x.toDouble(), point.y.toDouble(), 1.05,
-              1.05), // Slight overlap to avoid gaps
+              1.05),
           exploredPaint);
     }
 
-    // Draw Player
     final playerPos = game.player.gridPosition;
     final Paint playerPaint = Paint()..color = Colors.greenAccent;
-    // Draw player slightly larger than a tile for visibility
     canvas.drawCircle(Offset(playerPos.x, playerPos.y), 1.5, playerPaint);
 
-    // Draw Portals
     final Paint portalPaint = Paint()..color = Colors.purpleAccent;
     for (final portal in game.portals.values) {
-      // Check if portal is in an explored area
       final portalPoint = math.Point(
         portal.gridPosition.x.floor(),
         portal.gridPosition.y.floor(),
       );
 
-      // Check if the portal's location or any adjacent tile is explored
       bool isExplored = false;
       for (int dx = -1; dx <= 1; dx++) {
         for (int dy = -1; dy <= 1; dy++) {
@@ -196,7 +179,6 @@ class FullMapPainter extends CustomPainter {
       }
 
       if (isExplored) {
-        // Draw portal center
         final center = portal.gridPosition + (portal.size / 2);
         canvas.drawCircle(Offset(center.x, center.y), 1.2, portalPaint);
       }

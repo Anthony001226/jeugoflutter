@@ -1,30 +1,24 @@
-// lib/models/combat_stats.dart
 
 import 'package:flutter/foundation.dart';
 import 'combat_ability.dart';
 
 class CombatStats {
-  // Estadísticas base
   final ValueNotifier<int> currentHp;
   final ValueNotifier<int> maxHp;
   final ValueNotifier<int> currentMp;
   final ValueNotifier<int> maxMp;
 
-  // Sistema de Ultimate
-  final ValueNotifier<int> ultMeter; // 0-100
+  final ValueNotifier<int> ultMeter;
   final int ultCost = 100;
 
-  // Velocidad (determina orden de turnos)
   final ValueNotifier<int> speed;
 
-  // Estadísticas de combate
   final ValueNotifier<int> attack;
   final ValueNotifier<int> defense;
-  final ValueNotifier<double> critChance; // 0.0 - 1.0
+  final ValueNotifier<double> critChance;
 
-  // NEW: Status Effects System
   final List<StatusEffect> activeEffects = [];
-  final ValueNotifier<int> effectsVersion = ValueNotifier(0); // For UI updates
+  final ValueNotifier<int> effectsVersion = ValueNotifier(0);
 
   CombatStats({
     required int initialHp,
@@ -45,11 +39,9 @@ class CombatStats {
         defense = ValueNotifier(initialDefense),
         critChance = ValueNotifier(initialCritChance);
 
-  // ========== STATUS EFFECT MANAGEMENT ==========
 
   /// Apply a status effect to this entity
   void applyEffect(StatusEffect effect) {
-    // Create a copy to avoid shared state
     activeEffects.add(effect.copy());
     effectsVersion.value++;
   }
@@ -61,19 +53,15 @@ class CombatStats {
     final expiredEffects = <StatusEffect>[];
 
     for (final effect in activeEffects) {
-      // Apply effect (damage over time, healing, etc.)
       _applyEffectTick(effect);
 
-      // Decrement duration
       effect.tick();
 
-      // Mark for removal if expired
       if (effect.isExpired) {
         expiredEffects.add(effect);
       }
     }
 
-    // Remove expired effects
     for (final expired in expiredEffects) {
       activeEffects.remove(expired);
     }
@@ -102,7 +90,6 @@ class CombatStats {
         break;
 
       default:
-        // Buffs/debuffs don't have per-turn effects, just modify stats
         break;
     }
   }
@@ -120,7 +107,6 @@ class CombatStats {
     return activeEffects.any((e) => e.type == type);
   }
 
-  // ========== EFFECTIVE STATS (with buffs/debuffs) ==========
 
   /// Get effective attack including buffs/debuffs
   int get effectiveAttack {
@@ -194,15 +180,11 @@ class CombatStats {
     return ((speed.value * modifier) + flatBonus).round().clamp(1, 9999);
   }
 
-  // ========== RESOURCE MANAGEMENT ==========
 
-  // Métodos de gestión de recursos
   void takeDamage(int amount) {
-    // Use effective defense instead of base defense
     final damageDealt = (amount - effectiveDefense).clamp(1, 999);
     currentHp.value = (currentHp.value - damageDealt).clamp(0, maxHp.value);
 
-    // Ganar ULT al recibir daño
     gainUltCharge(10);
   }
 

@@ -1,10 +1,9 @@
-// lib/ui/main_menu.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
-import 'dart:ui'; // For ImageFilter
+import 'dart:ui';
 
 class MainMenu extends StatefulWidget {
   final RenegadeDungeonGame game;
@@ -49,10 +48,9 @@ class _MainMenuState extends State<MainMenu>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent, // Allow video background to show
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Gradient Overlay for readability
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -75,10 +73,8 @@ class _MainMenuState extends State<MainMenu>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Spacer to push menu below the video's title
                       const SizedBox(height: 300),
 
-                      // Horizontal Menu
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -87,7 +83,6 @@ class _MainMenuState extends State<MainMenu>
                             FantasyButton(
                               label: 'Jugar',
                               onPressed: () {
-                                // Direct to Slot 1
                                 widget.game.currentSlotIndex = 1;
                                 widget.game.router
                                     .pushReplacementNamed('loading-screen');
@@ -108,7 +103,6 @@ class _MainMenuState extends State<MainMenu>
                               },
                             ),
                             const SizedBox(width: 40),
-                            // Login Section integrated in row
                             _buildLoginSection(),
                             const SizedBox(width: 40),
                             FantasyButton(
@@ -178,7 +172,6 @@ class _MainMenuState extends State<MainMenu>
                     );
                   }
                 } else {
-                  // Download save from cloud (Slot 1)
                   await widget.game.offlineStorage.syncFromCloud(1);
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -243,7 +236,7 @@ class _MainMenuState extends State<MainMenu>
           ),
           TextButton(
             onPressed: () async {
-              Navigator.of(context).pop(); // Close dialog
+              Navigator.of(context).pop();
               await widget.game.offlineStorage.deleteSlot(1);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('🗑️ Partida borrada')),
@@ -320,10 +313,9 @@ class _FantasyButtonState extends State<FantasyButton> {
 
   @override
   Widget build(BuildContext context) {
-    // Text style based on hover state
     final TextStyle textStyle = GoogleFonts.cinzel(
       color: _isHovered ? Colors.white : Colors.white60,
-      fontSize: 20, // Slightly larger for text-only menu
+      fontSize: 20,
       fontWeight: _isHovered ? FontWeight.bold : FontWeight.normal,
       letterSpacing: 2.0,
       shadows: _isHovered
@@ -347,7 +339,6 @@ class _FantasyButtonState extends State<FantasyButton> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-          // Removed background decoration for text-only look
           decoration: BoxDecoration(
               border: Border(
                   bottom: BorderSide(

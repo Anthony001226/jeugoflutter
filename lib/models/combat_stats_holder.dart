@@ -1,4 +1,3 @@
-// lib/models/combat_stats_holder.dart
 
 import 'combat_stats.dart';
 

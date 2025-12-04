@@ -1,4 +1,3 @@
-// lib/game/game_screen.dart
 
 import 'package:flame/components.dart';
 import 'package:flame/palette.dart';
@@ -6,7 +5,6 @@ import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 
-// Platform detection
 bool get isMobile {
   if (kIsWeb) return false;
   try {
@@ -27,21 +25,17 @@ class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
 
   @override
   Future<void> onLoad() async {
-    // Force reset to ensure UI updates when set to true later
     game.isPlayerReadyNotifier.value = false;
 
     try {
-      // Play world music
       game.playWorldMusic();
       game.overlays.clear();
       game.camera.viewfinder.anchor = Anchor.center;
 
-      // Ensure world is mounted
       if (!game.world.isMounted) {
         game.add(game.world);
       }
 
-      // Add background
       final mapSize = game.mapComponent.size;
       await game.world.add(
         RectangleComponent(
@@ -51,42 +45,32 @@ class GameScreen extends Component with HasGameReference<RenegadeDungeonGame> {
         ),
       );
 
-      // Add map if not already added
       if (!game.world.contains(game.mapComponent)) {
         await game.world.add(game.mapComponent);
       } else {
       }
 
-      // Add player if not already added
       if (!game.world.contains(game.player)) {
         await game.world.add(game.player);
       } else {
       }
 
-      // Setup camera and UI
       game.camera.follow(game.player);
 
-      // Force camera to snap to player position immediately
       game.camera.viewfinder.position = game.player.position.clone();
 
-      // Small delay to ensure camera updates
       await Future.delayed(const Duration(milliseconds: 100));
 
-      // Set player ready FIRST (so HUD builder knows player is ready)
       game.isPlayerReadyNotifier.value = true;
 
-      // THEN add HUD overlay
       game.overlays.add('PlayerHud');
 
-      // Add mobile controls if on mobile
       if (isMobile) {
         game.overlays.add('MobileControls');
       }
 
-      // Set game state
       game.state = GameState.exploring;
 
-      // Force exploration update
       game.updateExploration(game.player.position);
 
     } catch (e, stack) {

@@ -1,4 +1,3 @@
-// lib/components/enemy_hp_bar.dart
 
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +15,6 @@ class EnemyHPBar extends PositionComponent {
 
   @override
   Future<void> onLoad() async {
-    // Background bar (red/dark)
     _backgroundBar = RectangleComponent(
       size: Vector2(120, 8),
       paint: Paint()..color = Colors.red.withOpacity(0.5),
@@ -24,7 +22,6 @@ class EnemyHPBar extends PositionComponent {
     );
     add(_backgroundBar);
 
-    // Health bar (green, changes with HP)
     _healthBar = RectangleComponent(
       size: Vector2(120, 8),
       paint: Paint()..color = Colors.green,
@@ -32,7 +29,6 @@ class EnemyHPBar extends PositionComponent {
     );
     add(_healthBar);
 
-    // HP text
     _hpText = TextComponent(
       text: _getHpText(),
       textRenderer: TextPaint(
@@ -54,7 +50,6 @@ class EnemyHPBar extends PositionComponent {
     );
     add(_hpText);
 
-    // Listen for HP changes
     final stats = (enemy as dynamic).stats;
     if (stats is EnemyStats) {
       stats.currentHp.addListener(_updateHP);
@@ -80,10 +75,8 @@ class EnemyHPBar extends PositionComponent {
   }
 
   void _updateHP() {
-    // Update text
     _hpText.text = _getHpText();
 
-    // Update health bar width
     final stats = (enemy as dynamic).stats;
     double hpPercent = 0.0;
 
@@ -96,7 +89,6 @@ class EnemyHPBar extends PositionComponent {
 
     _healthBar.size.x = (120 * hpPercent).clamp(0, 120);
 
-    // Change color based on HP
     if (hpPercent > 0.6) {
       _healthBar.paint.color = Colors.green;
     } else if (hpPercent > 0.3) {
@@ -108,7 +100,6 @@ class EnemyHPBar extends PositionComponent {
 
   @override
   void onRemove() {
-    // Clean up listeners
     final stats = (enemy as dynamic).stats;
     if (stats is EnemyStats) {
       stats.currentHp.removeListener(_updateHP);

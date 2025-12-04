@@ -19,7 +19,6 @@ class _LoginScreenState extends State<LoginScreen> {
       final userCredential = await _authService.signInWithGoogle();
 
       if (userCredential != null && mounted) {
-        // Navigate to slot selection
         Navigator.of(context).pushReplacementNamed('/slot-selection');
       }
     } catch (e) {
@@ -55,7 +54,6 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Game Title
                 const Text(
                   'RENEGADE',
                   style: TextStyle(
@@ -85,7 +83,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 80),
 
-                // Google Sign In Button
                 if (_isLoading)
                   const CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
@@ -114,7 +111,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 60),
 
-                // Info text
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 40),
                   child: Text(
@@ -130,7 +126,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 20),
 
-                // Features
                 _buildFeature(Icons.cloud_done, 'Guardado en la nube'),
                 const SizedBox(height: 12),
                 _buildFeature(Icons.devices, 'Multi-dispositivo'),

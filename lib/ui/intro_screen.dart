@@ -29,16 +29,12 @@ class _IntroScreenState extends State<IntroScreen> {
   @override
   void didUpdateWidget(IntroScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Also check when widget updates
     _checkAndSkip();
   }
 
   void _checkAndSkip() {
-    // Debug logging
 
-    // If loading an existing save (not a new game), skip intro
     if (!widget.game.isNewGameFlag) {
-      // Use Future to avoid calling setState during build
       Future.microtask(() => _finishIntro());
     } else {
     }
@@ -79,7 +75,7 @@ class _IntroScreenState extends State<IntroScreen> {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 24,
-                    fontFamily: 'PixelifySans', // Assuming we have a pixel font
+                    fontFamily: 'PixelifySans',
                   ),
                 ),
               ),

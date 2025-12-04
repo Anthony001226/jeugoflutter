@@ -24,7 +24,6 @@ class ReviveDialog extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Skull Icon
               Icon(
                 Icons.warning_amber_rounded,
                 size: 64,
@@ -33,7 +32,6 @@ class ReviveDialog extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Title
               const Text(
                 '¡HAS MUERTO!',
                 style: TextStyle(
@@ -45,7 +43,6 @@ class ReviveDialog extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // Options
               const Text(
                 'Opciones de revivir:',
                 style: TextStyle(
@@ -56,7 +53,6 @@ class ReviveDialog extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Revive Button
               ValueListenableBuilder<int>(
                 valueListenable: game.player.stats.gems,
                 builder: (context, gems, _) {
@@ -112,7 +108,6 @@ class ReviveDialog extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Normal Death Button (Improved Visibility)
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -122,8 +117,8 @@ class ReviveDialog extends StatelessWidget {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
-                        Colors.grey.shade800, // Dark grey background
-                    foregroundColor: Colors.white, // White text
+                        Colors.grey.shade800,
+                    foregroundColor: Colors.white,
                     side: const BorderSide(color: Colors.white30),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),

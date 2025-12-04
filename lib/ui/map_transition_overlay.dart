@@ -1,4 +1,3 @@
-// lib/ui/map_transition_overlay.dart
 
 import 'package:flutter/material.dart';
 

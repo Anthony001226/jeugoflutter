@@ -1,4 +1,3 @@
-// lib/utils/damage_calculator.dart
 
 import 'dart:math';
 import 'package:renegade_dungeon/models/combat_ability.dart';
@@ -21,41 +20,33 @@ class DamageCalculator {
     required int attackerAtk,
     required int defenderDef,
     required double critChance,
-    dynamic attackerStats, // PlayerStats para chequear passives
+    dynamic attackerStats,
   }) {
-    // 1. Daño base de la habilidad
     int baseDamage = ability.effect.baseDamage;
 
-    // 2. Aplicar multiplicador
     double scaledDamage = baseDamage * ability.effect.damageMultiplier;
 
-    // 3. Añadir Attack del atacante
     int totalDamage = scaledDamage.round() + attackerAtk;
 
-    // 4. Restar defensa
     int damageAfterDefense = totalDamage - defenderDef;
 
-    // 5. Aplicar crítico (base 1.5x, puede aumentar con passive)
     bool isCrit = _random.nextDouble() < critChance;
     double critMultiplier = 1.5;
 
     if (isCrit) {
-      // Check for crit damage bonus passive
       if (attackerStats != null) {
         try {
           final critBonus =
               attackerStats.getPassiveValue(PassiveType.critDamageBonus);
           if (critBonus > 0) {
-            critMultiplier += critBonus / 100; // +50 → 1.5 becomes 2.0
+            critMultiplier += critBonus / 100;
           }
         } catch (e) {
-          // attackerStats doesn't have getPassiveValue
         }
       }
       damageAfterDefense = (damageAfterDefense * critMultiplier).round();
     }
 
-    // 6. Mínimo de daño: 1
     int finalDamage = max(1, damageAfterDefense);
 
     return finalDamage;

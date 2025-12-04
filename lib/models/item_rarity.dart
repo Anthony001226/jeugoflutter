@@ -1,4 +1,3 @@
-// lib/models/item_rarity.dart
 
 import 'package:flutter/material.dart';
 
@@ -16,9 +15,9 @@ class RarityConfig {
   final ItemRarity rarity;
   final String displayName;
   final Color color;
-  final double dropWeight; // Peso relativo para drop (mayor = más común)
-  final int minLevel; // Nivel mínimo del jugador para que dropee
-  final double valueMultiplier; // Multiplicador de valor base
+  final double dropWeight;
+  final int minLevel;
+  final double valueMultiplier;
 
   const RarityConfig({
     required this.rarity,
@@ -29,12 +28,11 @@ class RarityConfig {
     this.valueMultiplier = 1.0,
   });
 
-  // Configuraciones predefinidas
   static const common = RarityConfig(
     rarity: ItemRarity.common,
     displayName: 'Común',
-    color: Color(0xFFFFFFFF), // Blanco
-    dropWeight: 60.0, // 60% probabilidad base
+    color: Color(0xFFFFFFFF),
+    dropWeight: 60.0,
     minLevel: 1,
     valueMultiplier: 1.0,
   );
@@ -42,8 +40,8 @@ class RarityConfig {
   static const uncommon = RarityConfig(
     rarity: ItemRarity.uncommon,
     displayName: 'Poco Común',
-    color: Color(0xFF1EFF00), // Verde brillante
-    dropWeight: 25.0, // 25% probabilidad base
+    color: Color(0xFF1EFF00),
+    dropWeight: 25.0,
     minLevel: 2,
     valueMultiplier: 2.0,
   );
@@ -51,8 +49,8 @@ class RarityConfig {
   static const rare = RarityConfig(
     rarity: ItemRarity.rare,
     displayName: 'Raro',
-    color: Color(0xFF0070DD), // Azul
-    dropWeight: 10.0, // 10% probabilidad base
+    color: Color(0xFF0070DD),
+    dropWeight: 10.0,
     minLevel: 5,
     valueMultiplier: 4.0,
   );
@@ -60,8 +58,8 @@ class RarityConfig {
   static const epic = RarityConfig(
     rarity: ItemRarity.epic,
     displayName: 'Épico',
-    color: Color(0xFFA335EE), // Morado
-    dropWeight: 4.0, // 4% probabilidad base
+    color: Color(0xFFA335EE),
+    dropWeight: 4.0,
     minLevel: 8,
     valueMultiplier: 8.0,
   );
@@ -69,8 +67,8 @@ class RarityConfig {
   static const legendary = RarityConfig(
     rarity: ItemRarity.legendary,
     displayName: 'Legendario',
-    color: Color(0xFFFF8000), // Dorado/Naranja
-    dropWeight: 1.0, // 1% probabilidad base
+    color: Color(0xFFFF8000),
+    dropWeight: 1.0,
     minLevel: 12,
     valueMultiplier: 15.0,
   );
@@ -95,7 +93,6 @@ class RarityConfig {
   static double calculateDropChance(ItemRarity rarity, int playerLevel) {
     final config = getConfig(rarity);
 
-    // No puede dropear si el jugador no tiene nivel suficiente
     if (playerLevel < config.minLevel) {
       return 0.0;
     }
@@ -106,22 +103,22 @@ class RarityConfig {
 
 /// Tipos de efectos pasivos únicos
 enum PassiveType {
-  lifeSteal, // Robo de vida al atacar
-  thorns, // Refleja daño al ser atacado
-  critDamageBonus, // Bonus a daño crítico
-  critChanceBonus, // Bonus a probabilidad crítica
-  ultChargeOnHit, // Gana carga de ultimate al atacar
-  ultChargeOnKill, // Gana carga de ultimate al matar
-  mpRegen, // Regeneración de MP por turno
-  hpRegen, // Regeneración de HP por turno
-  damageReduction, // Reducción de daño recibido
-  dodgeChance, // Probabilidad de evadir
-  counterattack, // Probabilidad de contraatacar
-  poisonOnHit, // Aplica veneno al atacar
-  burnOnHit, // Aplica quemadura al atacar
-  stunChance, // Probabilidad de aturdir
-  firstStrike, // Siempre ataca primero
-  doubleHit, // Probabilidad de atacar dos veces
+  lifeSteal,
+  thorns,
+  critDamageBonus,
+  critChanceBonus,
+  ultChargeOnHit,
+  ultChargeOnKill,
+  mpRegen,
+  hpRegen,
+  damageReduction,
+  dodgeChance,
+  counterattack,
+  poisonOnHit,
+  burnOnHit,
+  stunChance,
+  firstStrike,
+  doubleHit,
 }
 
 /// Definición de un efecto pasivo único
@@ -130,7 +127,7 @@ class UniquePassive {
   final String name;
   final String description;
   final PassiveType type;
-  final double value; // Valor numérico del efecto (% o cantidad)
+  final double value;
 
   const UniquePassive({
     required this.id,
@@ -140,7 +137,6 @@ class UniquePassive {
     required this.value,
   });
 
-  // Efectos predefinidos
   static const lifeSteal10 = UniquePassive(
     id: 'life_steal_10',
     name: 'Robo de Vida I',

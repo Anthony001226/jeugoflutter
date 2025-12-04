@@ -6,7 +6,6 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 class IAPService {
   InAppPurchase? _iap;
 
-  // Product IDs - Must match Google Play Console
   static const String gemPack10 = 'gem_pack_10';
   static const String gemPack50 = 'gem_pack_50';
   static const String gemPack150 = 'gem_pack_150';
@@ -24,7 +23,6 @@ class IAPService {
 
   StreamSubscription<List<PurchaseDetails>>? _subscription;
 
-  // Callback to give gems to player
   final Function(int) onGemsPurchased;
 
   IAPService({required this.onGemsPurchased});
@@ -33,7 +31,6 @@ class IAPService {
   List<ProductDetails> get products => _products;
 
   Future<void> initialize() async {
-    // Check if platform is supported
     if (kIsWeb ||
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       _isAvailable = false;
@@ -71,7 +68,6 @@ class IAPService {
 
     _products = response.productDetails;
 
-    // Sort by price if possible, or by ID logic
     _products.sort((a, b) => a.rawPrice.compareTo(b.rawPrice));
   }
 
@@ -81,7 +77,6 @@ class IAPService {
     final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
 
     if (Platform.isAndroid) {
-      // Consumable (can be bought multiple times)
       _iap!.buyConsumable(purchaseParam: purchaseParam);
     } else {
       _iap!.buyConsumable(purchaseParam: purchaseParam);
@@ -91,7 +86,6 @@ class IAPService {
   void _onPurchaseUpdate(List<PurchaseDetails> purchaseDetailsList) {
     purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
       if (purchaseDetails.status == PurchaseStatus.pending) {
-        // Show pending UI if needed
       } else {
         if (purchaseDetails.status == PurchaseStatus.error) {
         } else if (purchaseDetails.status == PurchaseStatus.purchased ||
@@ -111,8 +105,6 @@ class IAPService {
   }
 
   Future<bool> _verifyPurchase(PurchaseDetails purchaseDetails) async {
-    // TODO: Verify on backend for real production apps
-    // For this school project, we assume it's valid if it comes from the store
     return true;
   }
 

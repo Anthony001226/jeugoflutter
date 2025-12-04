@@ -1,15 +1,13 @@
-// lib/models/inventory_item.dart
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 import 'package:renegade_dungeon/models/item_rarity.dart';
 
-// La definición base de cualquier objeto en el juego.
 class InventoryItem {
-  final String id; // Un identificador único, ej: 'potion_hp_small'
+  final String id;
   final String name;
   final String description;
-  final ItemRarity rarity; // ← NUEVO: Rareza del item
-  final int value; // ← NUEVO: Valor en gold
-  final int levelRequirement; // ← NUEVO: Nivel mínimo para usar
+  final ItemRarity rarity;
+  final int value;
+  final int levelRequirement;
   final void Function(RenegadeDungeonGame game) effect;
   final bool isUsable;
 
@@ -17,10 +15,9 @@ class InventoryItem {
     required this.id,
     required this.name,
     required this.description,
-    this.rarity = ItemRarity.common, // Por defecto común
+    this.rarity = ItemRarity.common,
     this.value = 10,
     this.levelRequirement = 1,
-    // El efecto por defecto no hace nada.
     this.effect = _doNothing,
     this.isUsable = false,
   });
@@ -31,7 +28,6 @@ class InventoryItem {
 enum EquipmentSlot {
   weapon,
   armor,
-  // En el futuro, podríamos añadir: relic, ring, etc.
 }
 
 class EquipmentItem extends InventoryItem {
@@ -39,7 +35,7 @@ class EquipmentItem extends InventoryItem {
   final int attackBonus;
   final int defenseBonus;
   final int speedBonus;
-  final List<UniquePassive> uniquePassives; // ← NUEVO: Efectos pasivos únicos
+  final List<UniquePassive> uniquePassives;
 
   const EquipmentItem({
     required super.id,
@@ -49,13 +45,13 @@ class EquipmentItem extends InventoryItem {
     this.attackBonus = 0,
     this.defenseBonus = 0,
     this.speedBonus = 0,
-    this.uniquePassives = const [], // Por defecto sin pasivos
+    this.uniquePassives = const [],
     super.rarity = ItemRarity.common,
     super.value = 10,
     super.levelRequirement = 1,
   }) : super(
             isUsable:
-                false); // Un objeto de equipo no es "usable" como una poción.
+                false);
 
   /// Helper para verificar si tiene un pasivo específico
   bool hasPassive(PassiveType type) {
@@ -73,11 +69,8 @@ class EquipmentItem extends InventoryItem {
 }
 
 void _doNothing(RenegadeDungeonGame game) {
-  // No hace nada
 }
 
-// Una clase para representar un "slot" o espacio en el inventario.
-// Guarda el objeto y la cantidad que tenemos de él.
 class InventorySlot {
   final InventoryItem item;
   int quantity;
@@ -85,11 +78,8 @@ class InventorySlot {
   InventorySlot({required this.item, this.quantity = 1});
 }
 
-// --- Definiciones de Objetos Específicos ---
-// Aquí es donde crearías todos los objetos de tu juego.
 
 class ItemDatabase {
-  // ==================== CONSUMABLES ====================
 
   static final InventoryItem potion = InventoryItem(
     id: 'potion_hp_small',
@@ -136,7 +126,6 @@ class ItemDatabase {
     value: 5,
   );
 
-  // ==================== COMMON WEAPONS ====================
 
   static final EquipmentItem rustySword = const EquipmentItem(
     id: 'sword_rusty',
@@ -169,7 +158,6 @@ class ItemDatabase {
     value: 20,
   );
 
-  // ==================== UNCOMMON WEAPONS ====================
 
   static final EquipmentItem goblinScimitar = const EquipmentItem(
     id: 'weapon_goblin_scimitar',
@@ -201,13 +189,12 @@ class ItemDatabase {
     description: 'Un arma pesada que golpea con fuerza brutal.',
     slot: EquipmentSlot.weapon,
     attackBonus: 8,
-    speedBonus: -1, // Más lenta
+    speedBonus: -1,
     rarity: ItemRarity.uncommon,
     value: 70,
     levelRequirement: 4,
   );
 
-  // ==================== RARE WEAPONS ====================
 
   static final EquipmentItem vampiricBlade = const EquipmentItem(
     id: 'sword_vampiric',
@@ -247,7 +234,6 @@ class ItemDatabase {
     uniquePassives: [UniquePassive.firstStrike],
   );
 
-  // ==================== EPIC WEAPONS ====================
 
   static final EquipmentItem reapersScythe = const EquipmentItem(
     id: 'weapon_scythe_reaper',
@@ -266,7 +252,6 @@ class ItemDatabase {
     ],
   );
 
-  // ==================== LEGENDARY WEAPONS ====================
 
   static final EquipmentItem bladeOfEternity = const EquipmentItem(
     id: 'sword_eternal',
@@ -288,7 +273,6 @@ class ItemDatabase {
     ],
   );
 
-  // ==================== COMMON ARMOR ====================
 
   static final EquipmentItem leatherTunic = const EquipmentItem(
     id: 'tunic_leather',
@@ -311,7 +295,6 @@ class ItemDatabase {
     value: 15,
   );
 
-  // ==================== UNCOMMON ARMOR ====================
 
   static final EquipmentItem chainmail = const EquipmentItem(
     id: 'armor_chainmail',
@@ -337,7 +320,6 @@ class ItemDatabase {
     levelRequirement: 2,
   );
 
-  // ==================== RARE ARMOR ====================
 
   static final EquipmentItem thornmail = const EquipmentItem(
     id: 'armor_thornmail',
@@ -363,7 +345,6 @@ class ItemDatabase {
     levelRequirement: 8,
   );
 
-  // NEW: Regen armor balanceado (Raro)
   static const hpRegen15 = UniquePassive(
     id: 'hp_regen_15',
     name: 'Regeneración Menor',
@@ -385,9 +366,7 @@ class ItemDatabase {
     uniquePassives: [hpRegen15],
   );
 
-  // ==================== EPIC ARMOR ====================
 
-  // NEW: Regen armor balanceado (Épico)
   static const hpRegen2 = UniquePassive(
     id: 'hp_regen_2',
     name: 'Regeneración',
@@ -418,7 +397,6 @@ class ItemDatabase {
     uniquePassives: [hpRegen2, mpRegen3],
   );
 
-  // ==================== EPIC ARMOR ====================
 
   static final EquipmentItem etherealPlate = const EquipmentItem(
     id: 'armor_ethereal',
@@ -437,9 +415,7 @@ class ItemDatabase {
     ],
   );
 
-  // ==================== LEGENDARY ARMOR ====================
 
-  // ==================== LEGENDARY ARMOR ====================
 
   static final EquipmentItem armorOfTheAncients = const EquipmentItem(
     id: 'armor_ancient',
@@ -459,7 +435,6 @@ class ItemDatabase {
     ],
   );
 
-  // --- REGISTRY FOR LOOKUP ---
   static final List<InventoryItem> allItems = [
     potion,
     potionMedium,
