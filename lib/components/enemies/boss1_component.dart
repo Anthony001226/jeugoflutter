@@ -1,4 +1,3 @@
-
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:renegade_dungeon/models/combat_stats.dart';
@@ -78,7 +77,6 @@ class Boss1Component extends SpriteAnimationComponent
     _animations['idle1'] = await asepriteData.getAllFramesAnimation(image);
   }
 
-  /// Cambia la animación actual
   void playAnimation(String animationKey) {
     if (_animations.containsKey(animationKey)) {
       _currentAnimationKey = animationKey;
@@ -86,7 +84,6 @@ class Boss1Component extends SpriteAnimationComponent
     }
   }
 
-  /// Obtiene la animación actual
   String get currentAnimation => _currentAnimationKey;
 
   @override
@@ -100,7 +97,6 @@ class AsepriteData {
   final Map<String, dynamic> _json;
   AsepriteData.fromJson(this._json);
 
-  /// Carga una animación específica basada en un frameTag
   Future<SpriteAnimation> getAnimation(String tag, image) async {
     final frameData = _json['frames'] as Map<String, dynamic>;
     final meta = _json['meta'];
@@ -132,7 +128,6 @@ class AsepriteData {
     return SpriteAnimation.fromFrameData(image, animationData);
   }
 
-  /// Carga todos los frames como una sola animación (para cuando no hay frameTags)
   Future<SpriteAnimation> getAllFramesAnimation(image) async {
     final frameData = _json['frames'] as Map<String, dynamic>;
     final frameKeys = frameData.keys.toList();

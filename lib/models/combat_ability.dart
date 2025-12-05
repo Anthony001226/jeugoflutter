@@ -1,4 +1,3 @@
-
 enum AbilityType {
   basic,
   strong,
@@ -14,7 +13,6 @@ enum TargetType {
   allAllies,
 }
 
-/// Types of status effects that can be applied in combat
 enum StatusEffectType {
   attackBuff,
   defenseBuff,
@@ -28,7 +26,6 @@ enum StatusEffectType {
   stun,
 }
 
-/// Represents a temporary status effect in combat
 class StatusEffect {
   final StatusEffectType type;
   final String name;
@@ -46,17 +43,14 @@ class StatusEffect {
     this.isPercentage = true,
   }) : remainingTurns = duration;
 
-  /// Decrements the duration by 1 turn
   void tick() {
     if (remainingTurns > 0) {
       remainingTurns--;
     }
   }
 
-  /// Whether the effect has expired
   bool get isExpired => remainingTurns <= 0;
 
-  /// Create a copy of this effect (for applying to multiple targets)
   StatusEffect copy() {
     return StatusEffect(
       type: type,

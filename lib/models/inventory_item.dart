@@ -49,16 +49,12 @@ class EquipmentItem extends InventoryItem {
     super.rarity = ItemRarity.common,
     super.value = 10,
     super.levelRequirement = 1,
-  }) : super(
-            isUsable:
-                false);
+  }) : super(isUsable: false);
 
-  /// Helper para verificar si tiene un pasivo específico
   bool hasPassive(PassiveType type) {
     return uniquePassives.any((p) => p.type == type);
   }
 
-  /// Obtener valor de un pasivo específico
   double? getPassiveValue(PassiveType type) {
     try {
       return uniquePassives.firstWhere((p) => p.type == type).value;
@@ -68,8 +64,7 @@ class EquipmentItem extends InventoryItem {
   }
 }
 
-void _doNothing(RenegadeDungeonGame game) {
-}
+void _doNothing(RenegadeDungeonGame game) {}
 
 class InventorySlot {
   final InventoryItem item;
@@ -78,9 +73,7 @@ class InventorySlot {
   InventorySlot({required this.item, this.quantity = 1});
 }
 
-
 class ItemDatabase {
-
   static final InventoryItem potion = InventoryItem(
     id: 'potion_hp_small',
     name: 'Poción Pequeña',
@@ -126,7 +119,6 @@ class ItemDatabase {
     value: 5,
   );
 
-
   static final EquipmentItem rustySword = const EquipmentItem(
     id: 'sword_rusty',
     name: 'Espada Oxidada',
@@ -157,7 +149,6 @@ class ItemDatabase {
     rarity: ItemRarity.common,
     value: 20,
   );
-
 
   static final EquipmentItem goblinScimitar = const EquipmentItem(
     id: 'weapon_goblin_scimitar',
@@ -194,7 +185,6 @@ class ItemDatabase {
     value: 70,
     levelRequirement: 4,
   );
-
 
   static final EquipmentItem vampiricBlade = const EquipmentItem(
     id: 'sword_vampiric',
@@ -234,7 +224,6 @@ class ItemDatabase {
     uniquePassives: [UniquePassive.firstStrike],
   );
 
-
   static final EquipmentItem reapersScythe = const EquipmentItem(
     id: 'weapon_scythe_reaper',
     name: 'Guadaña del Segador',
@@ -251,7 +240,6 @@ class ItemDatabase {
       UniquePassive.ultOnKill30,
     ],
   );
-
 
   static final EquipmentItem bladeOfEternity = const EquipmentItem(
     id: 'sword_eternal',
@@ -273,7 +261,6 @@ class ItemDatabase {
     ],
   );
 
-
   static final EquipmentItem leatherTunic = const EquipmentItem(
     id: 'tunic_leather',
     name: 'Túnica de Cuero',
@@ -294,7 +281,6 @@ class ItemDatabase {
     rarity: ItemRarity.common,
     value: 15,
   );
-
 
   static final EquipmentItem chainmail = const EquipmentItem(
     id: 'armor_chainmail',
@@ -319,7 +305,6 @@ class ItemDatabase {
     value: 70,
     levelRequirement: 2,
   );
-
 
   static final EquipmentItem thornmail = const EquipmentItem(
     id: 'armor_thornmail',
@@ -366,7 +351,6 @@ class ItemDatabase {
     uniquePassives: [hpRegen15],
   );
 
-
   static const hpRegen2 = UniquePassive(
     id: 'hp_regen_2',
     name: 'Regeneración',
@@ -397,7 +381,6 @@ class ItemDatabase {
     uniquePassives: [hpRegen2, mpRegen3],
   );
 
-
   static final EquipmentItem etherealPlate = const EquipmentItem(
     id: 'armor_ethereal',
     name: 'Placa Etérea',
@@ -414,8 +397,6 @@ class ItemDatabase {
       UniquePassive.hpRegen3,
     ],
   );
-
-
 
   static final EquipmentItem armorOfTheAncients = const EquipmentItem(
     id: 'armor_ancient',

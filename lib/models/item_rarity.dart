@@ -1,7 +1,5 @@
-
 import 'package:flutter/material.dart';
 
-/// Enum que define los niveles de rareza de items
 enum ItemRarity {
   common,
   uncommon,
@@ -10,7 +8,6 @@ enum ItemRarity {
   legendary,
 }
 
-/// Configuración de cada nivel de rareza
 class RarityConfig {
   final ItemRarity rarity;
   final String displayName;
@@ -73,7 +70,6 @@ class RarityConfig {
     valueMultiplier: 15.0,
   );
 
-  /// Obtener config por rareza
   static RarityConfig getConfig(ItemRarity rarity) {
     switch (rarity) {
       case ItemRarity.common:
@@ -89,7 +85,6 @@ class RarityConfig {
     }
   }
 
-  /// Calcular drop chance ajustado por nivel del jugador
   static double calculateDropChance(ItemRarity rarity, int playerLevel) {
     final config = getConfig(rarity);
 
@@ -101,7 +96,6 @@ class RarityConfig {
   }
 }
 
-/// Tipos de efectos pasivos únicos
 enum PassiveType {
   lifeSteal,
   thorns,
@@ -121,7 +115,6 @@ enum PassiveType {
   doubleHit,
 }
 
-/// Definición de un efecto pasivo único
 class UniquePassive {
   final String id;
   final String name;

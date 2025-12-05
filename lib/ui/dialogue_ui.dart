@@ -1,10 +1,8 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 import 'package:renegade_dungeon/models/npc.dart';
 
-/// Overlay UI for displaying NPC dialogues
 class DialogueUI extends StatelessWidget {
   final RenegadeDungeonGame game;
 
@@ -87,7 +85,6 @@ class DialogueUI extends StatelessWidget {
                 const SizedBox(height: 16),
                 const Divider(color: Colors.grey),
                 const SizedBox(height: 16),
-
                 Text(
                   npc.dialogue,
                   style: const TextStyle(
@@ -97,7 +94,6 @@ class DialogueUI extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -125,7 +121,6 @@ class DialogueUI extends StatelessWidget {
     );
   }
 
-  /// Get color for NPC type
   Color _getNPCTypeColor(NPCType type) {
     switch (type) {
       case NPCType.vendor:
@@ -139,7 +134,6 @@ class DialogueUI extends StatelessWidget {
     }
   }
 
-  /// Get icon for NPC type
   IconData _getNPCTypeIcon(NPCType type) {
     switch (type) {
       case NPCType.vendor:
@@ -153,7 +147,6 @@ class DialogueUI extends StatelessWidget {
     }
   }
 
-  /// Get label text for NPC type
   String _getNPCTypeLabel(NPCType type) {
     switch (type) {
       case NPCType.vendor:

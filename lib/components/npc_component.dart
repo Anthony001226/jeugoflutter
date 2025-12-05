@@ -1,10 +1,8 @@
-
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 import 'package:renegade_dungeon/models/npc.dart';
 
-/// Visual component for NPCs in the game world
 class NPCComponent extends SpriteComponent
     with HasGameReference<RenegadeDungeonGame> {
   final NPC npc;
@@ -76,7 +74,6 @@ class NPCComponent extends SpriteComponent
     }
   }
 
-  /// Check if player can interact with this NPC right now
   bool canInteract() {
     if (!game.isPlayerReady) return false;
     final playerPos = game.player.gridPosition;

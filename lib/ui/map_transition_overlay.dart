@@ -1,7 +1,5 @@
-
 import 'package:flutter/material.dart';
 
-/// Overlay que muestra pantalla negra durante transición de mapas
 class MapTransitionOverlay extends StatelessWidget {
   const MapTransitionOverlay({super.key});
 

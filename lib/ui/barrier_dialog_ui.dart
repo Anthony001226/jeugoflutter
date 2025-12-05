@@ -1,9 +1,7 @@
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 
-/// RPG-style barrier notification at bottom - auto-closes after 3 seconds
 class BarrierDialogUI extends StatefulWidget {
   final RenegadeDungeonGame game;
   final String message;
@@ -90,9 +88,7 @@ class _BarrierDialogUIState extends State<BarrierDialogUI> {
                     : const Color(0xFF88AA88),
                 size: 28,
               ),
-
               const SizedBox(width: 12),
-
               Flexible(
                 child: Text(
                   widget.message,
@@ -108,9 +104,7 @@ class _BarrierDialogUIState extends State<BarrierDialogUI> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-
               const SizedBox(width: 12),
-
               const Icon(
                 Icons.timer,
                 color: Color(0xFF888888),

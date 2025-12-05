@@ -1,8 +1,6 @@
-
 import 'package:flame/game.dart';
 import 'package:renegade_dungeon/models/item_rarity.dart';
 
-/// Nivel de peligrosidad de una zona
 enum DangerLevel {
   safe,
   low,
@@ -10,7 +8,6 @@ enum DangerLevel {
   high,
 }
 
-/// Datos de un portal para transición de mapas
 class PortalData {
   final Vector2 gridPosition;
   final Vector2 size;
@@ -28,7 +25,6 @@ class PortalData {
     this.transitionDuration = 2000,
   }) : size = size ?? Vector2(1, 1);
 
-  /// Check if a grid position is within this portal zone
   bool contains(Vector2 gridPos) {
     const buffer = 1.0;
     return gridPos.x >= gridPosition.x - buffer &&
@@ -43,7 +39,6 @@ class PortalData {
   }
 }
 
-/// Propiedades de una zona de spawn
 class ZoneProperties {
   final String name;
   final List<String> enemyTypes;

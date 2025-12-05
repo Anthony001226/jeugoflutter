@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
 
@@ -23,7 +22,6 @@ class MapTabView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-
           Text(
             'Dimensiones: ${game.mapComponent.tileMap.map.width} x ${game.mapComponent.tileMap.map.height}',
             style: const TextStyle(
@@ -32,7 +30,6 @@ class MapTabView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-
           Text(
             'Posición del jugador: (${game.player.gridPosition.x.toInt()}, ${game.player.gridPosition.y.toInt()})',
             style: const TextStyle(
@@ -40,9 +37,7 @@ class MapTabView extends StatelessWidget {
               fontSize: 14,
             ),
           ),
-
           const SizedBox(height: 24),
-
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -59,9 +54,7 @@ class MapTabView extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 16),
-
           _buildLegend(),
         ],
       ),
@@ -114,7 +107,6 @@ class MapTabView extends StatelessWidget {
   }
 }
 
-/// Custom painter que dibuja un minimapa del nivel actual
 class MinimapPainter extends CustomPainter {
   final RenegadeDungeonGame game;
 

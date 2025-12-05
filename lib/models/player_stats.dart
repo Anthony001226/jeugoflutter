@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:renegade_dungeon/models/inventory_item.dart';
 import 'package:renegade_dungeon/components/player.dart';
@@ -42,16 +41,10 @@ class PlayerStats {
   late final ValueNotifier<int> currentXp;
   late final ValueNotifier<int> xpToNextLevel;
 
-  /// List of boss IDs that have been defeated
   final Set<String> defeatedBosses = {};
-
-  /// List of quest IDs that have been completed (future use)
   final Set<String> completedQuests = {};
 
-  /// Gold/money - lost 50% on normal death
   final ValueNotifier<int> gold = ValueNotifier(0);
-
-  /// Gems - used for revival (5 gems to revive and keep all gold)
   final ValueNotifier<int> gems = ValueNotifier(0);
 
   PlayerStats({
@@ -123,7 +116,6 @@ class PlayerStats {
     currentMp.value = maxMp.value;
 
     _syncCombatStats();
-
   }
 
   void takeDamage(int amount) {
@@ -152,7 +144,6 @@ class PlayerStats {
     equippedItems.value = newMap;
 
     _syncCombatStats();
-
   }
 
   void loadEquipment(Map<EquipmentSlot, EquipmentItem> equipment) {
@@ -175,11 +166,8 @@ class PlayerStats {
     player.addItem(itemToReturn);
 
     _syncCombatStats();
-
   }
 
-
-  /// Get all active unique passives from equipped items
   List<UniquePassive> getActivePassives() {
     final passives = <UniquePassive>[];
     for (var item in equippedItems.value.values) {
@@ -188,37 +176,28 @@ class PlayerStats {
     return passives;
   }
 
-  /// Check if player has a specific passive type
   bool hasPassive(PassiveType type) {
     return getActivePassives().any((p) => p.type == type);
   }
 
-  /// Get total value for a passive type (stacks if multiple)
   double getPassiveValue(PassiveType type) {
     return getActivePassives()
         .where((p) => p.type == type)
         .fold(0.0, (sum, p) => sum + p.value);
   }
 
-
-  /// Mark a boss as defeated
   void defeatBoss(String bossId) {
-    if (defeatedBosses.add(bossId)) {
-    }
+    if (defeatedBosses.add(bossId)) {}
   }
 
-  /// Check if a boss has been defeated
   bool hasBossBeenDefeated(String bossId) {
     return defeatedBosses.contains(bossId);
   }
 
-  /// Mark a quest as completed (future use)
   void completeQuest(String questId) {
-    if (completedQuests.add(questId)) {
-    }
+    if (completedQuests.add(questId)) {}
   }
 
-  /// Check if a quest has been completed
   bool hasQuestBeenCompleted(String questId) {
     return completedQuests.contains(questId);
   }

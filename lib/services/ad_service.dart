@@ -11,7 +11,6 @@ class AdService {
   static const String _iosInterstitialAdUnitId =
       'ca-app-pub-3940256099942544/4411468910';
 
-  /// Initialize the Google Mobile Ads SDK
   Future<void> initialize() async {
     if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
       return;
@@ -21,11 +20,9 @@ class AdService {
       await MobileAds.instance.initialize();
 
       _loadInterstitialAd();
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
-  /// Load an interstitial ad
   void _loadInterstitialAd() {
     if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
       return;
@@ -45,8 +42,7 @@ class AdService {
 
           _interstitialAd!.fullScreenContentCallback =
               FullScreenContentCallback(
-            onAdShowedFullScreenContent: (ad) {
-            },
+            onAdShowedFullScreenContent: (ad) {},
             onAdDismissedFullScreenContent: (ad) {
               ad.dispose();
               _interstitialAd = null;
@@ -75,8 +71,6 @@ class AdService {
     );
   }
 
-  /// Show interstitial ad (e.g., on player death)
-  /// Returns a Future that completes when the ad is closed or fails
   Future<void> showInterstitial() async {
     if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
       return;
@@ -98,13 +92,11 @@ class AdService {
     }
   }
 
-  /// Clean up when service is disposed
   void dispose() {
     _interstitialAd?.dispose();
     _interstitialAd = null;
     _isInterstitialReady = false;
   }
 
-  /// Check if an ad is ready to show
   bool get isAdReady => _isInterstitialReady;
 }

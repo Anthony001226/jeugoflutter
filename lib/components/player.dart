@@ -1,4 +1,3 @@
-
 import 'dart:math';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -45,7 +44,6 @@ class Player extends SpriteComponent
 
   @override
   Future<void> onLoad() async {
-
     spriteUp = await game.loadSprite('characters/player_w.png');
     spriteDown = await game.loadSprite('characters/player_s.png');
     spriteLeft = await game.loadSprite('characters/player_a.png');
@@ -56,7 +54,6 @@ class Player extends SpriteComponent
     position = game.gridToScreenPosition(gridPosition);
     positionNotifier.value = gridPosition;
     priority = 10;
-
 
     final hitboxSize = Vector2(10, 10);
     add(RectangleHitbox(
@@ -82,7 +79,6 @@ class Player extends SpriteComponent
       if (Random().nextDouble() < 0.20) {
         final gemsFound = Random().nextInt(3) + 1;
         stats.gems.value += gemsFound;
-
       }
 
       final chestId =
@@ -146,7 +142,6 @@ class Player extends SpriteComponent
     }
   }
 
-  /// Update player sprite based on movement direction
   void _updateSpriteDirection(Vector2 direction) {
     if (direction.y < 0) {
       sprite = spriteUp;

@@ -1,10 +1,8 @@
-
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:renegade_dungeon/models/enemy_stats.dart';
 import 'package:renegade_dungeon/models/combat_stats_holder.dart';
 
-/// HP bar displayed above an enemy showing current/max HP
 class EnemyHPBar extends PositionComponent {
   final SpriteAnimationComponent enemy;
   late final TextComponent _hpText;

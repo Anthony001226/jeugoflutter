@@ -1,13 +1,10 @@
-
 import 'dart:math';
 import 'package:renegade_dungeon/models/inventory_item.dart';
 import 'package:renegade_dungeon/models/item_rarity.dart';
 
-/// Maneja la generación de loot con sistema de raridades
 class LootManager {
   final Random _random = Random();
 
-  /// Genera un item basado en el nivel del jugador y rareza máxima permitida
   InventoryItem? generateLoot({
     required int playerLevel,
     ItemRarity maxRarity = ItemRarity.rare,
@@ -41,7 +38,6 @@ class LootManager {
     return eligibleItems.first;
   }
 
-  /// Genera múltiples items (para cofres o boss kills)
   List<InventoryItem> generateMultipleLoot({
     required int playerLevel,
     required int quantity,
@@ -62,7 +58,6 @@ class LootManager {
     return items;
   }
 
-  /// Genera loot específico de enemigo con garantía de al menos 1 item
   InventoryItem? generateEnemyLoot({
     required String enemyType,
     required int playerLevel,
@@ -75,7 +70,6 @@ class LootManager {
     );
   }
 
-  /// Pool de loot específico por tipo de enemigo
   List<InventoryItem> _getEnemyLootPool(String enemyType) {
     switch (enemyType.toLowerCase()) {
       case 'slime':
@@ -118,7 +112,6 @@ class LootManager {
     }
   }
 
-  /// Rareza maxima que puede dropear cada tipo de enemigo
   ItemRarity _getEnemyMaxRarity(String enemyType) {
     switch (enemyType.toLowerCase()) {
       case 'slime':
@@ -134,47 +127,35 @@ class LootManager {
     }
   }
 
-  /// Obtener todos los items del juego (para uso general)
   List<InventoryItem> _getAllItems() {
     return [
       ItemDatabase.potion,
       ItemDatabase.potionMedium,
       ItemDatabase.potionLarge,
-
       ItemDatabase.rustySword,
       ItemDatabase.woodenClub,
       ItemDatabase.huntingBow,
-
       ItemDatabase.goblinScimitar,
       ItemDatabase.steelSword,
       ItemDatabase.battleAxe,
-
       ItemDatabase.vampiricBlade,
       ItemDatabase.flameTongue,
       ItemDatabase.shadowDagger,
-
       ItemDatabase.reapersScythe,
-
       ItemDatabase.bladeOfEternity,
-
       ItemDatabase.leatherTunic,
       ItemDatabase.clothRobe,
-
       ItemDatabase.chainmail,
       ItemDatabase.studledLeather,
-
       ItemDatabase.thornmail,
       ItemDatabase.dragonscale,
       ItemDatabase.monkRobes,
-
       ItemDatabase.etherealPlate,
       ItemDatabase.archmageVestments,
-
       ItemDatabase.armorOfTheAncients,
     ];
   }
 
-  /// Para bosses - garantiza al menos 1 item raro+
   InventoryItem generateBossLoot({
     required int playerLevel,
     required String bossName,

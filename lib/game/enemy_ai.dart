@@ -1,4 +1,3 @@
-
 import 'dart:math';
 import 'package:renegade_dungeon/models/combat_ability.dart';
 import 'package:renegade_dungeon/models/combat_stats.dart';
@@ -6,7 +5,6 @@ import 'package:renegade_dungeon/models/combat_stats.dart';
 class EnemyAI {
   static final Random _random = Random();
 
-  /// Elige la mejor habilidad para el enemigo según su estado actual
   static CombatAbility chooseAbility({
     required List<CombatAbility> abilities,
     required CombatStats stats,
@@ -59,7 +57,6 @@ class EnemyAI {
     return chosenAbility;
   }
 
-  /// Elige un objetivo para la habilidad (para futuro party system)
   static int chooseTarget({
     required CombatAbility ability,
     required int numberOfTargets,

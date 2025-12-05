@@ -1,8 +1,6 @@
-
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
-/// Visual indicator showing which enemy is currently targeted
 class EnemyTargetIndicator extends PositionComponent {
   final SpriteAnimationComponent enemy;
 
@@ -27,7 +25,6 @@ class EnemyTargetIndicator extends PositionComponent {
   }
 }
 
-/// Simple arrow pointing down
 class _ArrowComponent extends PositionComponent {
   _ArrowComponent() : super(size: Vector2(40, 40), anchor: Anchor.center);
 

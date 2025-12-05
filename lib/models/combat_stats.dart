@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'combat_ability.dart';
 
@@ -39,14 +38,11 @@ class CombatStats {
         defense = ValueNotifier(initialDefense),
         critChance = ValueNotifier(initialCritChance);
 
-
-  /// Apply a status effect to this entity
   void applyEffect(StatusEffect effect) {
     activeEffects.add(effect.copy());
     effectsVersion.value++;
   }
 
-  /// Process effects at the start of this entity's turn
   void tickEffects() {
     if (activeEffects.isEmpty) return;
 
@@ -71,7 +67,6 @@ class CombatStats {
     }
   }
 
-  /// Apply per-turn effects (poison, regeneration, etc.)
   void _applyEffectTick(StatusEffect effect) {
     switch (effect.type) {
       case StatusEffectType.poison:
@@ -94,7 +89,6 @@ class CombatStats {
     }
   }
 
-  /// Clear all active effects
   void clearEffects() {
     if (activeEffects.isNotEmpty) {
       activeEffects.clear();
@@ -102,13 +96,10 @@ class CombatStats {
     }
   }
 
-  /// Check if a specific effect type is active
   bool hasEffect(StatusEffectType type) {
     return activeEffects.any((e) => e.type == type);
   }
 
-
-  /// Get effective attack including buffs/debuffs
   int get effectiveAttack {
     double modifier = 1.0;
     int flatBonus = 0;
@@ -132,7 +123,6 @@ class CombatStats {
     return ((attack.value * modifier) + flatBonus).round().clamp(1, 9999);
   }
 
-  /// Get effective defense including buffs/debuffs
   int get effectiveDefense {
     double modifier = 1.0;
     int flatBonus = 0;
@@ -156,7 +146,6 @@ class CombatStats {
     return ((defense.value * modifier) + flatBonus).round().clamp(0, 9999);
   }
 
-  /// Get effective speed including buffs/debuffs
   int get effectiveSpeed {
     double modifier = 1.0;
     int flatBonus = 0;
@@ -179,7 +168,6 @@ class CombatStats {
 
     return ((speed.value * modifier) + flatBonus).round().clamp(1, 9999);
   }
-
 
   void takeDamage(int amount) {
     final damageDealt = (amount - effectiveDefense).clamp(1, 999);

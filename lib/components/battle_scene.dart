@@ -1,4 +1,3 @@
-
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:renegade_dungeon/game/renegade_dungeon_game.dart';
@@ -67,7 +66,6 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
     }
   }
 
-  /// Remove visual components of a defeated enemy
   void removeEnemy(int index) {
     if (index >= 0 && index < _enemyWrappers.length) {
       final wrapper = _enemyWrappers[index];
@@ -160,7 +158,6 @@ class BattleScene extends Component with HasGameReference<RenegadeDungeonGame> {
   }
 }
 
-/// Wrapper component that makes an enemy clickable
 class _ClickableEnemy extends PositionComponent with TapCallbacks {
   final SpriteAnimationComponent enemy;
   int enemyIndex;
